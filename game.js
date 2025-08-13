@@ -267,12 +267,29 @@ class Game {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
         
+        // Validate canvas dimensions
+        if (isNaN(this.canvas.width) || isNaN(this.canvas.height) || 
+            this.canvas.width <= 0 || this.canvas.height <= 0) {
+            console.error('Invalid canvas dimensions, using fallback values');
+            this.canvas.width = 800;
+            this.canvas.height = 600;
+        }
+        
         console.log('Canvas setup - Width:', this.canvas.width, 'Height:', this.canvas.height);
         
         // Handle resize
         window.addEventListener('resize', () => {
             this.canvas.width = window.innerWidth;
             this.canvas.height = window.innerHeight;
+            
+            // Validate resized dimensions
+            if (isNaN(this.canvas.width) || isNaN(this.canvas.height) || 
+                this.canvas.width <= 0 || this.canvas.height <= 0) {
+                console.error('Invalid resized canvas dimensions, using fallback values');
+                this.canvas.width = 800;
+                this.canvas.height = 600;
+            }
+            
             console.log('Canvas resized - Width:', this.canvas.width, 'Height:', this.canvas.height);
         });
     }
@@ -319,8 +336,10 @@ class Game {
 
     addInitialObstacles() {
         // Safety check for canvas width
-        if (!this.canvas || !this.canvas.width || isNaN(this.canvas.width)) {
+        if (!this.canvas || !this.canvas.width || isNaN(this.canvas.width) || this.canvas.width <= 0) {
             console.error('Invalid canvas width in addInitialObstacles:', this.canvas?.width);
+            // Retry after a short delay if canvas isn't ready
+            setTimeout(() => this.addInitialObstacles(), 100);
             return;
         }
         
@@ -335,7 +354,7 @@ class Game {
             };
             
             // Safety check for obstacle position
-            if (!isNaN(obstacle.x) && !isNaN(obstacle.y)) {
+            if (!isNaN(obstacle.x) && !isNaN(obstacle.y) && isFinite(obstacle.x) && isFinite(obstacle.y)) {
                 this.obstacles.push(obstacle);
                 console.log(`Initial obstacle ${i + 1}:`, obstacle);
             } else {
@@ -414,6 +433,15 @@ class Game {
     }
 
     updateObstacles(deltaTime) {
+        // Clean up invalid obstacles first
+        this.obstacles = this.obstacles.filter(obstacle => 
+            obstacle && 
+            !isNaN(obstacle.x) && !isNaN(obstacle.y) && 
+            isFinite(obstacle.x) && isFinite(obstacle.y) &&
+            !isNaN(obstacle.width) && !isNaN(obstacle.height) &&
+            isFinite(obstacle.width) && isFinite(obstacle.height)
+        );
+        
         for (let i = this.obstacles.length - 1; i >= 0; i--) {
             const obstacle = this.obstacles[i];
             // Use a fallback speed if gameManager.gameSpeed is NaN
@@ -448,7 +476,7 @@ class Game {
         const minSpawnDistance = 300; // Minimum distance between obstacles
         
         // Safety check for canvas width
-        if (!this.canvas || !this.canvas.width || isNaN(this.canvas.width)) {
+        if (!this.canvas || !this.canvas.width || isNaN(this.canvas.width) || this.canvas.width <= 0) {
             console.error('Invalid canvas width:', this.canvas?.width);
             return;
         }
@@ -465,7 +493,7 @@ class Game {
             };
             
             // Safety check for obstacle position
-            if (!isNaN(obstacle.x) && !isNaN(obstacle.y)) {
+            if (!isNaN(obstacle.x) && !isNaN(obstacle.y) && isFinite(obstacle.x) && isFinite(obstacle.y)) {
                 this.obstacles.push(obstacle);
                 
                 // Debug logging
@@ -596,15 +624,31 @@ class Game {
         }
         
         this.obstacles.forEach((obstacle, index) => {
+            // Validate obstacle position before drawing
+            if (!obstacle || isNaN(obstacle.x) || isNaN(obstacle.y) || 
+                !isFinite(obstacle.x) || !isFinite(obstacle.y) ||
+                isNaN(obstacle.width) || isNaN(obstacle.height) ||
+                !isFinite(obstacle.width) || !isFinite(obstacle.height)) {
+                console.error('Invalid obstacle data, skipping draw:', obstacle);
+                return; // Skip this obstacle
+            }
+            
             // Draw shadow first
             this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             this.ctx.fillRect(obstacle.x + 3, obstacle.y + 3, obstacle.width, obstacle.height);
             
-            // Main obstacle body with gradient
-            const gradient = this.ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height);
-            gradient.addColorStop(0, '#FF4444');
-            gradient.addColorStop(1, '#CC0000');
-            this.ctx.fillStyle = gradient;
+            // Main obstacle body with gradient - only create gradient if positions are valid
+            try {
+                const gradient = this.ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height);
+                gradient.addColorStop(0, '#FF4444');
+                gradient.addColorStop(1, '#CC0000');
+                this.ctx.fillStyle = gradient;
+            } catch (error) {
+                console.error('Error creating gradient for obstacle:', obstacle, error);
+                // Fallback to solid color
+                this.ctx.fillStyle = '#FF4444';
+            }
+            
             this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             
             // Obstacle outline
