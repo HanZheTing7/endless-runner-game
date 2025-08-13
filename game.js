@@ -309,6 +309,9 @@ class Game {
             { width: 60, height: 30, y: this.ground.y - 30 }  // Low obstacle
         ];
 
+        // Add initial obstacles
+        this.addInitialObstacles();
+
         // Background elements
         this.backgrounds = [
             { x: 0, y: 0, width: this.canvas.width, height: this.canvas.height, speed: 0.5 },
@@ -320,6 +323,21 @@ class Game {
         this.jumpPower = -15;
         this.slideDuration = 500;
         this.slideStartTime = 0;
+    }
+
+    addInitialObstacles() {
+        // Add 2-3 initial obstacles to start the game
+        for (let i = 0; i < 3; i++) {
+            const obstacleType = this.obstacleTypes[Math.floor(Math.random() * this.obstacleTypes.length)];
+            const obstacle = {
+                x: this.canvas.width + (i * 400) + 200, // Space them out
+                y: obstacleType.y,
+                width: obstacleType.width,
+                height: obstacleType.height
+            };
+            this.obstacles.push(obstacle);
+        }
+        console.log('Initial obstacles added:', this.obstacles.length);
     }
 
     start() {
@@ -364,6 +382,11 @@ class Game {
         
         // Update game manager
         this.gameManager.updateDistance(this.gameManager.distance + this.gameManager.gameSpeed * (deltaTime / 1000));
+        
+        // Debug logging every 60 frames (about once per second)
+        if (Math.random() < 0.016) { // 1/60 chance
+            console.log('Game state - Obstacles:', this.obstacles.length, 'Speed:', this.gameManager.gameSpeed);
+        }
     }
 
     updatePlayer(deltaTime) {
@@ -395,10 +418,16 @@ class Game {
             const obstacle = this.obstacles[i];
             obstacle.x -= this.gameManager.gameSpeed;
             
-            // Remove obstacles that are off screen
-            if (obstacle.x + obstacle.width < 0) {
+            // Debug logging for obstacle positions
+            if (i === 0) { // Log first obstacle position
+                console.log('First obstacle x:', obstacle.x, 'Canvas width:', this.canvas.width);
+            }
+            
+            // Remove obstacles that are completely off screen (with some buffer)
+            if (obstacle.x + obstacle.width < -50) {
                 this.obstacles.splice(i, 1);
                 this.gameManager.updateScore(10); // Bonus points for avoiding
+                console.log('Obstacle removed, remaining:', this.obstacles.length);
             }
         }
     }
@@ -413,18 +442,25 @@ class Game {
     }
 
     spawnObstacles() {
+        // Spawn obstacles more frequently and reliably
+        const minSpawnDistance = 300; // Minimum distance between obstacles
+        
         if (this.obstacles.length === 0 || 
-            this.obstacles[this.obstacles.length - 1].x < this.canvas.width - 300) {
+            this.obstacles[this.obstacles.length - 1].x < this.canvas.width - minSpawnDistance) {
             
             const obstacleType = this.obstacleTypes[Math.floor(Math.random() * this.obstacleTypes.length)];
             const obstacle = {
-                x: this.canvas.width,
+                x: this.canvas.width + 50, // Spawn slightly off-screen to the right
                 y: obstacleType.y,
                 width: obstacleType.width,
                 height: obstacleType.height
             };
             
             this.obstacles.push(obstacle);
+            
+            // Debug logging
+            console.log('Obstacle spawned:', obstacle);
+            console.log('Total obstacles:', this.obstacles.length);
         }
     }
 
@@ -515,12 +551,21 @@ class Game {
 
     drawObstacles() {
         this.ctx.fillStyle = '#FF4444';
-        this.obstacles.forEach(obstacle => {
+        // Only log every 60 frames to avoid spam
+        if (Math.random() < 0.016) {
+            console.log('Drawing obstacles, count:', this.obstacles.length);
+        }
+        this.obstacles.forEach((obstacle, index) => {
             this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             
             // Obstacle outline
             this.ctx.strokeStyle = '#CC0000';
             this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            
+            // Debug: draw obstacle bounds
+            this.ctx.strokeStyle = '#00FF00';
+            this.ctx.lineWidth = 1;
             this.ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
         });
     }

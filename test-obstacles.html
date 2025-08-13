@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obstacle Test</title>
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+        canvas { border: 2px solid #333; display: block; margin: 20px auto; }
+        .controls { text-align: center; margin: 20px; }
+        button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 20px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Obstacle Test</h1>
+    <div class="controls">
+        <button onclick="startGame()">Start Game</button>
+        <button onclick="stopGame()">Stop Game</button>
+        <button onclick="addObstacle()">Add Obstacle</button>
+    </div>
+    
+    <canvas id="testCanvas" width="800" height="400"></canvas>
+    
+    <div class="debug">
+        <h3>Debug Info:</h3>
+        <div id="debugInfo"></div>
+    </div>
+
+    <script>
+        // Simple obstacle test without Firebase
+        class ObstacleTest {
+            constructor() {
+                this.canvas = document.getElementById('testCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.obstacles = [];
+                this.gameRunning = false;
+                this.animationId = null;
+                this.gameSpeed = 3;
+                
+                this.init();
+            }
+            
+            init() {
+                // Add some initial obstacles
+                this.addObstacle(800, 300, 30, 60);
+                this.addObstacle(1200, 330, 60, 30);
+                this.addObstacle(1600, 300, 30, 60);
+                
+                this.updateDebugInfo();
+            }
+            
+            addObstacle(x, y, width, height) {
+                this.obstacles.push({ x, y, width, height });
+                console.log('Obstacle added:', { x, y, width, height });
+                this.updateDebugInfo();
+            }
+            
+            start() {
+                this.gameRunning = true;
+                this.gameLoop();
+            }
+            
+            stop() {
+                this.gameRunning = false;
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+            }
+            
+            gameLoop() {
+                if (!this.gameRunning) return;
+                
+                this.update();
+                this.render();
+                
+                this.animationId = requestAnimationFrame(() => this.gameLoop());
+            }
+            
+            update() {
+                // Move obstacles left
+                for (let i = this.obstacles.length - 1; i >= 0; i--) {
+                    const obstacle = this.obstacles[i];
+                    obstacle.x -= this.gameSpeed;
+                    
+                    // Remove obstacles that are off screen
+                    if (obstacle.x + obstacle.width < -50) {
+                        this.obstacles.splice(i, 1);
+                        console.log('Obstacle removed, remaining:', this.obstacles.length);
+                    }
+                }
+                
+                // Spawn new obstacles
+                if (this.obstacles.length === 0 || 
+                    this.obstacles[this.obstacles.length - 1].x < this.canvas.width - 300) {
+                    
+                    const types = [
+                        { width: 30, height: 60, y: 300 },
+                        { width: 60, height: 30, y: 330 }
+                    ];
+                    
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    this.addObstacle(this.canvas.width + 50, type.y, type.width, type.height);
+                }
+                
+                this.updateDebugInfo();
+            }
+            
+            render() {
+                // Clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw ground
+                this.ctx.fillStyle = '#8B4513';
+                this.ctx.fillRect(0, 360, this.canvas.width, 40);
+                
+                // Draw obstacles
+                this.ctx.fillStyle = '#FF4444';
+                this.obstacles.forEach(obstacle => {
+                    this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                    
+                    // Outline
+                    this.ctx.strokeStyle = '#CC0000';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                });
+                
+                // Draw player (static)
+                this.ctx.fillStyle = '#4CAF50';
+                this.ctx.fillRect(100, 300, 40, 60);
+            }
+            
+            updateDebugInfo() {
+                const debugDiv = document.getElementById('debugInfo');
+                debugDiv.innerHTML = `
+                    <p>Obstacles: ${this.obstacles.length}</p>
+                    <p>Game Speed: ${this.gameSpeed}</p>
+                    <p>Game Running: ${this.gameRunning}</p>
+                    <p>Obstacle Positions: ${this.obstacles.map(o => `(${Math.round(o.x)}, ${o.y})`).join(', ')}</p>
+                `;
+            }
+        }
+        
+        let game = new ObstacleTest();
+        
+        function startGame() {
+            game.start();
+        }
+        
+        function stopGame() {
+            game.stop();
+        }
+        
+        function addObstacle() {
+            game.addObstacle(game.canvas.width + 50, 300, 30, 60);
+        }
+    </script>
+</body>
+</html>
