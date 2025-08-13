@@ -1,15 +1,15 @@
 // Firebase Configuration
 // Replace with your own Firebase project configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyBXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    authDomain: "your-project.firebaseapp.com",
-    databaseURL: "https://your-project-default-rtdb.firebaseio.com",
-    projectId: "your-project",
-    storageBucket: "your-project.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdefghijklmnop"
-};
-
+    apiKey: "AIzaSyCENbPTYWm_I09550EK21hWWopj2Qiz5mA",
+    authDomain: "endless-runner-b434b.firebaseapp.com",
+    databaseURL: "https://endless-runner-b434b-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "endless-runner-b434b",
+    storageBucket: "endless-runner-b434b.firebasestorage.app",
+    messagingSenderId: "571144626978",
+    appId: "1:571144626978:web:6bd82089c9a0071a95fb7b",
+    measurementId: "G-GVMPGT05ZJ"
+  };
 // Check if Firebase is properly configured
 let database = null;
 let FirebaseHelper = null;
