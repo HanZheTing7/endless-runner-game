@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Endless Runner</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Start Screen -->
+    <div id="startScreen" class="screen active">
+        <div class="container">
+            <h1 class="title">ENDLESS RUNNER</h1>
+            <div class="username-section">
+                <label for="username">Enter Username:</label>
+                <input type="text" id="username" placeholder="Enter unique username" maxlength="20">
+                <div id="usernameError" class="error-message"></div>
+            </div>
+            <button id="startButton" class="btn btn-primary">START GAME</button>
+            <div class="instructions">
+                <p><strong>Controls:</strong></p>
+                <p>• Tap/Click to Jump</p>
+                <p>• Double tap/Click to Slide</p>
+                <p>• Avoid obstacles and run as far as possible!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <div class="game-header">
+            <div class="score">Score: <span id="currentScore">0</span></div>
+            <div class="distance">Distance: <span id="currentDistance">0</span>m</div>
+        </div>
+        
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="game-controls">
+            <button id="jumpBtn" class="control-btn">JUMP</button>
+            <button id="slideBtn" class="control-btn">SLIDE</button>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" class="screen">
+        <div class="container">
+            <h2>GAME OVER</h2>
+            <div class="final-score">
+                <p>Final Score: <span id="finalScore">0</span></p>
+                <p>Distance: <span id="finalDistance">0</span>m</p>
+                <p>Your Rank: <span id="playerRank">-</span></p>
+            </div>
+            
+            <div class="leaderboard-section">
+                <h3>TOP 10 LEADERBOARD</h3>
+                <div id="leaderboard" class="leaderboard"></div>
+            </div>
+            
+            <div class="game-over-buttons">
+                <button id="restartButton" class="btn btn-primary">PLAY AGAIN</button>
+                <button id="mainMenuButton" class="btn btn-secondary">MAIN MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="screen">
+        <div class="container">
+            <div class="spinner"></div>
+            <p>Loading Game...</p>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    
+    <!-- Game Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
