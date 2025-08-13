@@ -34,10 +34,6 @@ class GameManager {
             this.game.jump();
         });
 
-        document.getElementById('slideBtn').addEventListener('click', () => {
-            this.game.slide();
-        });
-
         // Game over screen buttons
         document.getElementById('restartButton').addEventListener('click', () => {
             this.restartGame();
@@ -55,11 +51,6 @@ class GameManager {
                     case 'ArrowUp':
                         e.preventDefault();
                         this.game.jump();
-                        break;
-                    case 'ArrowDown':
-                    case 'ShiftLeft':
-                        e.preventDefault();
-                        this.game.slide();
                         break;
                 }
             }
@@ -86,9 +77,6 @@ class GameManager {
                 if (touchDuration < 200 && touchDistance < 50) {
                     // Quick tap - jump
                     this.game.jump();
-                } else if (touchDuration > 200 && touchDistance > 50) {
-                    // Long swipe - slide
-                    this.game.slide();
                 }
             }
         });
@@ -290,10 +278,7 @@ class Game {
             width: 40,
             height: 60,
             velocityY: 0,
-            isJumping: false,
-            isSliding: false,
-            slideHeight: 30,
-            normalHeight: 60
+            isJumping: false
         };
 
         // Ground
@@ -321,8 +306,6 @@ class Game {
         // Game physics
         this.gravity = 0.8;
         this.jumpPower = -15;
-        this.slideDuration = 500;
-        this.slideStartTime = 0;
     }
 
     addInitialObstacles() {
@@ -402,15 +385,6 @@ class Game {
                 this.player.velocityY = 0;
             }
         }
-
-        // Handle sliding
-        if (this.player.isSliding) {
-            const slideElapsed = Date.now() - this.slideStartTime;
-            if (slideElapsed > this.slideDuration) {
-                this.player.isSliding = false;
-                this.player.height = this.player.normalHeight;
-            }
-        }
     }
 
     updateObstacles(deltaTime) {
@@ -487,17 +461,9 @@ class Game {
     }
 
     jump() {
-        if (!this.player.isJumping && !this.player.isSliding) {
+        if (!this.player.isJumping) {
             this.player.isJumping = true;
             this.player.velocityY = this.jumpPower;
-        }
-    }
-
-    slide() {
-        if (!this.player.isJumping && !this.player.isSliding) {
-            this.player.isSliding = true;
-            this.player.height = this.player.slideHeight;
-            this.slideStartTime = Date.now();
         }
     }
 
