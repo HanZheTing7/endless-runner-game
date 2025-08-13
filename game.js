@@ -127,7 +127,7 @@ class GameManager {
         this.gameRunning = true;
         this.score = 0;
         this.distance = 0;
-        this.gameSpeed = 5;
+        this.gameSpeed = 5; // Ensure this is a valid number
 
         // Initialize game
         this.game = new Game(this);
@@ -204,7 +204,7 @@ class GameManager {
         this.gameRunning = true;
         this.score = 0;
         this.distance = 0;
-        this.gameSpeed = 5;
+        this.gameSpeed = 5; // Ensure this is a valid number
         
         this.game = new Game(this);
         this.game.start();
@@ -238,9 +238,13 @@ class GameManager {
         this.distance = Math.floor(meters);
         document.getElementById('currentDistance').textContent = this.distance;
         
-        // Increase game speed over time
+        // Increase game speed over time with safety checks
         if (this.gameSpeed < this.maxSpeed) {
-            this.gameSpeed = 5 + (this.distance / 100) * 2;
+            const newSpeed = 5 + (this.distance / 100) * 2;
+            // Only update if the new speed is a valid number
+            if (!isNaN(newSpeed) && isFinite(newSpeed)) {
+                this.gameSpeed = newSpeed;
+            }
         }
     }
 }
@@ -314,6 +318,12 @@ class Game {
     }
 
     addInitialObstacles() {
+        // Safety check for canvas width
+        if (!this.canvas || !this.canvas.width || isNaN(this.canvas.width)) {
+            console.error('Invalid canvas width in addInitialObstacles:', this.canvas?.width);
+            return;
+        }
+        
         // Add 2-3 initial obstacles to start the game
         for (let i = 0; i < 3; i++) {
             const obstacleType = this.obstacleTypes[Math.floor(Math.random() * this.obstacleTypes.length)];
@@ -323,8 +333,14 @@ class Game {
                 width: obstacleType.width,
                 height: obstacleType.height
             };
-            this.obstacles.push(obstacle);
-            console.log(`Initial obstacle ${i + 1}:`, obstacle);
+            
+            // Safety check for obstacle position
+            if (!isNaN(obstacle.x) && !isNaN(obstacle.y)) {
+                this.obstacles.push(obstacle);
+                console.log(`Initial obstacle ${i + 1}:`, obstacle);
+            } else {
+                console.error(`Invalid initial obstacle ${i + 1}:`, obstacle);
+            }
         }
         console.log('Initial obstacles added:', this.obstacles.length);
         console.log('Canvas width:', this.canvas.width);
@@ -370,12 +386,15 @@ class Game {
         // Spawn new obstacles
         this.spawnObstacles();
         
-        // Update game manager
-        this.gameManager.updateDistance(this.gameManager.distance + this.gameManager.gameSpeed * (deltaTime / 1000));
+        // Update game manager with safety checks
+        if (this.gameManager && !isNaN(this.gameManager.gameSpeed)) {
+            this.gameManager.updateDistance(this.gameManager.distance + this.gameManager.gameSpeed * (deltaTime / 1000));
+        }
         
         // Debug logging every 60 frames (about once per second)
         if (Math.random() < 0.016) { // 1/60 chance
-            console.log('Game state - Obstacles:', this.obstacles.length, 'Speed:', this.gameManager.gameSpeed);
+            const currentSpeed = this.gameManager && !isNaN(this.gameManager.gameSpeed) ? this.gameManager.gameSpeed : 'NaN';
+            console.log('Game state - Obstacles:', this.obstacles.length, 'Speed:', currentSpeed);
         }
     }
 
@@ -397,11 +416,13 @@ class Game {
     updateObstacles(deltaTime) {
         for (let i = this.obstacles.length - 1; i >= 0; i--) {
             const obstacle = this.obstacles[i];
-            obstacle.x -= this.gameManager.gameSpeed;
+            // Use a fallback speed if gameManager.gameSpeed is NaN
+            const currentSpeed = this.gameManager && !isNaN(this.gameManager.gameSpeed) ? this.gameManager.gameSpeed : 5;
+            obstacle.x -= currentSpeed;
             
             // Debug logging for obstacle positions
             if (i === 0) { // Log first obstacle position
-                console.log('First obstacle x:', obstacle.x, 'Canvas width:', this.canvas.width);
+                console.log('First obstacle x:', obstacle.x, 'Canvas width:', this.canvas.width, 'Speed:', currentSpeed);
             }
             
             // Remove obstacles that are completely off screen (with some buffer)
@@ -426,6 +447,12 @@ class Game {
         // Spawn obstacles more frequently and reliably
         const minSpawnDistance = 300; // Minimum distance between obstacles
         
+        // Safety check for canvas width
+        if (!this.canvas || !this.canvas.width || isNaN(this.canvas.width)) {
+            console.error('Invalid canvas width:', this.canvas?.width);
+            return;
+        }
+        
         if (this.obstacles.length === 0 || 
             this.obstacles[this.obstacles.length - 1].x < this.canvas.width - minSpawnDistance) {
             
@@ -437,11 +464,16 @@ class Game {
                 height: obstacleType.height
             };
             
-            this.obstacles.push(obstacle);
-            
-            // Debug logging
-            console.log('Obstacle spawned:', obstacle);
-            console.log('Total obstacles:', this.obstacles.length);
+            // Safety check for obstacle position
+            if (!isNaN(obstacle.x) && !isNaN(obstacle.y)) {
+                this.obstacles.push(obstacle);
+                
+                // Debug logging
+                console.log('Obstacle spawned:', obstacle);
+                console.log('Total obstacles:', this.obstacles.length);
+            } else {
+                console.error('Invalid obstacle position:', obstacle);
+            }
         }
     }
 
