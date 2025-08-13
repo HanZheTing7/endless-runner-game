@@ -12,8 +12,8 @@ class SimpleGame {
         this.gameSpeed = 2;
         
         // Game objects
-        this.player = { x: 150, y: 450, width: 50, height: 80, velocityY: 0, isJumping: false }; // Adjusted for higher resolution
-        this.ground = { y: 530, height: 70 }; // Adjusted for higher resolution
+        this.player = { x: 150, y: 450, width: 50, height: 80, velocityY: 0, isJumping: false };
+        this.ground = { y: 530, height: 70 };
         this.obstacles = [];
         
         // Game physics
@@ -31,8 +31,8 @@ class SimpleGame {
     }
     
     setupCanvas() {
-        this.canvas.width = 1200; // Increased from 800 to 1200 for higher resolution
-        this.canvas.height = 600; // Increased from 400 to 600 for higher resolution
+        this.canvas.width = 1200;
+        this.canvas.height = 600;
         console.log('Canvas setup - Width:', this.canvas.width, 'Height:', this.canvas.height);
     }
     
@@ -48,10 +48,10 @@ class SimpleGame {
     createInitialObstacles() {
         // Create only 1 initial obstacle
         const obstacle = {
-            x: 900, // Adjusted for higher resolution
-            y: this.ground.y - 90, // Adjusted for higher resolution
-            width: 40, // Slightly larger for higher resolution
-            height: 90 // Adjusted for higher resolution
+            x: 900,
+            y: this.ground.y - 90,
+            width: 40,
+            height: 90
         };
         this.obstacles.push(obstacle);
         console.log('Initial obstacle created:', this.obstacles.length);
@@ -110,10 +110,10 @@ class SimpleGame {
         // Add new obstacles if needed
         if (this.obstacles.length < 1) {
             const newObstacle = {
-                x: this.canvas.width + 300, // Adjusted for higher resolution
-                y: this.ground.y - 90, // Adjusted for higher resolution
-                width: 40, // Slightly larger for higher resolution
-                height: 90 // Adjusted for higher resolution
+                x: this.canvas.width + 300,
+                y: this.ground.y - 90,
+                width: 40,
+                height: 90
             };
             this.obstacles.push(newObstacle);
         }
@@ -215,7 +215,7 @@ class SimpleGame {
             
             // Add obstacle number
             this.ctx.fillStyle = '#FFFFFF';
-            this.ctx.font = 'bold 30px Arial'; // Increased font size for higher resolution
+            this.ctx.font = 'bold 30px Arial';
             this.ctx.textAlign = 'center';
             this.ctx.fillText(`${index + 1}`, obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 10);
             this.ctx.fillStyle = '#FF4444';
@@ -227,7 +227,7 @@ class SimpleGame {
         
         // Draw debug info
         this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = '20px Arial'; // Increased font size for higher resolution
+        this.ctx.font = '20px Arial';
         this.ctx.textAlign = 'left';
         this.ctx.fillText(`Obstacles: ${this.obstacles.length}`, 20, 50);
         this.ctx.fillText(`Game Speed: ${this.gameSpeed}`, 20, 80);
@@ -241,11 +241,11 @@ class SimpleGame {
         
         // Draw jump height indicator
         this.ctx.strokeStyle = '#FFFF00';
-        this.ctx.lineWidth = 3; // Increased line width for higher resolution
-        this.ctx.setLineDash([8, 8]); // Increased dash size for higher resolution
+        this.ctx.lineWidth = 3;
+        this.ctx.setLineDash([8, 8]);
         this.ctx.beginPath();
         this.ctx.moveTo(this.player.x + this.player.width/2, this.player.y);
-        this.ctx.lineTo(this.player.x + this.player.width/2, this.player.y - 180); // Adjusted for higher resolution
+        this.ctx.lineTo(this.player.x + this.player.width/2, this.player.y - 180);
         this.ctx.stroke();
         this.ctx.setLineDash([]);
     }
