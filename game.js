@@ -12,8 +12,8 @@ class SimpleGame {
         this.gameSpeed = 2;
         
         // Game objects
-        this.player = { x: 100, y: 300, width: 40, height: 60, velocityY: 0, isJumping: false };
-        this.ground = { y: 360, height: 40 };
+        this.player = { x: 150, y: 450, width: 50, height: 80, velocityY: 0, isJumping: false }; // Adjusted for higher resolution
+        this.ground = { y: 530, height: 70 }; // Adjusted for higher resolution
         this.obstacles = [];
         
         // Game physics
@@ -31,8 +31,8 @@ class SimpleGame {
     }
     
     setupCanvas() {
-        this.canvas.width = 800;
-        this.canvas.height = 400;
+        this.canvas.width = 1200; // Increased from 800 to 1200 for higher resolution
+        this.canvas.height = 600; // Increased from 400 to 600 for higher resolution
         console.log('Canvas setup - Width:', this.canvas.width, 'Height:', this.canvas.height);
     }
     
@@ -48,10 +48,10 @@ class SimpleGame {
     createInitialObstacles() {
         // Create only 1 initial obstacle
         const obstacle = {
-            x: 600,
-            y: this.ground.y - 60,
-            width: 30,
-            height: 60
+            x: 900, // Adjusted for higher resolution
+            y: this.ground.y - 90, // Adjusted for higher resolution
+            width: 40, // Slightly larger for higher resolution
+            height: 90 // Adjusted for higher resolution
         };
         this.obstacles.push(obstacle);
         console.log('Initial obstacle created:', this.obstacles.length);
@@ -110,10 +110,10 @@ class SimpleGame {
         // Add new obstacles if needed
         if (this.obstacles.length < 1) {
             const newObstacle = {
-                x: this.canvas.width + 200,
-                y: this.ground.y - 60,
-                width: 30,
-                height: 60
+                x: this.canvas.width + 300, // Adjusted for higher resolution
+                y: this.ground.y - 90, // Adjusted for higher resolution
+                width: 40, // Slightly larger for higher resolution
+                height: 90 // Adjusted for higher resolution
             };
             this.obstacles.push(newObstacle);
         }
@@ -143,11 +143,57 @@ class SimpleGame {
     
     gameOver() {
         this.stop();
+        // Show game over screen with correct element IDs
+        document.getElementById('finalScore').textContent = this.score;
+        document.getElementById('finalDistance').textContent = Math.floor(this.distance);
+        
         // Show game over screen
-        document.getElementById('gameOverScore').textContent = this.score;
-        document.getElementById('gameOverDistance').textContent = Math.floor(this.distance);
         document.getElementById('gameOverScreen').classList.add('active');
         document.getElementById('gameScreen').classList.remove('active');
+        
+        // Load leaderboard
+        this.loadLeaderboard();
+    }
+    
+    loadLeaderboard() {
+        // Simple local leaderboard for now
+        const leaderboard = document.getElementById('leaderboard');
+        const scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
+        
+        // Add current score
+        scores.push({
+            username: window.gameManager.username,
+            score: this.score,
+            distance: Math.floor(this.distance),
+            timestamp: Date.now()
+        });
+        
+        // Sort by score (highest first)
+        scores.sort((a, b) => b.score - a.score);
+        
+        // Keep only top 10
+        scores.splice(10);
+        
+        // Save to localStorage
+        localStorage.setItem('endlessRunnerScores', JSON.stringify(scores));
+        
+        // Find player rank
+        const playerRank = scores.findIndex(score => 
+            score.username === window.gameManager.username && 
+            score.score === this.score
+        ) + 1;
+        
+        document.getElementById('playerRank').textContent = playerRank;
+        
+        // Display leaderboard
+        leaderboard.innerHTML = scores.map((score, index) => `
+            <div class="leaderboard-item ${score.username === window.gameManager.username ? 'current-player' : ''}">
+                <span class="rank">${index + 1}</span>
+                <span class="username">${score.username}</span>
+                <span class="score">${score.score}</span>
+                <span class="distance">${score.distance}m</span>
+            </div>
+        `).join('');
     }
     
     render() {
@@ -169,9 +215,9 @@ class SimpleGame {
             
             // Add obstacle number
             this.ctx.fillStyle = '#FFFFFF';
-            this.ctx.font = 'bold 20px Arial';
+            this.ctx.font = 'bold 30px Arial'; // Increased font size for higher resolution
             this.ctx.textAlign = 'center';
-            this.ctx.fillText(`${index + 1}`, obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 7);
+            this.ctx.fillText(`${index + 1}`, obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 10);
             this.ctx.fillStyle = '#FF4444';
         });
         
@@ -181,25 +227,25 @@ class SimpleGame {
         
         // Draw debug info
         this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = '16px Arial';
+        this.ctx.font = '20px Arial'; // Increased font size for higher resolution
         this.ctx.textAlign = 'left';
-        this.ctx.fillText(`Obstacles: ${this.obstacles.length}`, 10, 30);
-        this.ctx.fillText(`Game Speed: ${this.gameSpeed}`, 10, 50);
-        this.ctx.fillText(`Canvas: ${this.canvas.width}x${this.canvas.height}`, 10, 70);
-        this.ctx.fillText(`Jump Power: ${Math.abs(this.jumpPower)}`, 10, 110);
-        this.ctx.fillText(`Player Y: ${Math.round(this.player.y)}`, 10, 130);
+        this.ctx.fillText(`Obstacles: ${this.obstacles.length}`, 20, 50);
+        this.ctx.fillText(`Game Speed: ${this.gameSpeed}`, 20, 80);
+        this.ctx.fillText(`Canvas: ${this.canvas.width}x${this.canvas.height}`, 20, 110);
+        this.ctx.fillText(`Jump Power: ${Math.abs(this.jumpPower)}`, 20, 170);
+        this.ctx.fillText(`Player Y: ${Math.round(this.player.y)}`, 20, 200);
         
         if (this.obstacles.length > 0) {
-            this.ctx.fillText(`First obstacle at: (${Math.round(this.obstacles[0].x)}, ${Math.round(this.obstacles[0].y)})`, 10, 90);
+            this.ctx.fillText(`First obstacle at: (${Math.round(this.obstacles[0].x)}, ${Math.round(this.obstacles[0].y)})`, 20, 140);
         }
         
         // Draw jump height indicator
         this.ctx.strokeStyle = '#FFFF00';
-        this.ctx.lineWidth = 2;
-        this.ctx.setLineDash([5, 5]);
+        this.ctx.lineWidth = 3; // Increased line width for higher resolution
+        this.ctx.setLineDash([8, 8]); // Increased dash size for higher resolution
         this.ctx.beginPath();
         this.ctx.moveTo(this.player.x + this.player.width/2, this.player.y);
-        this.ctx.lineTo(this.player.x + this.player.width/2, this.player.y - 120);
+        this.ctx.lineTo(this.player.x + this.player.width/2, this.player.y - 180); // Adjusted for higher resolution
         this.ctx.stroke();
         this.ctx.setLineDash([]);
     }

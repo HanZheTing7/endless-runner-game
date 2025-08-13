@@ -177,9 +177,12 @@ body {
 
 #gameCanvas {
     width: 100%;
-    height: 100%;
+    max-width: 1200px; /* Match the new canvas width */
+    height: auto;
+    max-height: 600px; /* Match the new canvas height */
     background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 100%);
     display: block;
+    margin: 0 auto; /* Center the canvas */
 }
 
 .game-controls {
