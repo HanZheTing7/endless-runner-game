@@ -9,7 +9,7 @@ class SimpleGame {
         // Game state
         this.score = 0;
         this.distance = 0;
-        this.gameSpeed = 2; // Reduced from 3 to 2 for easier gameplay
+        this.gameSpeed = 2;
         
         // Game objects
         this.player = { x: 100, y: 300, width: 40, height: 60, velocityY: 0, isJumping: false };
@@ -18,7 +18,7 @@ class SimpleGame {
         
         // Game physics
         this.gravity = 0.8;
-        this.jumpPower = -16; // Reduced from -20 since obstacles are smaller
+        this.jumpPower = -16;
         
         this.init();
     }
@@ -49,9 +49,9 @@ class SimpleGame {
         // Create only 1 initial obstacle
         const obstacle = {
             x: 600,
-            y: this.ground.y - 60, // Reduced height from 80 to 60
-            width: 30, // Reduced width from 40 to 30
-            height: 60 // Reduced height from 80 to 60
+            y: this.ground.y - 60,
+            width: 30,
+            height: 60
         };
         this.obstacles.push(obstacle);
         console.log('Initial obstacle created:', this.obstacles.length);
@@ -108,12 +108,12 @@ class SimpleGame {
         this.obstacles = this.obstacles.filter(obstacle => obstacle.x + obstacle.width > -50);
         
         // Add new obstacles if needed
-        if (this.obstacles.length < 1) { // Only 1 obstacle at a time
+        if (this.obstacles.length < 1) {
             const newObstacle = {
-                x: this.canvas.width + 200, // Good distance from right edge
-                y: this.ground.y - 60, // Reduced height to match initial obstacle
-                width: 30, // Reduced width to match initial obstacle
-                height: 60 // Reduced height to match initial obstacle
+                x: this.canvas.width + 200,
+                y: this.ground.y - 60,
+                width: 30,
+                height: 60
             };
             this.obstacles.push(newObstacle);
         }
@@ -143,7 +143,7 @@ class SimpleGame {
     
     gameOver() {
         this.stop();
-        // Show game over screen instead of alert
+        // Show game over screen
         document.getElementById('gameOverScore').textContent = this.score;
         document.getElementById('gameOverDistance').textContent = Math.floor(this.distance);
         document.getElementById('gameOverScreen').classList.add('active');
@@ -199,9 +199,9 @@ class SimpleGame {
         this.ctx.setLineDash([5, 5]);
         this.ctx.beginPath();
         this.ctx.moveTo(this.player.x + this.player.width/2, this.player.y);
-        this.ctx.lineTo(this.player.x + this.player.width/2, this.player.y - 120); // Show jump height
+        this.ctx.lineTo(this.player.x + this.player.width/2, this.player.y - 120);
         this.ctx.stroke();
-        this.ctx.setLineDash([]); // Reset line dash
+        this.ctx.setLineDash([]);
     }
 }
 
@@ -319,6 +319,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Simulate loading time
     setTimeout(() => {
         const gameManager = new GameManager();
-        window.gameManager = gameManager; // Make it globally accessible for debugging
+        window.gameManager = gameManager;
     }, 1000);
 });
