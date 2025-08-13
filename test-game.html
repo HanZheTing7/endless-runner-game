@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Test - Obstacles</title>
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #333; color: white; }
+        canvas { border: 2px solid #fff; display: block; margin: 20px auto; background: #87CEEB; }
+        .controls { text-align: center; margin: 20px; }
+        button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+        .info { background: #222; padding: 20px; margin: 20px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Game Obstacle Test</h1>
+    <div class="controls">
+        <button onclick="startGame()">Start Game</button>
+        <button onclick="stopGame()">Stop Game</button>
+        <button onclick="addObstacle()">Add Obstacle</button>
+        <button onclick="clearObstacles()">Clear Obstacles</button>
+    </div>
+    
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    
+    <div class="info">
+        <h3>Instructions:</h3>
+        <p>• Click "Start Game" to begin the obstacle test</p>
+        <p>• Use Space or Arrow Up to jump</p>
+        <p>• Obstacles should appear as red rectangles moving from right to left</p>
+        <p>• Check the console for debug information</p>
+    </div>
+
+    <script>
+        // Simplified game test for obstacles
+        class GameTest {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.obstacles = [];
+                this.gameRunning = false;
+                this.animationId = null;
+                this.gameSpeed = 3;
+                this.player = { x: 100, y: 300, width: 40, height: 60, isJumping: false, velocityY: 0 };
+                this.ground = { y: 360, height: 40 };
+                
+                this.init();
+            }
+            
+            init() {
+                console.log('Initializing GameTest');
+                this.addInitialObstacles();
+                this.setupControls();
+            }
+            
+            addInitialObstacles() {
+                // Add some initial obstacles
+                this.obstacles = [
+                    { x: 600, y: 260, width: 50, height: 100 },
+                    { x: 900, y: 310, width: 100, height: 50 },
+                    { x: 1200, y: 260, width: 50, height: 100 }
+                ];
+                console.log('Initial obstacles added:', this.obstacles);
+            }
+            
+            setupControls() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space' || e.code === 'ArrowUp') {
+                        e.preventDefault();
+                        this.jump();
+                    }
+                });
+            }
+            
+            jump() {
+                if (!this.player.isJumping) {
+                    this.player.isJumping = true;
+                    this.player.velocityY = -15;
+                }
+            }
+            
+            startGame() {
+                this.gameRunning = true;
+                this.gameLoop();
+            }
+            
+            stopGame() {
+                this.gameRunning = false;
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+            }
+            
+            gameLoop() {
+                if (!this.gameRunning) return;
+                
+                this.update();
+                this.render();
+                
+                this.animationId = requestAnimationFrame(() => this.gameLoop());
+            }
+            
+            update() {
+                // Update player
+                if (this.player.isJumping) {
+                    this.player.velocityY += 0.8;
+                    this.player.y += this.player.velocityY;
+                    
+                    if (this.player.y >= this.ground.y - this.player.height) {
+                        this.player.y = this.ground.y - this.player.height;
+                        this.player.isJumping = false;
+                        this.player.velocityY = 0;
+                    }
+                }
+                
+                // Move obstacles left
+                this.obstacles.forEach(obstacle => {
+                    obstacle.x -= this.gameSpeed;
+                });
+                
+                // Remove obstacles that are off screen
+                this.obstacles = this.obstacles.filter(obstacle => obstacle.x + obstacle.width > -50);
+                
+                // Add new obstacles if needed
+                if (this.obstacles.length < 3) {
+                    this.addRandomObstacle();
+                }
+            }
+            
+            addRandomObstacle() {
+                const types = [
+                    { width: 50, height: 100, y: 260 },
+                    { width: 100, height: 50, y: 310 }
+                ];
+                
+                const type = types[Math.floor(Math.random() * types.length)];
+                const obstacle = {
+                    x: this.canvas.width + 50,
+                    y: type.y,
+                    width: type.width,
+                    height: type.height
+                };
+                
+                this.obstacles.push(obstacle);
+                console.log('New obstacle added:', obstacle);
+            }
+            
+            render() {
+                // Clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw sky
+                const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+                gradient.addColorStop(0, '#87CEEB');
+                gradient.addColorStop(1, '#98FB98');
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw ground
+                this.ctx.fillStyle = '#8B4513';
+                this.ctx.fillRect(0, this.ground.y, this.canvas.width, this.ground.height);
+                
+                // Draw obstacles
+                this.obstacles.forEach((obstacle, index) => {
+                    // Shadow
+                    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                    this.ctx.fillRect(obstacle.x + 3, obstacle.y + 3, obstacle.width, obstacle.height);
+                    
+                    // Main obstacle
+                    const gradient = this.ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height);
+                    gradient.addColorStop(0, '#FF4444');
+                    gradient.addColorStop(1, '#CC0000');
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                    
+                    // Outline
+                    this.ctx.strokeStyle = '#880000';
+                    this.ctx.lineWidth = 4;
+                    this.ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                    
+                    // Number
+                    this.ctx.fillStyle = '#FFFFFF';
+                    this.ctx.font = 'bold 20px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(`${index + 1}`, obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 7);
+                });
+                
+                // Draw player
+                this.ctx.fillStyle = '#4CAF50';
+                this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+                
+                // Debug info
+                this.ctx.fillStyle = '#FFFFFF';
+                this.ctx.font = '16px Arial';
+                this.ctx.textAlign = 'left';
+                this.ctx.fillText(`Obstacles: ${this.obstacles.length}`, 10, 30);
+                this.ctx.fillText(`Game Speed: ${this.gameSpeed}`, 10, 50);
+                this.ctx.fillText(`Player Y: ${Math.round(this.player.y)}`, 10, 70);
+            }
+        }
+        
+        let gameTest = new GameTest();
+        
+        function startGame() {
+            gameTest.startGame();
+        }
+        
+        function stopGame() {
+            gameTest.stopGame();
+        }
+        
+        function addObstacle() {
+            gameTest.addRandomObstacle();
+        }
+        
+        function clearObstacles() {
+            gameTest.obstacles = [];
+        }
+    </script>
+</body>
+</html>

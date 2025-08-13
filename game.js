@@ -263,10 +263,13 @@ class Game {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
         
+        console.log('Canvas setup - Width:', this.canvas.width, 'Height:', this.canvas.height);
+        
         // Handle resize
         window.addEventListener('resize', () => {
             this.canvas.width = window.innerWidth;
             this.canvas.height = window.innerHeight;
+            console.log('Canvas resized - Width:', this.canvas.width, 'Height:', this.canvas.height);
         });
     }
 
@@ -290,17 +293,19 @@ class Game {
         // Obstacles
         this.obstacles = [];
         this.obstacleTypes = [
-            { width: 30, height: 60, y: this.ground.y - 60 }, // High obstacle
-            { width: 60, height: 30, y: this.ground.y - 30 }  // Low obstacle
+            { width: 50, height: 100, y: this.ground.y - 100 }, // High obstacle
+            { width: 100, height: 50, y: this.ground.y - 50 }  // Low obstacle
         ];
 
         // Add initial obstacles
         this.addInitialObstacles();
 
-        // Background elements
+        // Background elements - increased speed for better movement
         this.backgrounds = [
-            { x: 0, y: 0, width: this.canvas.width, height: this.canvas.height, speed: 0.5 },
-            { x: 0, y: this.ground.y - 100, width: this.canvas.width, height: 100, speed: 1 }
+            { x: 0, y: 0, width: this.canvas.width, height: this.canvas.height, speed: 3 },
+            { x: 0, y: this.ground.y - 100, width: this.canvas.width, height: 100, speed: 4 },
+            { x: this.canvas.width, y: this.ground.y - 150, width: 200, height: 50, speed: 5 },
+            { x: this.canvas.width + 300, y: this.ground.y - 120, width: 150, height: 70, speed: 5 }
         ];
 
         // Game physics
@@ -313,14 +318,16 @@ class Game {
         for (let i = 0; i < 3; i++) {
             const obstacleType = this.obstacleTypes[Math.floor(Math.random() * this.obstacleTypes.length)];
             const obstacle = {
-                x: this.canvas.width + (i * 400) + 200, // Space them out
+                x: this.canvas.width + (i * 300) + 100, // Space them out but closer to screen
                 y: obstacleType.y,
                 width: obstacleType.width,
                 height: obstacleType.height
             };
             this.obstacles.push(obstacle);
+            console.log(`Initial obstacle ${i + 1}:`, obstacle);
         }
         console.log('Initial obstacles added:', this.obstacles.length);
+        console.log('Canvas width:', this.canvas.width);
     }
 
     start() {
@@ -482,6 +489,22 @@ class Game {
         
         // Draw player
         this.drawPlayer();
+        
+        // Debug info on screen
+        this.drawDebugInfo();
+    }
+
+    drawDebugInfo() {
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = '16px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText(`Obstacles: ${this.obstacles.length}`, 10, 30);
+        this.ctx.fillText(`Game Speed: ${this.gameManager.gameSpeed}`, 10, 50);
+        this.ctx.fillText(`Canvas: ${this.canvas.width}x${this.canvas.height}`, 10, 70);
+        
+        if (this.obstacles.length > 0) {
+            this.ctx.fillText(`First obstacle at: (${Math.round(this.obstacles[0].x)}, ${Math.round(this.obstacles[0].y)})`, 10, 90);
+        }
     }
 
     drawBackground() {
@@ -493,10 +516,24 @@ class Game {
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Draw background elements
-        this.backgrounds.forEach(bg => {
-            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        // Draw background elements with more visibility
+        this.backgrounds.forEach((bg, index) => {
+            if (index === 0) {
+                // Main background layer - subtle
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            } else {
+                // Additional background elements - more visible
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            }
             this.ctx.fillRect(bg.x, bg.y, bg.width, bg.height);
+            
+            // Add some cloud-like shapes for visual interest
+            if (index >= 2) {
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                this.ctx.beginPath();
+                this.ctx.arc(bg.x + bg.width/2, bg.y + bg.height/2, bg.height/3, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
         });
     }
 
@@ -516,23 +553,48 @@ class Game {
     }
 
     drawObstacles() {
-        this.ctx.fillStyle = '#FF4444';
         // Only log every 60 frames to avoid spam
         if (Math.random() < 0.016) {
             console.log('Drawing obstacles, count:', this.obstacles.length);
         }
+        
+        if (this.obstacles.length === 0) {
+            console.log('No obstacles to draw!');
+            return;
+        }
+        
         this.obstacles.forEach((obstacle, index) => {
+            // Draw shadow first
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            this.ctx.fillRect(obstacle.x + 3, obstacle.y + 3, obstacle.width, obstacle.height);
+            
+            // Main obstacle body with gradient
+            const gradient = this.ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height);
+            gradient.addColorStop(0, '#FF4444');
+            gradient.addColorStop(1, '#CC0000');
+            this.ctx.fillStyle = gradient;
             this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             
             // Obstacle outline
-            this.ctx.strokeStyle = '#CC0000';
-            this.ctx.lineWidth = 2;
+            this.ctx.strokeStyle = '#880000';
+            this.ctx.lineWidth = 4;
             this.ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             
-            // Debug: draw obstacle bounds
-            this.ctx.strokeStyle = '#00FF00';
-            this.ctx.lineWidth = 1;
-            this.ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            // Inner highlight
+            this.ctx.strokeStyle = '#FF6666';
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(obstacle.x + 2, obstacle.y + 2, obstacle.width - 4, obstacle.height - 4);
+            
+            // Add obstacle number for debugging
+            this.ctx.fillStyle = '#FFFFFF';
+            this.ctx.font = 'bold 20px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(`${index + 1}`, obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 7);
+            
+            // Add some texture/detail
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            this.ctx.fillRect(obstacle.x + 5, obstacle.y + 5, obstacle.width - 10, 3);
+            this.ctx.fillRect(obstacle.x + 5, obstacle.y + obstacle.height - 8, obstacle.width - 10, 3);
         });
     }
 
