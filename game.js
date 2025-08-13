@@ -311,15 +311,12 @@ class Game {
             height: 40
         };
 
-        // Obstacles
+        // Obstacles - start empty and add them after canvas validation
         this.obstacles = [];
         this.obstacleTypes = [
             { width: 50, height: 100, y: this.ground.y - 100 }, // High obstacle
             { width: 100, height: 50, y: this.ground.y - 50 }  // Low obstacle
         ];
-
-        // Add initial obstacles
-        this.addInitialObstacles();
 
         // Background elements - increased speed for better movement
         this.backgrounds = [
@@ -332,6 +329,11 @@ class Game {
         // Game physics
         this.gravity = 0.8;
         this.jumpPower = -15;
+        
+        // Delay obstacle creation to ensure canvas is ready
+        setTimeout(() => {
+            this.addInitialObstacles();
+        }, 200);
     }
 
     addInitialObstacles() {
@@ -366,6 +368,21 @@ class Game {
     }
 
     start() {
+        // Safety check - ensure canvas is properly initialized
+        if (!this.canvas || !this.ctx || 
+            isNaN(this.canvas.width) || isNaN(this.canvas.height) || 
+            this.canvas.width <= 0 || this.canvas.height <= 0) {
+            console.error('Canvas not ready, delaying game start');
+            setTimeout(() => this.start(), 100);
+            return;
+        }
+        
+        // Ensure obstacles are created
+        if (this.obstacles.length === 0) {
+            console.log('No obstacles found, creating them now');
+            this.addInitialObstacles();
+        }
+        
         this.lastTime = performance.now();
         this.gameLoop();
     }
@@ -379,6 +396,14 @@ class Game {
 
     gameLoop(currentTime) {
         if (!this.gameManager.gameRunning) return;
+        
+        // Safety check - ensure canvas is still valid
+        if (!this.canvas || !this.ctx || 
+            isNaN(this.canvas.width) || isNaN(this.canvas.height) || 
+            this.canvas.width <= 0 || this.canvas.height <= 0) {
+            console.error('Canvas became invalid, stopping game loop');
+            return;
+        }
 
         const deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
@@ -613,6 +638,14 @@ class Game {
     }
 
     drawObstacles() {
+        // Global safety check - validate canvas first
+        if (!this.canvas || !this.ctx || 
+            isNaN(this.canvas.width) || isNaN(this.canvas.height) || 
+            this.canvas.width <= 0 || this.canvas.height <= 0) {
+            console.error('Canvas not properly initialized, skipping obstacle draw');
+            return;
+        }
+        
         // Only log every 60 frames to avoid spam
         if (Math.random() < 0.016) {
             console.log('Drawing obstacles, count:', this.obstacles.length);
@@ -623,8 +656,28 @@ class Game {
             return;
         }
         
-        this.obstacles.forEach((obstacle, index) => {
-            // Validate obstacle position before drawing
+        // Pre-filter obstacles to remove any invalid ones
+        const validObstacles = this.obstacles.filter(obstacle => 
+            obstacle && 
+            !isNaN(obstacle.x) && !isNaN(obstacle.y) && 
+            isFinite(obstacle.x) && isFinite(obstacle.y) &&
+            !isNaN(obstacle.width) && !isNaN(obstacle.height) &&
+            isFinite(obstacle.width) && isFinite(obstacle.height)
+        );
+        
+        // Update the obstacles array to only contain valid ones
+        if (validObstacles.length !== this.obstacles.length) {
+            console.log(`Filtered obstacles: ${this.obstacles.length} -> ${validObstacles.length}`);
+            this.obstacles = validObstacles;
+        }
+        
+        if (validObstacles.length === 0) {
+            console.log('No valid obstacles to draw after filtering');
+            return;
+        }
+        
+        validObstacles.forEach((obstacle, index) => {
+            // Double-check validation before drawing
             if (!obstacle || isNaN(obstacle.x) || isNaN(obstacle.y) || 
                 !isFinite(obstacle.x) || !isFinite(obstacle.y) ||
                 isNaN(obstacle.width) || isNaN(obstacle.height) ||
