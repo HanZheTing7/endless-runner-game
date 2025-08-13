@@ -32,9 +32,31 @@ class SimpleGame {
             return;
         }
         
+        // Check if all required DOM elements are available
+        this.checkDOMElements();
+        
         this.setupCanvas();
         this.setupControls();
         this.createInitialObstacles();
+    }
+    
+    checkDOMElements() {
+        const requiredElements = [
+            'finalScore',
+            'finalDistance', 
+            'gameOverScreen',
+            'gameScreen',
+            'leaderboard',
+            'playerRank'
+        ];
+        
+        const missingElements = requiredElements.filter(id => !document.getElementById(id));
+        
+        if (missingElements.length > 0) {
+            console.warn('Missing DOM elements:', missingElements);
+        } else {
+            console.log('All required DOM elements found');
+        }
     }
     
     setupCanvas() {
@@ -72,6 +94,22 @@ class SimpleGame {
     }
     
     start() {
+        // Final check that game over elements exist
+        const gameOverElements = [
+            'finalScore',
+            'finalDistance',
+            'gameOverScreen',
+            'gameScreen'
+        ];
+        
+        const missingElements = gameOverElements.filter(id => !document.getElementById(id));
+        
+        if (missingElements.length > 0) {
+            console.error('Game over elements missing:', missingElements);
+            alert('Game cannot start properly. Please refresh the page.');
+            return;
+        }
+        
         this.gameRunning = true;
         this.gameLoop();
     }
@@ -158,6 +196,7 @@ class SimpleGame {
     
     gameOver() {
         this.stop();
+        console.log('Game Over triggered. Score:', this.score, 'Distance:', this.distance);
         
         // Check if elements exist before trying to access them
         const finalScoreElement = document.getElementById('finalScore');
@@ -165,24 +204,44 @@ class SimpleGame {
         const gameOverScreenElement = document.getElementById('gameOverScreen');
         const gameScreenElement = document.getElementById('gameScreen');
         
+        console.log('Elements found:', {
+            finalScore: !!finalScoreElement,
+            finalDistance: !!finalDistanceElement,
+            gameOverScreen: !!gameOverScreenElement,
+            gameScreen: !!gameScreenElement
+        });
+        
+        // Only try to update elements if they exist
         if (finalScoreElement) {
             finalScoreElement.textContent = this.score;
+        } else {
+            console.warn('finalScore element not found');
         }
         
         if (finalDistanceElement) {
             finalDistanceElement.textContent = Math.floor(this.distance);
+        } else {
+            console.warn('finalDistance element not found');
         }
         
         // Show game over screen
         if (gameOverScreenElement && gameScreenElement) {
-            gameOverScreenElement.classList.add('active');
-            gameScreenElement.classList.remove('active');
-            
-            // Load leaderboard after screen is shown
-            setTimeout(() => {
-                this.loadLeaderboard();
-            }, 100);
+            try {
+                gameOverScreenElement.classList.add('active');
+                gameScreenElement.classList.remove('active');
+                console.log('Game over screen shown successfully');
+                
+                // Load leaderboard after screen is shown
+                setTimeout(() => {
+                    this.loadLeaderboard();
+                }, 100);
+            } catch (error) {
+                console.error('Error showing game over screen:', error);
+                // Fallback to alert
+                alert(`Game Over! Score: ${this.score}, Distance: ${Math.floor(this.distance)}m`);
+            }
         } else {
+            console.warn('Game over screen elements not found, using fallback');
             // Fallback if elements don't exist
             alert(`Game Over! Score: ${this.score}, Distance: ${Math.floor(this.distance)}m`);
         }
@@ -369,6 +428,21 @@ class GameManager {
             return;
         }
         
+        // Check if all required game elements exist
+        const requiredGameElements = [
+            'gameCanvas',
+            'currentScore',
+            'currentDistance'
+        ];
+        
+        const missingElements = requiredGameElements.filter(id => !document.getElementById(id));
+        
+        if (missingElements.length > 0) {
+            console.error('Game elements missing:', missingElements);
+            alert('Game cannot start. Please refresh the page.');
+            return;
+        }
+        
         this.showScreen('game');
         this.gameRunning = true;
         
@@ -407,12 +481,39 @@ class GameManager {
 
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    // Show loading screen first
-    document.getElementById('loadingScreen').classList.add('active');
+    console.log('DOM Content Loaded');
     
-    // Simulate loading time
+    // Show loading screen first
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+        loadingScreen.classList.add('active');
+    }
+    
+    // Wait a bit more to ensure all elements are fully loaded
     setTimeout(() => {
+        console.log('Initializing GameManager');
+        
+        // Double-check that all required elements exist
+        const requiredElements = [
+            'startScreen',
+            'gameScreen', 
+            'gameOverScreen',
+            'finalScore',
+            'finalDistance',
+            'leaderboard',
+            'playerRank'
+        ];
+        
+        const missingElements = requiredElements.filter(id => !document.getElementById(id));
+        
+        if (missingElements.length > 0) {
+            console.error('Critical DOM elements missing:', missingElements);
+            alert('Game initialization failed. Please refresh the page.');
+            return;
+        }
+        
         const gameManager = new GameManager();
         window.gameManager = gameManager;
-    }, 1000);
+        console.log('GameManager initialized successfully');
+    }, 1500); // Increased from 1000 to 1500ms
 });
