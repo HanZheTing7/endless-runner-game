@@ -18,7 +18,7 @@ class SimpleGame {
         
         // Game physics
         this.gravity = 0.8;
-        this.jumpPower = -20; // Increased from -15 to -20 for higher jump
+        this.jumpPower = -16; // Reduced from -20 since obstacles are smaller
         
         this.init();
     }
@@ -46,17 +46,15 @@ class SimpleGame {
     }
     
     createInitialObstacles() {
-        // Create 2 initial obstacles (reduced from 3)
-        for (let i = 0; i < 2; i++) {
-            const obstacle = {
-                x: 600 + (i * 400), // Increased spacing from 300 to 400
-                y: this.ground.y - 80,
-                width: 40,
-                height: 80
-            };
-            this.obstacles.push(obstacle);
-        }
-        console.log('Initial obstacles created:', this.obstacles.length);
+        // Create only 1 initial obstacle
+        const obstacle = {
+            x: 600,
+            y: this.ground.y - 60, // Reduced height from 80 to 60
+            width: 30, // Reduced width from 40 to 30
+            height: 60 // Reduced height from 80 to 60
+        };
+        this.obstacles.push(obstacle);
+        console.log('Initial obstacle created:', this.obstacles.length);
     }
     
     jump() {
@@ -110,13 +108,12 @@ class SimpleGame {
         this.obstacles = this.obstacles.filter(obstacle => obstacle.x + obstacle.width > -50);
         
         // Add new obstacles if needed
-        if (this.obstacles.length < 2) { // Reduced from 3 to 2
-            const lastObstacle = this.obstacles[this.obstacles.length - 1];
+        if (this.obstacles.length < 1) { // Only 1 obstacle at a time
             const newObstacle = {
-                x: lastObstacle ? lastObstacle.x + 400 : this.canvas.width + 100, // Increased spacing to 400
-                y: this.ground.y - 80,
-                width: 40,
-                height: 80
+                x: this.canvas.width + 200, // Good distance from right edge
+                y: this.ground.y - 60, // Reduced height to match initial obstacle
+                width: 30, // Reduced width to match initial obstacle
+                height: 60 // Reduced height to match initial obstacle
             };
             this.obstacles.push(newObstacle);
         }
