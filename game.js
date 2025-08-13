@@ -78,9 +78,9 @@ class SimpleGame {
         // Create only 1 initial obstacle
         const obstacle = {
             x: 900,
-            y: this.ground.y - 90,
+            y: this.ground.y - 50, // Reduced height from 90 to 50
             width: 40,
-            height: 90
+            height: 50 // Reduced height from 90 to 50
         };
         this.obstacles.push(obstacle);
         console.log('Initial obstacle created:', this.obstacles.length);
@@ -156,9 +156,9 @@ class SimpleGame {
         if (this.obstacles.length < 1) {
             const newObstacle = {
                 x: this.canvas.width + 300,
-                y: this.ground.y - 90,
+                y: this.ground.y - 50, // Reduced height from 90 to 50
                 width: 40,
-                height: 90
+                height: 50 // Reduced height from 90 to 50
             };
             this.obstacles.push(newObstacle);
         }
@@ -260,14 +260,38 @@ class SimpleGame {
         // Simple local leaderboard for now
         const scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
         
-        // Add current score
+        // Get current username
         const username = window.gameManager ? window.gameManager.username : 'Player';
-        scores.push({
-            username: username,
-            score: this.score,
-            distance: Math.floor(this.distance),
-            timestamp: Date.now()
-        });
+        
+        // Check if player already has a score in leaderboard
+        const existingPlayerIndex = scores.findIndex(score => score.username === username);
+        
+        if (existingPlayerIndex !== -1) {
+            // Player already exists, check if new score is higher
+            const existingScore = scores[existingPlayerIndex];
+            if (this.score > existingScore.score) {
+                // Replace old score with new higher score
+                scores[existingPlayerIndex] = {
+                    username: username,
+                    score: this.score,
+                    distance: Math.floor(this.distance),
+                    timestamp: Date.now()
+                };
+                console.log(`Replaced ${username}'s old score ${existingScore.score} with new score ${this.score}`);
+            } else {
+                // Keep existing score, don't add duplicate
+                console.log(`${username} already has a higher score (${existingScore.score}) than current (${this.score})`);
+            }
+        } else {
+            // New player, add their score
+            scores.push({
+                username: username,
+                score: this.score,
+                distance: Math.floor(this.distance),
+                timestamp: Date.now()
+            });
+            console.log(`Added new player ${username} with score ${this.score}`);
+        }
         
         // Sort by score (highest first)
         scores.sort((a, b) => b.score - a.score);
@@ -279,10 +303,7 @@ class SimpleGame {
         localStorage.setItem('endlessRunnerScores', JSON.stringify(scores));
         
         // Find player rank
-        const playerRank = scores.findIndex(score => 
-            score.username === username && 
-            score.score === this.score
-        ) + 1;
+        const playerRank = scores.findIndex(score => score.username === username) + 1;
         
         playerRankElement.textContent = playerRank;
         
