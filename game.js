@@ -143,7 +143,11 @@ class SimpleGame {
     
     gameOver() {
         this.stop();
-        alert(`Game Over! Score: ${this.score}, Distance: ${Math.floor(this.distance)}m`);
+        // Show game over screen instead of alert
+        document.getElementById('gameOverScore').textContent = this.score;
+        document.getElementById('gameOverDistance').textContent = Math.floor(this.distance);
+        document.getElementById('gameOverScreen').classList.add('active');
+        document.getElementById('gameScreen').classList.remove('active');
     }
     
     render() {
@@ -289,8 +293,8 @@ class GameManager {
     
     showMainMenu() {
         this.showScreen('start');
-        this.username = '';
         document.getElementById('username').value = '';
+        this.username = '';
         document.getElementById('usernameError').textContent = '';
         document.getElementById('startButton').disabled = true;
     }
