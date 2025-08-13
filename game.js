@@ -9,7 +9,7 @@ class SimpleGame {
         // Game state
         this.score = 0;
         this.distance = 0;
-        this.gameSpeed = 3;
+        this.gameSpeed = 2; // Reduced from 3 to 2 for easier gameplay
         
         // Game objects
         this.player = { x: 100, y: 300, width: 40, height: 60, velocityY: 0, isJumping: false };
@@ -18,7 +18,7 @@ class SimpleGame {
         
         // Game physics
         this.gravity = 0.8;
-        this.jumpPower = -15;
+        this.jumpPower = -20; // Increased from -15 to -20 for higher jump
         
         this.init();
     }
@@ -46,10 +46,10 @@ class SimpleGame {
     }
     
     createInitialObstacles() {
-        // Create 3 initial obstacles
-        for (let i = 0; i < 3; i++) {
+        // Create 2 initial obstacles (reduced from 3)
+        for (let i = 0; i < 2; i++) {
             const obstacle = {
-                x: 600 + (i * 300),
+                x: 600 + (i * 400), // Increased spacing from 300 to 400
                 y: this.ground.y - 80,
                 width: 40,
                 height: 80
@@ -110,10 +110,10 @@ class SimpleGame {
         this.obstacles = this.obstacles.filter(obstacle => obstacle.x + obstacle.width > -50);
         
         // Add new obstacles if needed
-        if (this.obstacles.length < 3) {
+        if (this.obstacles.length < 2) { // Reduced from 3 to 2
             const lastObstacle = this.obstacles[this.obstacles.length - 1];
             const newObstacle = {
-                x: lastObstacle ? lastObstacle.x + 300 : this.canvas.width + 100,
+                x: lastObstacle ? lastObstacle.x + 400 : this.canvas.width + 100, // Increased spacing to 400
                 y: this.ground.y - 80,
                 width: 40,
                 height: 80
@@ -185,10 +185,22 @@ class SimpleGame {
         this.ctx.fillText(`Obstacles: ${this.obstacles.length}`, 10, 30);
         this.ctx.fillText(`Game Speed: ${this.gameSpeed}`, 10, 50);
         this.ctx.fillText(`Canvas: ${this.canvas.width}x${this.canvas.height}`, 10, 70);
+        this.ctx.fillText(`Jump Power: ${Math.abs(this.jumpPower)}`, 10, 110);
+        this.ctx.fillText(`Player Y: ${Math.round(this.player.y)}`, 10, 130);
         
         if (this.obstacles.length > 0) {
             this.ctx.fillText(`First obstacle at: (${Math.round(this.obstacles[0].x)}, ${Math.round(this.obstacles[0].y)})`, 10, 90);
         }
+        
+        // Draw jump height indicator
+        this.ctx.strokeStyle = '#FFFF00';
+        this.ctx.lineWidth = 2;
+        this.ctx.setLineDash([5, 5]);
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.player.x + this.player.width/2, this.player.y);
+        this.ctx.lineTo(this.player.x + this.player.width/2, this.player.y - 120); // Show jump height
+        this.ctx.stroke();
+        this.ctx.setLineDash([]); // Reset line dash
     }
 }
 
