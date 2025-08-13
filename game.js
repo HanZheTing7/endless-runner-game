@@ -25,6 +25,13 @@ class SimpleGame {
     
     init() {
         console.log('Initializing SimpleGame');
+        
+        // Check if canvas element exists
+        if (!this.canvas) {
+            console.error('Canvas element not found');
+            return;
+        }
+        
         this.setupCanvas();
         this.setupControls();
         this.createInitialObstacles();
@@ -123,8 +130,16 @@ class SimpleGame {
         this.score = Math.floor(this.distance);
         
         // Update UI
-        document.getElementById('currentScore').textContent = this.score;
-        document.getElementById('currentDistance').textContent = Math.floor(this.distance);
+        const currentScoreElement = document.getElementById('currentScore');
+        const currentDistanceElement = document.getElementById('currentDistance');
+        
+        if (currentScoreElement) {
+            currentScoreElement.textContent = this.score;
+        }
+        
+        if (currentDistanceElement) {
+            currentDistanceElement.textContent = Math.floor(this.distance);
+        }
         
         // Check collisions
         this.checkCollisions();
@@ -143,26 +158,53 @@ class SimpleGame {
     
     gameOver() {
         this.stop();
-        // Show game over screen with correct element IDs
-        document.getElementById('finalScore').textContent = this.score;
-        document.getElementById('finalDistance').textContent = Math.floor(this.distance);
+        
+        // Check if elements exist before trying to access them
+        const finalScoreElement = document.getElementById('finalScore');
+        const finalDistanceElement = document.getElementById('finalDistance');
+        const gameOverScreenElement = document.getElementById('gameOverScreen');
+        const gameScreenElement = document.getElementById('gameScreen');
+        
+        if (finalScoreElement) {
+            finalScoreElement.textContent = this.score;
+        }
+        
+        if (finalDistanceElement) {
+            finalDistanceElement.textContent = Math.floor(this.distance);
+        }
         
         // Show game over screen
-        document.getElementById('gameOverScreen').classList.add('active');
-        document.getElementById('gameScreen').classList.remove('active');
-        
-        // Load leaderboard
-        this.loadLeaderboard();
+        if (gameOverScreenElement && gameScreenElement) {
+            gameOverScreenElement.classList.add('active');
+            gameScreenElement.classList.remove('active');
+            
+            // Load leaderboard after screen is shown
+            setTimeout(() => {
+                this.loadLeaderboard();
+            }, 100);
+        } else {
+            // Fallback if elements don't exist
+            alert(`Game Over! Score: ${this.score}, Distance: ${Math.floor(this.distance)}m`);
+        }
     }
     
     loadLeaderboard() {
+        // Check if elements exist before trying to access them
+        const leaderboardElement = document.getElementById('leaderboard');
+        const playerRankElement = document.getElementById('playerRank');
+        
+        if (!leaderboardElement || !playerRankElement) {
+            console.error('Leaderboard elements not found');
+            return;
+        }
+        
         // Simple local leaderboard for now
-        const leaderboard = document.getElementById('leaderboard');
         const scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
         
         // Add current score
+        const username = window.gameManager ? window.gameManager.username : 'Player';
         scores.push({
-            username: window.gameManager.username,
+            username: username,
             score: this.score,
             distance: Math.floor(this.distance),
             timestamp: Date.now()
@@ -179,15 +221,15 @@ class SimpleGame {
         
         // Find player rank
         const playerRank = scores.findIndex(score => 
-            score.username === window.gameManager.username && 
+            score.username === username && 
             score.score === this.score
         ) + 1;
         
-        document.getElementById('playerRank').textContent = playerRank;
+        playerRankElement.textContent = playerRank;
         
         // Display leaderboard
-        leaderboard.innerHTML = scores.map((score, index) => `
-            <div class="leaderboard-item ${score.username === window.gameManager.username ? 'current-player' : ''}">
+        leaderboardElement.innerHTML = scores.map((score, index) => `
+            <div class="leaderboard-item ${score.username === username ? 'current-player' : ''}">
                 <span class="rank">${index + 1}</span>
                 <span class="username">${score.username}</span>
                 <span class="score">${score.score}</span>
@@ -197,6 +239,12 @@ class SimpleGame {
     }
     
     render() {
+        // Check if canvas and context exist
+        if (!this.canvas || !this.ctx) {
+            console.error('Canvas or context not available');
+            return;
+        }
+        
         // Clear canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
