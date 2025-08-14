@@ -257,47 +257,33 @@ class SimpleGame {
             return;
         }
         
+        // Clean up any existing duplicates first
+        this.cleanupLeaderboard();
+        
         // Simple local leaderboard for now
-        const scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
+        let scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
         
         // Get current username
         const username = window.gameManager ? window.gameManager.username : 'Player';
         
-        // Check if player already has a score in leaderboard
-        const existingPlayerIndex = scores.findIndex(score => score.username === username);
+        // First, remove any existing entries for this player to prevent duplicates
+        scores = scores.filter(score => score.username !== username);
         
-        if (existingPlayerIndex !== -1) {
-            // Player already exists, check if new score is higher
-            const existingScore = scores[existingPlayerIndex];
-            if (this.score > existingScore.score) {
-                // Replace old score with new higher score
-                scores[existingPlayerIndex] = {
-                    username: username,
-                    score: this.score,
-                    distance: Math.floor(this.distance),
-                    timestamp: Date.now()
-                };
-                console.log(`Replaced ${username}'s old score ${existingScore.score} with new score ${this.score}`);
-            } else {
-                // Keep existing score, don't add duplicate
-                console.log(`${username} already has a higher score (${existingScore.score}) than current (${this.score})`);
-            }
-        } else {
-            // New player, add their score
-            scores.push({
-                username: username,
-                score: this.score,
-                distance: Math.floor(this.distance),
-                timestamp: Date.now()
-            });
-            console.log(`Added new player ${username} with score ${this.score}`);
-        }
+        // Add the current score
+        scores.push({
+            username: username,
+            score: this.score,
+            distance: Math.floor(this.distance),
+            timestamp: Date.now()
+        });
+        
+        console.log(`Added/Updated ${username} with score ${this.score}`);
         
         // Sort by score (highest first)
         scores.sort((a, b) => b.score - a.score);
         
         // Keep only top 10
-        scores.splice(10);
+        scores = scores.slice(0, 10);
         
         // Save to localStorage
         localStorage.setItem('endlessRunnerScores', JSON.stringify(scores));
@@ -316,6 +302,31 @@ class SimpleGame {
                 <span class="distance">${score.distance}m</span>
             </div>
         `).join('');
+        
+        // Log the final leaderboard for debugging
+        console.log('Final leaderboard:', scores.map(s => `${s.username}: ${s.score}`));
+    }
+    
+    cleanupLeaderboard() {
+        // Get current leaderboard
+        let scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
+        
+        // Create a map to keep only the highest score for each username
+        const uniqueScores = new Map();
+        
+        scores.forEach(score => {
+            if (!uniqueScores.has(score.username) || score.score > uniqueScores.get(score.username).score) {
+                uniqueScores.set(score.username, score);
+            }
+        });
+        
+        // Convert back to array and sort
+        const cleanedScores = Array.from(uniqueScores.values()).sort((a, b) => b.score - a.score);
+        
+        // Save cleaned leaderboard
+        localStorage.setItem('endlessRunnerScores', JSON.stringify(cleanedScores));
+        
+        console.log('Cleaned leaderboard, removed duplicates. New count:', cleanedScores.length);
     }
     
     render() {
