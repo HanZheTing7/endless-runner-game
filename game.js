@@ -299,7 +299,7 @@ class SimpleGame {
                 <span class="rank">${index + 1}</span>
                 <span class="username">${score.username}</span>
                 <span class="score">${score.score}</span>
-                <span class="distance">${score.distance}m</span>
+                <span class="distance">${score.distance}</span>
             </div>
         `).join('');
         
