@@ -567,7 +567,7 @@ class SimpleGame {
             ctx.closePath();
         } else {
             // Realistic running animation - running to the right with forward momentum
-            const time = Date.now() * 0.008; // Slightly slower for more realistic timing
+            const time = Date.now() * 0.004; // Slower animation - reduced from 0.008 to 0.004
             
             // Calculate running cycle (0 to 2π)
             const cycle = (time * 2) % (Math.PI * 2);
