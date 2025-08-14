@@ -484,7 +484,7 @@ class SimpleGame {
     drawStickman(x, y, width, height) {
         const ctx = this.ctx;
         const centerX = x + width / 2;
-        const centerY = y + height / 2;
+        const centerY = y + height * 0.5;
 
         // Draw head
         ctx.beginPath();
@@ -502,7 +502,7 @@ class SimpleGame {
         ctx.stroke();
         ctx.closePath();
 
-        // Simple running animation - arms and legs move up and down
+        // Simple running animation - arms and legs move UP and DOWN
         if (this.player.isJumping) {
             // Jumping pose - arms up
             ctx.beginPath();
@@ -513,74 +513,78 @@ class SimpleGame {
             ctx.stroke();
             ctx.closePath();
         } else {
-            // Running - simple up and down movement
+            // Running - arms and legs move UP and DOWN vertically
             const time = Date.now() * 0.008;
             const isUp = Math.sin(time) > 0; // Simple up/down toggle
             
             if (isUp) {
-                // Left arm up, right arm down
+                // LEFT ARM - HIGH UP
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.35);
-                ctx.lineTo(centerX - width * 0.2, y + height * 0.2); // Left arm UP
+                ctx.lineTo(centerX - width * 0.15, y + height * 0.1); // WAY UP
                 ctx.strokeStyle = '#FFD700';
                 ctx.lineWidth = height * 0.05;
                 ctx.stroke();
                 ctx.closePath();
                 
+                // RIGHT ARM - LOW DOWN
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.35);
-                ctx.lineTo(centerX + width * 0.2, y + height * 0.5); // Right arm DOWN
+                ctx.lineTo(centerX + width * 0.15, y + height * 0.6); // WAY DOWN
                 ctx.strokeStyle = '#FFD700';
                 ctx.lineWidth = height * 0.05;
                 ctx.stroke();
                 ctx.closePath();
                 
-                // Left leg up, right leg down
+                // LEFT LEG - HIGH UP
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.7);
-                ctx.lineTo(centerX - width * 0.1, y + height * 0.6); // Left leg UP
+                ctx.lineTo(centerX - width * 0.1, y + height * 0.4); // WAY UP
                 ctx.strokeStyle = '#FFD700';
                 ctx.lineWidth = height * 0.06;
                 ctx.stroke();
                 ctx.closePath();
                 
+                // RIGHT LEG - LOW DOWN
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.7);
-                ctx.lineTo(centerX + width * 0.1, y + height * 0.9); // Right leg DOWN
+                ctx.lineTo(centerX + width * 0.1, y + height * 0.9); // WAY DOWN
                 ctx.strokeStyle = '#FFD700';
                 ctx.lineWidth = height * 0.06;
                 ctx.stroke();
                 ctx.closePath();
             } else {
-                // Right arm up, left arm down
+                // RIGHT ARM - HIGH UP
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.35);
-                ctx.lineTo(centerX - width * 0.2, y + height * 0.5); // Left arm DOWN
+                ctx.lineTo(centerX - width * 0.15, y + height * 0.6); // WAY DOWN
                 ctx.strokeStyle = '#FFD700';
                 ctx.lineWidth = height * 0.05;
                 ctx.stroke();
                 ctx.closePath();
                 
+                // LEFT ARM - LOW DOWN
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.35);
-                ctx.lineTo(centerX + width * 0.2, y + height * 0.2); // Right arm UP
+                ctx.lineTo(centerX + width * 0.15, y + height * 0.1); // WAY UP
                 ctx.strokeStyle = '#FFD700';
                 ctx.lineWidth = height * 0.05;
                 ctx.stroke();
                 ctx.closePath();
                 
-                // Right leg up, left leg down
+                // RIGHT LEG - HIGH UP
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.7);
-                ctx.lineTo(centerX - width * 0.1, y + height * 0.9); // Left leg DOWN
+                ctx.lineTo(centerX - width * 0.1, y + height * 0.9); // WAY DOWN
                 ctx.strokeStyle = '#FFD700';
                 ctx.lineWidth = height * 0.06;
                 ctx.stroke();
                 ctx.closePath();
                 
+                // LEFT LEG - LOW DOWN
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.7);
-                ctx.lineTo(centerX + width * 0.1, y + height * 0.6); // Right leg UP
+                ctx.lineTo(centerX + width * 0.1, y + height * 0.4); // WAY UP
                 ctx.strokeStyle = '#FFD700';
                 ctx.lineWidth = height * 0.06;
                 ctx.stroke();
