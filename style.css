@@ -287,18 +287,22 @@ body {
 .leaderboard-item .rank {
     font-weight: 700;
     color: #ffd700;
-    min-width: 30px;
+    min-width: 40px;
+    text-align: center;
 }
 
 .leaderboard-item .username {
     flex: 1;
     text-align: left;
-    margin-left: 15px;
+    margin-left: 20px;
+    margin-right: 20px;
 }
 
 .leaderboard-item .score {
     font-weight: 700;
     color: #fff;
+    min-width: 60px;
+    text-align: right;
 }
 
 .game-over-buttons {
