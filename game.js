@@ -304,18 +304,31 @@ class SimpleGame {
         // Get current username
         const username = window.gameManager ? window.gameManager.username : 'Player';
         
-        // First, remove any existing entries for this player to prevent duplicates
-        scores = scores.filter(score => score.username !== username);
+        // Check if player already has a score and compare with current score
+        const existingPlayerScore = scores.find(score => score.username === username);
         
-        // Add the current score
-        scores.push({
-            username: username,
-            score: this.score,
-            distance: Math.floor(this.distance),
-            timestamp: Date.now()
-        });
-        
-        console.log(`Added/Updated ${username} with score ${this.score}`);
+        if (existingPlayerScore) {
+            // Player exists - only update if new score is higher
+            if (this.score > existingPlayerScore.score) {
+                // New score is higher - update it
+                existingPlayerScore.score = this.score;
+                existingPlayerScore.distance = Math.floor(this.distance);
+                existingPlayerScore.timestamp = Date.now();
+                console.log(`Updated ${username} with higher score: ${this.score} (was: ${existingPlayerScore.score})`);
+            } else {
+                // New score is lower - keep the old higher score
+                console.log(`Keeping ${username}'s higher score: ${existingPlayerScore.score} (new was: ${this.score})`);
+            }
+        } else {
+            // New player - add their score
+            scores.push({
+                username: username,
+                score: this.score,
+                distance: Math.floor(this.distance),
+                timestamp: Date.now()
+            });
+            console.log(`Added new player ${username} with score ${this.score}`);
+        }
         
         // Sort by score (highest first)
         scores.sort((a, b) => b.score - a.score);
