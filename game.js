@@ -445,8 +445,7 @@ class SimpleGame {
         });
         
         // Draw player
-        this.ctx.fillStyle = '#4CAF50';
-        this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+        this.drawStickman(this.player.x, this.player.y, this.player.width, this.player.height);
         
         // Draw debug info
         this.ctx.fillStyle = '#FFFFFF';
@@ -480,6 +479,88 @@ class SimpleGame {
         this.ctx.lineTo(this.player.x + this.player.width/2, this.player.y - 220); // Increased from 180 to 220 to show new jump height
         this.ctx.stroke();
         this.ctx.setLineDash([]);
+    }
+
+    drawStickman(x, y, width, height) {
+        const ctx = this.ctx;
+        const centerX = x + width / 2;
+        const centerY = y + height / 2;
+
+        // Draw head
+        ctx.beginPath();
+        ctx.arc(centerX, y + height * 0.2, height * 0.15, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFD700'; // Gold color for head
+        ctx.fill();
+        ctx.closePath();
+
+        // Draw body
+        ctx.beginPath();
+        ctx.moveTo(centerX, y + height * 0.3);
+        ctx.lineTo(centerX, y + height * 0.7);
+        ctx.strokeStyle = '#FFD700'; // Gold color for body
+        ctx.lineWidth = height * 0.1;
+        ctx.stroke();
+        ctx.closePath();
+
+        // Draw arms with running animation
+        if (this.player.isJumping) {
+            // Jumping pose - arms up
+            ctx.beginPath();
+            ctx.moveTo(centerX - width * 0.15, y + height * 0.25);
+            ctx.lineTo(centerX + width * 0.15, y + height * 0.25);
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = height * 0.05;
+            ctx.stroke();
+            ctx.closePath();
+        } else {
+            // Running pose - arms swinging
+            const armSwing = Math.sin(Date.now() * 0.01) * 0.1;
+            ctx.beginPath();
+            ctx.moveTo(centerX - width * (0.2 + armSwing), y + height * 0.4);
+            ctx.lineTo(centerX + width * (0.2 - armSwing), y + height * 0.4);
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = height * 0.05;
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        // Draw legs with running animation
+        if (this.player.isJumping) {
+            // Jumping pose - legs together
+            ctx.beginPath();
+            ctx.moveTo(centerX, y + height * 0.7);
+            ctx.lineTo(centerX, y + height * 0.9);
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = height * 0.08;
+            ctx.stroke();
+            ctx.closePath();
+        } else {
+            // Running pose - legs alternating
+            const legSwing = Math.sin(Date.now() * 0.01) * 0.15;
+            ctx.beginPath();
+            ctx.moveTo(centerX - width * (0.1 + legSwing), y + height * 0.7);
+            ctx.lineTo(centerX + width * (0.1 - legSwing), y + height * 0.9);
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = height * 0.05;
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        // Add eyes
+        ctx.beginPath();
+        ctx.arc(centerX - height * 0.05, y + height * 0.18, height * 0.02, 0, Math.PI * 2);
+        ctx.arc(centerX + height * 0.05, y + height * 0.18, height * 0.02, 0, Math.PI * 2);
+        ctx.fillStyle = '#000000';
+        ctx.fill();
+        ctx.closePath();
+
+        // Add smile
+        ctx.beginPath();
+        ctx.arc(centerX, y + height * 0.22, height * 0.06, 0, Math.PI);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.closePath();
     }
 }
 
