@@ -295,29 +295,30 @@ class SimpleGame {
             return;
         }
         
-        // Clean up any existing duplicates first
-        this.cleanupLeaderboard();
-        
-        // Simple local leaderboard for now
+        // Get current leaderboard
         let scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
         
         // Get current username
         const username = window.gameManager ? window.gameManager.username : 'Player';
         
         // Check if player already has a score and compare with current score
-        const existingPlayerScore = scores.find(score => score.username === username);
+        const existingPlayerIndex = scores.findIndex(score => score.username === username);
         
-        if (existingPlayerScore) {
+        if (existingPlayerIndex !== -1) {
             // Player exists - only update if new score is higher
-            if (this.score > existingPlayerScore.score) {
+            const existingScore = scores[existingPlayerIndex].score;
+            if (this.score > existingScore) {
                 // New score is higher - update it
-                existingPlayerScore.score = this.score;
-                existingPlayerScore.distance = Math.floor(this.distance);
-                existingPlayerScore.timestamp = Date.now();
-                console.log(`Updated ${username} with higher score: ${this.score} (was: ${existingPlayerScore.score})`);
+                scores[existingPlayerIndex] = {
+                    username: username,
+                    score: this.score,
+                    distance: Math.floor(this.distance),
+                    timestamp: Date.now()
+                };
+                console.log(`Updated ${username} with higher score: ${this.score} (was: ${existingScore})`);
             } else {
                 // New score is lower - keep the old higher score
-                console.log(`Keeping ${username}'s higher score: ${existingPlayerScore.score} (new was: ${this.score})`);
+                console.log(`Keeping ${username}'s higher score: ${existingScore} (new was: ${this.score})`);
             }
         } else {
             // New player - add their score
