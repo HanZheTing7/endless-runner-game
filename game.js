@@ -21,6 +21,10 @@ class SimpleGame {
         this.gravity = 0.6; // Reduced from 0.8 to make jump last longer
         this.jumpPower = -20; // Increased from -16 to make jump higher
         
+        // Character image
+        this.characterHead = new Image();
+        this.characterHead.src = 'character-head.png'; // You can change this to your image file
+        
         this.init();
     }
     
@@ -485,12 +489,24 @@ class SimpleGame {
         const ctx = this.ctx;
         const centerX = x + width / 2;
         
-        // Draw head (circle)
-        ctx.beginPath();
-        ctx.arc(centerX, y + height * 0.15, height * 0.12, 0, Math.PI * 2);
-        ctx.fillStyle = '#FFD700';
-        ctx.fill();
-        ctx.closePath();
+        // Draw head using image instead of circle
+        if (this.characterHead.complete) {
+            const headSize = height * 0.24; // Make head a bit bigger
+            ctx.drawImage(
+                this.characterHead, 
+                centerX - headSize/2, 
+                y + height * 0.03, 
+                headSize, 
+                headSize
+            );
+        } else {
+            // Fallback to circle if image isn't loaded yet
+            ctx.beginPath();
+            ctx.arc(centerX, y + height * 0.15, height * 0.12, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFD700';
+            ctx.fill();
+            ctx.closePath();
+        }
         
         // Draw body (vertical line)
         ctx.beginPath();
@@ -602,21 +618,8 @@ class SimpleGame {
             }
         }
         
-        // Draw eyes
-        ctx.beginPath();
-        ctx.arc(centerX - height * 0.04, y + height * 0.12, height * 0.015, 0, Math.PI * 2);
-        ctx.arc(centerX + height * 0.04, y + height * 0.12, height * 0.015, 0, Math.PI * 2);
-        ctx.fillStyle = '#000000';
-        ctx.fill();
-        ctx.closePath();
-        
-        // Draw smile
-        ctx.beginPath();
-        ctx.arc(centerX, y + height * 0.18, height * 0.04, 0, Math.PI);
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.closePath();
+        // Remove eyes and smile since we're using an image for the head
+        // The image should have the face details already
     }
 }
 
