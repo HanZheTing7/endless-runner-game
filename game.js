@@ -524,7 +524,7 @@ class SimpleGame {
             ctx.drawImage(
                 this.characterHead, 
                 centerX - headSize/2, 
-                y + height * 0.01, 
+                y + height * 0.27 - headSize,  // Changed from 0.03 to align bottom of image with neck
                 headSize, 
                 headSize
             );
