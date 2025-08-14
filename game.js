@@ -517,7 +517,7 @@ class SimpleGame {
         ctx.stroke();
         ctx.closePath();
         
-        // Simple running animation
+        // Realistic running animation with body bounce, hip rotation, and natural movement
         if (this.player.isJumping) {
             // Jumping pose - arms up, legs together
             ctx.beginPath();
@@ -537,85 +537,79 @@ class SimpleGame {
             ctx.stroke();
             ctx.closePath();
         } else {
-            // Running pose - arms and legs move in opposite directions like real running
-            const time = Date.now() * 0.01;
-            const isUp = Math.sin(time) > 0;
+            // Realistic running animation with body bounce, hip rotation, and natural movement
+            const time = Date.now() * 0.008; // Slightly slower for more realistic timing
             
-            if (isUp) {
-                // Left side up, right side down (opposite movement)
-                // Left arm up
-                ctx.beginPath();
-                ctx.moveTo(centerX, y + height * 0.3);
-                ctx.lineTo(centerX - width * 0.15, y + height * 0.15);
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = height * 0.04;
-                ctx.stroke();
-                ctx.closePath();
-                
-                // Right arm down (opposite to left)
-                ctx.beginPath();
-                ctx.moveTo(centerX, y + height * 0.3);
-                ctx.lineTo(centerX + width * 0.15, y + height * 0.45);
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = height * 0.04;
-                ctx.stroke();
-                ctx.closePath();
-                
-                // Left leg up
-                ctx.beginPath();
-                ctx.moveTo(centerX, y + height * 0.65);
-                ctx.lineTo(centerX - width * 0.1, y + height * 0.5);
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = height * 0.06;
-                ctx.stroke();
-                ctx.closePath();
-                
-                // Right leg down (opposite to left)
-                ctx.beginPath();
-                ctx.moveTo(centerX, y + height * 0.65);
-                ctx.lineTo(centerX + width * 0.1, y + height * 0.9);
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = height * 0.06;
-                ctx.stroke();
-                ctx.closePath();
-            } else {
-                // Right side up, left side down (opposite movement)
-                // Right arm up
-                ctx.beginPath();
-                ctx.moveTo(centerX, y + height * 0.3);
-                ctx.lineTo(centerX + width * 0.15, y + height * 0.15);
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = height * 0.04;
-                ctx.stroke();
-                ctx.closePath();
-                
-                // Left arm down (opposite to right)
-                ctx.beginPath();
-                ctx.moveTo(centerX, y + height * 0.3);
-                ctx.lineTo(centerX - width * 0.15, y + height * 0.45);
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = height * 0.04;
-                ctx.stroke();
-                ctx.closePath();
-                
-                // Right leg up
-                ctx.beginPath();
-                ctx.moveTo(centerX, y + height * 0.65);
-                ctx.lineTo(centerX + width * 0.1, y + height * 0.5);
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = height * 0.06;
-                ctx.stroke();
-                ctx.closePath();
-                
-                // Left leg down (opposite to right)
-                ctx.beginPath();
-                ctx.moveTo(centerX, y + height * 0.65);
-                ctx.lineTo(centerX - width * 0.1, y + height * 0.9);
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = height * 0.06;
-                ctx.stroke();
-                ctx.closePath();
-            }
+            // Calculate running cycle (0 to 2π)
+            const cycle = (time * 2) % (Math.PI * 2);
+            
+            // Body bounce (up and down movement)
+            const bodyBounce = Math.sin(cycle * 2) * 0.02;
+            
+            // Hip rotation (side to side movement)
+            const hipRotation = Math.sin(cycle * 2) * 0.03;
+            
+            // Arm swing calculations
+            const leftArmAngle = Math.sin(cycle * 2) * 0.4; // Left arm swings
+            const rightArmAngle = Math.sin(cycle * 2 + Math.PI) * 0.4; // Right arm opposite
+            
+            // Leg movement calculations
+            const leftLegAngle = Math.sin(cycle * 2) * 0.5; // Left leg swings
+            const rightLegAngle = Math.sin(cycle * 2 + Math.PI) * 0.5; // Right leg opposite
+            
+            // Apply body bounce to all positions
+            const bounceOffset = height * bodyBounce;
+            const hipOffset = width * hipRotation;
+            
+            // Draw arms with realistic shoulder movement
+            // Left arm
+            ctx.beginPath();
+            ctx.moveTo(centerX + hipOffset, y + height * 0.3 + bounceOffset);
+            ctx.lineTo(
+                centerX - width * (0.25 + leftArmAngle) + hipOffset, 
+                y + height * (0.35 - leftArmAngle * 0.3) + bounceOffset
+            );
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = height * 0.04;
+            ctx.stroke();
+            ctx.closePath();
+            
+            // Right arm
+            ctx.beginPath();
+            ctx.moveTo(centerX + hipOffset, y + height * 0.3 + bounceOffset);
+            ctx.lineTo(
+                centerX + width * (0.25 + rightArmAngle) + hipOffset, 
+                y + height * (0.35 - rightArmAngle * 0.3) + bounceOffset
+            );
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = height * 0.04;
+            ctx.stroke();
+            ctx.closePath();
+            
+            // Draw legs with realistic hip movement
+            // Left leg
+            ctx.beginPath();
+            ctx.moveTo(centerX + hipOffset, y + height * 0.65 + bounceOffset);
+            ctx.lineTo(
+                centerX - width * (0.15 + leftLegAngle) + hipOffset, 
+                y + height * (0.9 - leftLegAngle * 0.4) + bounceOffset
+            );
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = height * 0.06;
+            ctx.stroke();
+            ctx.closePath();
+            
+            // Right leg
+            ctx.beginPath();
+            ctx.moveTo(centerX + hipOffset, y + height * 0.65 + bounceOffset);
+            ctx.lineTo(
+                centerX + width * (0.15 + rightLegAngle) + hipOffset, 
+                y + height * (0.9 - rightLegAngle * 0.4) + bounceOffset
+            );
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = height * 0.06;
+            ctx.stroke();
+            ctx.closePath();
         }
         
         // Remove eyes and smile since we're using an image for the head
