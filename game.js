@@ -9,7 +9,7 @@ class SimpleGame {
         // Game state
         this.score = 0;
         this.distance = 0;
-        this.gameSpeed = 2;
+        this.gameSpeed = 2.5; // Increased from 2 to 2.5 for better pacing
         
         // Game objects
         this.player = { x: 150, y: 450, width: 50, height: 80, velocityY: 0, isJumping: false };
@@ -17,8 +17,8 @@ class SimpleGame {
         this.obstacles = [];
         
         // Game physics
-        this.gravity = 0.8;
-        this.jumpPower = -16;
+        this.gravity = 0.6; // Reduced from 0.8 to make jump last longer
+        this.jumpPower = -20; // Increased from -16 to make jump higher
         
         this.init();
     }
@@ -394,6 +394,14 @@ class SimpleGame {
             this.ctx.font = 'bold 30px Arial';
             this.ctx.textAlign = 'center';
             this.ctx.fillText(`${index + 1}`, obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 10);
+            
+            // Add clearance indicator (green if clearable, red if not)
+            const jumpHeight = this.player.y - 220;
+            const canClear = jumpHeight < obstacle.y;
+            this.ctx.fillStyle = canClear ? '#00FF00' : '#FF0000';
+            this.ctx.font = 'bold 16px Arial';
+            this.ctx.fillText(canClear ? 'CLEAR' : 'BLOCK', obstacle.x + obstacle.width/2, obstacle.y - 10);
+            
             this.ctx.fillStyle = '#FF4444';
         });
         
@@ -410,9 +418,17 @@ class SimpleGame {
         this.ctx.fillText(`Canvas: ${this.canvas.width}x${this.canvas.height}`, 20, 110);
         this.ctx.fillText(`Jump Power: ${Math.abs(this.jumpPower)}`, 20, 170);
         this.ctx.fillText(`Player Y: ${Math.round(this.player.y)}`, 20, 200);
+        this.ctx.fillText(`Gravity: ${this.gravity}`, 20, 230);
         
         if (this.obstacles.length > 0) {
             this.ctx.fillText(`First obstacle at: (${Math.round(this.obstacles[0].x)}, ${Math.round(this.obstacles[0].y)})`, 20, 140);
+            // Show if player can clear the obstacle
+            const obstacleHeight = this.obstacles[0].y;
+            const jumpHeight = this.player.y - 220; // Match the indicator line
+            const canClear = jumpHeight < obstacleHeight;
+            this.ctx.fillStyle = canClear ? '#00FF00' : '#FF0000';
+            this.ctx.fillText(`Can clear: ${canClear ? 'YES' : 'NO'}`, 20, 260);
+            this.ctx.fillStyle = '#FFFFFF';
         }
         
         // Draw jump height indicator
@@ -421,7 +437,7 @@ class SimpleGame {
         this.ctx.setLineDash([8, 8]);
         this.ctx.beginPath();
         this.ctx.moveTo(this.player.x + this.player.width/2, this.player.y);
-        this.ctx.lineTo(this.player.x + this.player.width/2, this.player.y - 180);
+        this.ctx.lineTo(this.player.x + this.player.width/2, this.player.y - 220); // Increased from 180 to 220 to show new jump height
         this.ctx.stroke();
         this.ctx.setLineDash([]);
     }
