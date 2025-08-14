@@ -453,7 +453,7 @@ class SimpleGame {
         this.drawTrees();
         
         // Draw a test cloud and tree in top-left corner to verify drawing works
-        this.drawTestElements();
+        // this.drawTestElements(); // Commented out to avoid confusion
         
         // Draw ground
         this.ctx.fillStyle = '#8B4513';
@@ -503,17 +503,17 @@ class SimpleGame {
         
         // Add background debug info
         this.ctx.fillStyle = '#00FFFF'; // Cyan color for background info
-        this.ctx.fillText(`Background: Clouds & Trees Active`, 20, 290);
+        this.ctx.fillText(`Background: Clouds & Trees from Right`, 20, 290);
         this.ctx.fillText(`Ground Y: ${this.ground.y}`, 20, 320);
         
         // Add position indicators for first cloud and tree
         this.ctx.fillStyle = '#FFFF00'; // Yellow for position info
-        this.ctx.fillText(`Test Cloud: x=${Math.round(50 + Math.sin(Date.now() * 0.002) * 20)}`, 20, 350);
-        this.ctx.fillText(`Test Tree: x=${Math.round(200 + Math.sin(Date.now() * 0.0015) * 15)}`, 20, 380);
+        this.ctx.fillText(`Clouds: Start from x=1400-2200`, 20, 350);
+        this.ctx.fillText(`Trees: Start from x=1400-2400`, 20, 380);
         
         // Add tree movement debug info
         this.ctx.fillStyle = '#00FF00'; // Green for tree info
-        this.ctx.fillText(`Tree Movement: Right to Left`, 20, 410);
+        this.ctx.fillText(`Movement: Right to Left`, 20, 410);
         this.ctx.fillText(`Ground Level: y=${this.ground.y}`, 20, 440);
         this.ctx.fillText(`Tree Base: y=${this.ground.y - 60}`, 20, 470);
         
@@ -684,12 +684,12 @@ class SimpleGame {
         ];
         
         cloudPositions.forEach((cloud, index) => {
-            // Move clouds from right to left
+            // Move clouds from right to left - start from right side
             let cloudX = cloud.x - time * 20;
             
             // If cloud goes off the left side, wrap it to the right side
             if (cloudX < -cloud.size) {
-                cloudX = this.canvas.width + cloud.size;
+                cloudX = this.canvas.width + cloud.size + Math.random() * 200; // Add some randomness
             }
             
             // Only draw if cloud is visible on screen
@@ -732,12 +732,12 @@ class SimpleGame {
         ];
         
         treePositions.forEach((tree, index) => {
-            // Move trees from right to left (parallax effect)
+            // Move trees from right to left (parallax effect) - start from right side
             let treeX = tree.x - time * 10;
             
             // If tree goes off the left side, wrap it to the right side
             if (treeX < -tree.size) {
-                treeX = this.canvas.width + tree.size;
+                treeX = this.canvas.width + tree.size + Math.random() * 300; // Add some randomness
             }
             
             // Only draw if tree is visible on screen
