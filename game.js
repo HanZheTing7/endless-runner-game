@@ -655,19 +655,18 @@ class SimpleGame {
         const ctx = this.ctx;
         const time = Date.now() * 0.001; // Slow cloud movement
         
-        // Create multiple clouds at different positions
+        // Create multiple clouds at different positions - start them further to the right
         const cloudPositions = [
-            { x: 100, y: 80, size: 60 },
-            { x: 400, y: 120, size: 80 },
-            { x: 700, y: 60, size: 70 },
-            { x: 1000, y: 100, size: 65 },
-            { x: 1300, y: 90, size: 75 }
+            { x: 1200, y: 80, size: 60 },   // Start from right side
+            { x: 1400, y: 120, size: 80 },  // Start from right side
+            { x: 1600, y: 60, size: 70 },   // Start from right side
+            { x: 1800, y: 100, size: 65 },  // Start from right side
+            { x: 2000, y: 90, size: 75 }    // Start from right side
         ];
         
         cloudPositions.forEach((cloud, index) => {
-            // Move clouds from right to left, appearing from right side
-            // Start from right side and move left, then wrap back to right
-            let cloudX = cloud.x - time * 20 + index * 200;
+            // Move clouds from right to left
+            let cloudX = cloud.x - time * 20;
             
             // If cloud goes off the left side, wrap it to the right side
             if (cloudX < -cloud.size) {
@@ -695,20 +694,19 @@ class SimpleGame {
         const ctx = this.ctx;
         const time = Date.now() * 0.002; // Very slow tree movement for parallax effect
         
-        // Create multiple trees at different positions
+        // Create multiple trees at different positions - start them further to the right
         const treePositions = [
-            { x: 50, y: this.ground.y - 120, size: 100 },
-            { x: 300, y: this.ground.y - 140, size: 120 },
-            { x: 600, y: this.ground.y - 110, size: 90 },
-            { x: 900, y: this.ground.y - 130, size: 110 },
-            { x: 1200, y: this.ground.y - 125, size: 105 },
-            { x: 1500, y: this.ground.y - 135, size: 115 }
+            { x: 1200, y: this.ground.y - 120, size: 100 },  // Start from right side
+            { x: 1400, y: this.ground.y - 140, size: 120 },  // Start from right side
+            { x: 1600, y: this.ground.y - 110, size: 90 },   // Start from right side
+            { x: 1800, y: this.ground.y - 130, size: 110 },  // Start from right side
+            { x: 2000, y: this.ground.y - 125, size: 105 },  // Start from right side
+            { x: 2200, y: this.ground.y - 135, size: 115 }   // Start from right side
         ];
         
         treePositions.forEach((tree, index) => {
-            // Move trees from right to left (parallax effect), appearing from right side
-            // Start from right side and move left, then wrap back to right
-            let treeX = tree.x - time * 10 + index * 250;
+            // Move trees from right to left (parallax effect)
+            let treeX = tree.x - time * 10;
             
             // If tree goes off the left side, wrap it to the right side
             if (treeX < -tree.size) {
