@@ -502,7 +502,7 @@ class SimpleGame {
         ctx.stroke();
         ctx.closePath();
 
-        // Draw arms with improved running animation
+        // Draw arms with realistic running animation
         if (this.player.isJumping) {
             // Jumping pose - arms up
             ctx.beginPath();
@@ -513,18 +513,31 @@ class SimpleGame {
             ctx.stroke();
             ctx.closePath();
         } else {
-            // Running pose - arms swinging naturally
-            const armSwing = Math.sin(Date.now() * 0.005) * 0.25; // Slower, wider swing
+            // Running pose - arms move in opposite directions like real running
+            const time = Date.now() * 0.003; // Slower animation
+            const leftArmAngle = Math.sin(time) * 0.4; // Left arm swings
+            const rightArmAngle = Math.sin(time + Math.PI) * 0.4; // Right arm opposite
+            
+            // Left arm
             ctx.beginPath();
-            ctx.moveTo(centerX - width * (0.25 + armSwing), y + height * 0.35);
-            ctx.lineTo(centerX + width * (0.25 - armSwing), y + height * 0.35);
+            ctx.moveTo(centerX, y + height * 0.35);
+            ctx.lineTo(centerX - width * (0.3 + leftArmAngle), y + height * 0.35);
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = height * 0.05;
+            ctx.stroke();
+            ctx.closePath();
+            
+            // Right arm
+            ctx.beginPath();
+            ctx.moveTo(centerX, y + height * 0.35);
+            ctx.lineTo(centerX + width * (0.3 + rightArmAngle), y + height * 0.35);
             ctx.strokeStyle = '#FFD700';
             ctx.lineWidth = height * 0.05;
             ctx.stroke();
             ctx.closePath();
         }
 
-        // Draw legs with improved running animation
+        // Draw legs with realistic running animation
         if (this.player.isJumping) {
             // Jumping pose - legs together
             ctx.beginPath();
@@ -535,11 +548,24 @@ class SimpleGame {
             ctx.stroke();
             ctx.closePath();
         } else {
-            // Running pose - legs alternating naturally
-            const legSwing = Math.sin(Date.now() * 0.005) * 0.3; // Slower, wider swing
+            // Running pose - legs move in opposite directions like real running
+            const time = Date.now() * 0.003; // Same timing as arms
+            const leftLegAngle = Math.sin(time) * 0.5; // Left leg swings
+            const rightLegAngle = Math.sin(time + Math.PI) * 0.5; // Right leg opposite
+            
+            // Left leg
             ctx.beginPath();
-            ctx.moveTo(centerX - width * (0.15 + legSwing), y + height * 0.7);
-            ctx.lineTo(centerX + width * (0.15 - legSwing), y + height * 0.9);
+            ctx.moveTo(centerX, y + height * 0.7);
+            ctx.lineTo(centerX - width * (0.2 + leftLegAngle), y + height * 0.9);
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = height * 0.06;
+            ctx.stroke();
+            ctx.closePath();
+            
+            // Right leg
+            ctx.beginPath();
+            ctx.moveTo(centerX, y + height * 0.7);
+            ctx.lineTo(centerX + width * (0.2 + rightLegAngle), y + height * 0.9);
             ctx.strokeStyle = '#FFD700';
             ctx.lineWidth = height * 0.06;
             ctx.stroke();
