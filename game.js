@@ -515,7 +515,7 @@ class SimpleGame {
         this.ctx.fillStyle = '#00FF00'; // Green for tree info
         this.ctx.fillText(`Tree Movement: Right to Left`, 20, 410);
         this.ctx.fillText(`Ground Level: y=${this.ground.y}`, 20, 440);
-        this.ctx.fillText(`Tree Base: y=${this.ground.y - 100}`, 20, 470);
+        this.ctx.fillText(`Tree Base: y=${this.ground.y - 60}`, 20, 470);
         
         if (this.obstacles.length > 0) {
             this.ctx.fillText(`First obstacle at: (${Math.round(this.obstacles[0].x)}, ${Math.round(this.obstacles[0].y)})`, 20, 140);
@@ -723,12 +723,12 @@ class SimpleGame {
         
         // Create multiple trees at different positions - start them visible on screen
         const treePositions = [
-            { x: 600, y: this.ground.y - 120, size: 120 },  // Start from middle, made bigger
-            { x: 800, y: this.ground.y - 140, size: 140 },  // Start from middle-right, made bigger
-            { x: 1000, y: this.ground.y - 110, size: 110 },  // Start from middle-right, made bigger
-            { x: 1200, y: this.ground.y - 130, size: 130 }, // Start from right edge, made bigger
-            { x: 1400, y: this.ground.y - 125, size: 125 }, // Start from off-screen right, made bigger
-            { x: 1600, y: this.ground.y - 135, size: 135 }  // Start from off-screen right, made bigger
+            { x: 600, y: this.ground.y - 80, size: 120 },  // Start from middle, positioned on ground
+            { x: 800, y: this.ground.y - 100, size: 140 },  // Start from middle-right, positioned on ground
+            { x: 1000, y: this.ground.y - 70, size: 110 },  // Start from middle-right, positioned on ground
+            { x: 1200, y: this.ground.y - 90, size: 130 }, // Start from right edge, positioned on ground
+            { x: 1400, y: this.ground.y - 85, size: 125 }, // Start from off-screen right, positioned on ground
+            { x: 1600, y: this.ground.y - 95, size: 135 }  // Start from off-screen right, positioned on ground
         ];
         
         treePositions.forEach((tree, index) => {
@@ -744,28 +744,28 @@ class SimpleGame {
             if (treeX > -tree.size && treeX < this.canvas.width + tree.size) {
                 // Draw tree trunk - positioned on the ground
                 ctx.fillStyle = '#8B4513';
-                ctx.fillRect(treeX - 12, this.ground.y - 100, 24, 100); // Trunk starts from ground
+                ctx.fillRect(treeX - 12, this.ground.y - 60, 24, 60); // Trunk starts from ground, shorter height
                 
                 // Add trunk outline
                 ctx.strokeStyle = '#654321';
                 ctx.lineWidth = 2;
-                ctx.strokeRect(treeX - 12, this.ground.y - 100, 24, 100);
+                ctx.strokeRect(treeX - 12, this.ground.y - 60, 24, 60);
                 
                 // Draw tree leaves (multiple circles for foliage) - positioned above trunk
                 ctx.fillStyle = '#228B22';
                 ctx.beginPath();
-                ctx.arc(treeX, this.ground.y - 125, tree.size * 0.5, 0, Math.PI * 2);
-                ctx.arc(treeX - tree.size * 0.4, this.ground.y - 150, tree.size * 0.45, 0, Math.PI * 2);
-                ctx.arc(treeX + tree.size * 0.4, this.ground.y - 145, tree.size * 0.4, 0, Math.PI * 2);
-                ctx.arc(treeX, this.ground.y - 175, tree.size * 0.35, 0, Math.PI * 2);
+                ctx.arc(treeX, this.ground.y - 85, tree.size * 0.4, 0, Math.PI * 2);
+                ctx.arc(treeX - tree.size * 0.3, this.ground.y - 110, tree.size * 0.35, 0, Math.PI * 2);
+                ctx.arc(treeX + tree.size * 0.3, this.ground.y - 105, tree.size * 0.3, 0, Math.PI * 2);
+                ctx.arc(treeX, this.ground.y - 135, tree.size * 0.25, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.closePath();
                 
                 // Add some darker green for depth
                 ctx.fillStyle = '#006400';
                 ctx.beginPath();
-                ctx.arc(treeX - tree.size * 0.3, this.ground.y - 140, tree.size * 0.3, 0, Math.PI * 2);
-                ctx.arc(treeX + tree.size * 0.3, this.ground.y - 160, tree.size * 0.3, 0, Math.PI * 2);
+                ctx.arc(treeX - tree.size * 0.2, this.ground.y - 100, tree.size * 0.2, 0, Math.PI * 2);
+                ctx.arc(treeX + tree.size * 0.2, this.ground.y - 120, tree.size * 0.2, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.closePath();
                 
@@ -800,25 +800,25 @@ class SimpleGame {
         // Test tree - make it more visible
         const testTreeX = 200 + Math.sin(time * 1.5) * 15; // Oscillate around x=200
         ctx.fillStyle = '#8B4513';
-        ctx.fillRect(testTreeX - 15, this.ground.y - 120, 30, 120); // Tree trunk on ground
+        ctx.fillRect(testTreeX - 15, this.ground.y - 60, 30, 60); // Tree trunk on ground, shorter height
 
         ctx.strokeStyle = '#654321';
         ctx.lineWidth = 3;
-        ctx.strokeRect(testTreeX - 15, this.ground.y - 120, 30, 120);
+        ctx.strokeRect(testTreeX - 15, this.ground.y - 60, 30, 60);
 
         ctx.fillStyle = '#228B22';
         ctx.beginPath();
-        ctx.arc(testTreeX, this.ground.y - 145, 80, 0, Math.PI * 2);
-        ctx.arc(testTreeX - 100, this.ground.y - 165, 80, 0, Math.PI * 2);
-        ctx.arc(testTreeX + 100, this.ground.y - 165, 80, 0, Math.PI * 2);
-        ctx.arc(testTreeX, this.ground.y - 205, 80, 0, Math.PI * 2);
+        ctx.arc(testTreeX, this.ground.y - 85, 60, 0, Math.PI * 2);
+        ctx.arc(testTreeX - 60, this.ground.y - 105, 60, 0, Math.PI * 2);
+        ctx.arc(testTreeX + 60, this.ground.y - 105, 60, 0, Math.PI * 2);
+        ctx.arc(testTreeX, this.ground.y - 125, 60, 0, Math.PI * 2);
         ctx.fill();
         ctx.closePath();
 
         ctx.fillStyle = '#006400';
         ctx.beginPath();
-        ctx.arc(testTreeX - 70, this.ground.y - 165, 60, 0, Math.PI * 2);
-        ctx.arc(testTreeX + 70, this.ground.y - 165, 60, 0, Math.PI * 2);
+        ctx.arc(testTreeX - 40, this.ground.y - 105, 40, 0, Math.PI * 2);
+        ctx.arc(testTreeX + 40, this.ground.y - 105, 40, 0, Math.PI * 2);
         ctx.fill();
         ctx.closePath();
 
