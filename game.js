@@ -506,6 +506,11 @@ class SimpleGame {
         this.ctx.fillText(`Background: Clouds & Trees Active`, 20, 290);
         this.ctx.fillText(`Ground Y: ${this.ground.y}`, 20, 320);
         
+        // Add position indicators for first cloud and tree
+        this.ctx.fillStyle = '#FFFF00'; // Yellow for position info
+        this.ctx.fillText(`Test Cloud: x=${Math.round(50 + Math.sin(Date.now() * 0.002) * 20)}`, 20, 350);
+        this.ctx.fillText(`Test Tree: x=${Math.round(200 + Math.sin(Date.now() * 0.0015) * 15)}`, 20, 380);
+        
         if (this.obstacles.length > 0) {
             this.ctx.fillText(`First obstacle at: (${Math.round(this.obstacles[0].x)}, ${Math.round(this.obstacles[0].y)})`, 20, 140);
             // Show if player can clear the obstacle
@@ -663,8 +668,6 @@ class SimpleGame {
         const ctx = this.ctx;
         const time = Date.now() * 0.001; // Slow cloud movement
         
-        console.log('Drawing clouds...'); // Debug log
-        
         // Create multiple clouds at different positions - start them visible on screen
         const cloudPositions = [
             { x: 800, y: 80, size: 80 },   // Start from middle-right, made bigger
@@ -702,8 +705,6 @@ class SimpleGame {
                 ctx.strokeStyle = '#CCCCCC';
                 ctx.lineWidth = 2;
                 ctx.stroke();
-                
-                console.log(`Cloud ${index + 1} drawn at (${Math.round(cloudX)}, ${cloud.y})`); // Debug log
             }
         });
         
@@ -713,8 +714,6 @@ class SimpleGame {
     drawTrees() {
         const ctx = this.ctx;
         const time = Date.now() * 0.002; // Very slow tree movement for parallax effect
-        
-        console.log('Drawing trees...'); // Debug log
         
         // Create multiple trees at different positions - start them visible on screen
         const treePositions = [
@@ -760,7 +759,7 @@ class SimpleGame {
                 ctx.fillStyle = '#006400';
                 ctx.beginPath();
                 ctx.arc(treeX - tree.size * 0.3, tree.y - 40, tree.size * 0.3, 0, Math.PI * 2);
-                ctx.arc(treeX + tree.size * 0.3, tree.y - 60, tree.size * 0.3, 0, Math.PI * 2);
+                ctx.arc(treeX + tree.size * 0.3, tree.y - 50, tree.size * 0.3, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.closePath();
                 
@@ -768,8 +767,6 @@ class SimpleGame {
                 ctx.strokeStyle = '#0B4F0B';
                 ctx.lineWidth = 2;
                 ctx.stroke();
-                
-                console.log(`Tree ${index + 1} drawn at (${Math.round(treeX)}, ${tree.y})`); // Debug log
             }
         });
     }
@@ -778,55 +775,53 @@ class SimpleGame {
         const ctx = this.ctx;
         const time = Date.now() * 0.001; // Slow movement for test elements
 
-        // Test cloud
-        const testCloudX = -time * 10;
-        if (testCloudX > -100 && testCloudX < this.canvas.width + 100) {
-            ctx.fillStyle = '#FFFFFF';
-            ctx.globalAlpha = 0.9;
-            ctx.beginPath();
-            ctx.arc(testCloudX, 100, 80, 0, Math.PI * 2);
-            ctx.arc(testCloudX + 100, 100, 100, 0, Math.PI * 2);
-            ctx.arc(testCloudX + 200, 100, 80, 0, Math.PI * 2);
-            ctx.arc(testCloudX + 150, 50, 100, 0, Math.PI * 2);
-            ctx.arc(testCloudX + 250, 50, 100, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.closePath();
+        // Test cloud - make it more visible
+        const testCloudX = 50 + Math.sin(time * 2) * 20; // Oscillate around x=50
+        ctx.fillStyle = '#FFFFFF';
+        ctx.globalAlpha = 0.9;
+        ctx.beginPath();
+        ctx.arc(testCloudX, 100, 60, 0, Math.PI * 2);
+        ctx.arc(testCloudX + 80, 100, 80, 0, Math.PI * 2);
+        ctx.arc(testCloudX + 160, 100, 60, 0, Math.PI * 2);
+        ctx.arc(testCloudX + 120, 50, 80, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
 
-            ctx.strokeStyle = '#CCCCCC';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
+        ctx.strokeStyle = '#CCCCCC';
+        ctx.lineWidth = 3;
+        ctx.stroke();
 
-        // Test tree
-        const testTreeX = -time * 5;
-        if (testTreeX > -200 && testTreeX < this.canvas.width + 200) {
-            ctx.fillStyle = '#8B4513';
-            ctx.fillRect(testTreeX - 20, 150, 40, 150);
+        // Test tree - make it more visible
+        const testTreeX = 200 + Math.sin(time * 1.5) * 15; // Oscillate around x=200
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(testTreeX - 15, 200, 30, 120);
 
-            ctx.strokeStyle = '#654321';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(testTreeX - 20, 150, 40, 150);
+        ctx.strokeStyle = '#654321';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(testTreeX - 15, 200, 30, 120);
 
-            ctx.fillStyle = '#228B22';
-            ctx.beginPath();
-            ctx.arc(testTreeX, 100, 100, 0, Math.PI * 2);
-            ctx.arc(testTreeX - 150, 50, 100, 0, Math.PI * 2);
-            ctx.arc(testTreeX + 150, 50, 100, 0, Math.PI * 2);
-            ctx.arc(testTreeX, 0, 100, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.closePath();
+        ctx.fillStyle = '#228B22';
+        ctx.beginPath();
+        ctx.arc(testTreeX, 150, 80, 0, Math.PI * 2);
+        ctx.arc(testTreeX - 100, 100, 80, 0, Math.PI * 2);
+        ctx.arc(testTreeX + 100, 100, 80, 0, Math.PI * 2);
+        ctx.arc(testTreeX, 50, 80, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
 
-            ctx.fillStyle = '#006400';
-            ctx.beginPath();
-            ctx.arc(testTreeX - 100, 50, 100, 0, Math.PI * 2);
-            ctx.arc(testTreeX + 100, 50, 100, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.closePath();
+        ctx.fillStyle = '#006400';
+        ctx.beginPath();
+        ctx.arc(testTreeX - 70, 100, 60, 0, Math.PI * 2);
+        ctx.arc(testTreeX + 70, 100, 60, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
 
-            ctx.strokeStyle = '#0B4F0B';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
+        ctx.strokeStyle = '#0B4F0B';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        // Reset transparency
+        ctx.globalAlpha = 1.0;
     }
 }
 
