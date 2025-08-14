@@ -665,8 +665,8 @@ class SimpleGame {
         ];
         
         cloudPositions.forEach((cloud, index) => {
-            // Move clouds slowly to the left
-            const cloudX = (cloud.x - time * 20 + index * 200) % (this.canvas.width + 200);
+            // Move clouds from right to left, appearing from right side
+            const cloudX = (cloud.x + time * 20 + index * 200) % (this.canvas.width + 200);
             
             ctx.fillStyle = '#FFFFFF';
             ctx.globalAlpha = 0.8;
@@ -700,8 +700,8 @@ class SimpleGame {
         ];
         
         treePositions.forEach((tree, index) => {
-            // Move trees slowly to the left (parallax effect)
-            const treeX = (tree.x - time * 10 + index * 250) % (this.canvas.width + 300);
+            // Move trees from right to left (parallax effect), appearing from right side
+            const treeX = (tree.x + time * 10 + index * 250) % (this.canvas.width + 300);
             
             // Draw tree trunk
             ctx.fillStyle = '#8B4513';
