@@ -502,7 +502,7 @@ class SimpleGame {
         ctx.stroke();
         ctx.closePath();
 
-        // Draw arms with realistic running animation
+        // Draw arms with realistic running animation (up and down movement)
         if (this.player.isJumping) {
             // Jumping pose - arms up
             ctx.beginPath();
@@ -513,31 +513,31 @@ class SimpleGame {
             ctx.stroke();
             ctx.closePath();
         } else {
-            // Running pose - arms move in opposite directions like real running
-            const time = Date.now() * 0.003; // Slower animation
-            const leftArmAngle = Math.sin(time) * 0.4; // Left arm swings
-            const rightArmAngle = Math.sin(time + Math.PI) * 0.4; // Right arm opposite
+            // Running pose - arms move up and down like real running
+            const time = Date.now() * 0.004; // Animation speed
+            const leftArmUp = Math.sin(time) * 0.15; // Left arm goes up and down
+            const rightArmUp = Math.sin(time + Math.PI) * 0.15; // Right arm opposite
             
-            // Left arm
+            // Left arm - moves up and down
             ctx.beginPath();
             ctx.moveTo(centerX, y + height * 0.35);
-            ctx.lineTo(centerX - width * (0.3 + leftArmAngle), y + height * 0.35);
+            ctx.lineTo(centerX - width * 0.25, y + height * (0.35 - leftArmUp));
             ctx.strokeStyle = '#FFD700';
             ctx.lineWidth = height * 0.05;
             ctx.stroke();
             ctx.closePath();
             
-            // Right arm
+            // Right arm - moves up and down (opposite phase)
             ctx.beginPath();
             ctx.moveTo(centerX, y + height * 0.35);
-            ctx.lineTo(centerX + width * (0.3 + rightArmAngle), y + height * 0.35);
+            ctx.lineTo(centerX + width * 0.25, y + height * (0.35 - rightArmUp));
             ctx.strokeStyle = '#FFD700';
             ctx.lineWidth = height * 0.05;
             ctx.stroke();
             ctx.closePath();
         }
 
-        // Draw legs with realistic running animation
+        // Draw legs with realistic running animation (up and down movement)
         if (this.player.isJumping) {
             // Jumping pose - legs together
             ctx.beginPath();
@@ -548,24 +548,24 @@ class SimpleGame {
             ctx.stroke();
             ctx.closePath();
         } else {
-            // Running pose - legs move in opposite directions like real running
-            const time = Date.now() * 0.003; // Same timing as arms
-            const leftLegAngle = Math.sin(time) * 0.5; // Left leg swings
-            const rightLegAngle = Math.sin(time + Math.PI) * 0.5; // Right leg opposite
+            // Running pose - legs move up and down like real running
+            const time = Date.now() * 0.004; // Same timing as arms
+            const leftLegUp = Math.sin(time) * 0.2; // Left leg goes up and down
+            const rightLegUp = Math.sin(time + Math.PI) * 0.2; // Right leg opposite
             
-            // Left leg
+            // Left leg - moves up and down
             ctx.beginPath();
             ctx.moveTo(centerX, y + height * 0.7);
-            ctx.lineTo(centerX - width * (0.2 + leftLegAngle), y + height * 0.9);
+            ctx.lineTo(centerX - width * 0.15, y + height * (0.9 - leftLegUp));
             ctx.strokeStyle = '#FFD700';
             ctx.lineWidth = height * 0.06;
             ctx.stroke();
             ctx.closePath();
             
-            // Right leg
+            // Right leg - moves up and down (opposite phase)
             ctx.beginPath();
             ctx.moveTo(centerX, y + height * 0.7);
-            ctx.lineTo(centerX + width * (0.2 + rightLegAngle), y + height * 0.9);
+            ctx.lineTo(centerX + width * 0.15, y + height * (0.9 - rightLegUp));
             ctx.strokeStyle = '#FFD700';
             ctx.lineWidth = height * 0.06;
             ctx.stroke();
