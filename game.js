@@ -452,6 +452,9 @@ class SimpleGame {
         // Draw trees
         this.drawTrees();
         
+        // Draw a test cloud and tree in top-left corner to verify drawing works
+        this.drawTestElements();
+        
         // Draw ground
         this.ctx.fillStyle = '#8B4513';
         this.ctx.fillRect(0, this.ground.y, this.canvas.width, this.ground.height);
@@ -497,6 +500,11 @@ class SimpleGame {
         this.ctx.fillText(`Player Y: ${Math.round(this.player.y)}`, 20, 200);
         this.ctx.fillText(`Gravity: ${this.gravity}`, 20, 230);
         this.ctx.fillText(`Difficulty: ${this.obstacleFrequency} obstacle(s)`, 20, 260);
+        
+        // Add background debug info
+        this.ctx.fillStyle = '#00FFFF'; // Cyan color for background info
+        this.ctx.fillText(`Background: Clouds & Trees Active`, 20, 290);
+        this.ctx.fillText(`Ground Y: ${this.ground.y}`, 20, 320);
         
         if (this.obstacles.length > 0) {
             this.ctx.fillText(`First obstacle at: (${Math.round(this.obstacles[0].x)}, ${Math.round(this.obstacles[0].y)})`, 20, 140);
@@ -655,13 +663,15 @@ class SimpleGame {
         const ctx = this.ctx;
         const time = Date.now() * 0.001; // Slow cloud movement
         
+        console.log('Drawing clouds...'); // Debug log
+        
         // Create multiple clouds at different positions - start them visible on screen
         const cloudPositions = [
-            { x: 800, y: 80, size: 60 },   // Start from middle-right
-            { x: 1000, y: 120, size: 80 }, // Start from middle-right
-            { x: 1200, y: 60, size: 70 },  // Start from right edge
-            { x: 1400, y: 100, size: 65 }, // Start from off-screen right
-            { x: 1600, y: 90, size: 75 }   // Start from off-screen right
+            { x: 800, y: 80, size: 80 },   // Start from middle-right, made bigger
+            { x: 1000, y: 120, size: 100 }, // Start from middle-right, made bigger
+            { x: 1200, y: 60, size: 90 },  // Start from right edge, made bigger
+            { x: 1400, y: 100, size: 85 }, // Start from off-screen right, made bigger
+            { x: 1600, y: 90, size: 95 }   // Start from off-screen right, made bigger
         ];
         
         cloudPositions.forEach((cloud, index) => {
@@ -673,18 +683,28 @@ class SimpleGame {
                 cloudX = this.canvas.width + cloud.size;
             }
             
-            ctx.fillStyle = '#FFFFFF';
-            ctx.globalAlpha = 0.8;
-            
-            // Draw cloud using multiple circles
-            ctx.beginPath();
-            ctx.arc(cloudX, cloud.y, cloud.size * 0.3, 0, Math.PI * 2);
-            ctx.arc(cloudX + cloud.size * 0.4, cloud.y, cloud.size * 0.4, 0, Math.PI * 2);
-            ctx.arc(cloudX + cloud.size * 0.8, cloud.y, cloud.size * 0.3, 0, Math.PI * 2);
-            ctx.arc(cloudX + cloud.size * 0.2, cloud.y - cloud.size * 0.2, cloud.size * 0.25, 0, Math.PI * 2);
-            ctx.arc(cloudX + cloud.size * 0.6, cloud.y - cloud.size * 0.15, cloud.size * 0.35, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.closePath();
+            // Only draw if cloud is visible on screen
+            if (cloudX > -cloud.size && cloudX < this.canvas.width + cloud.size) {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.globalAlpha = 0.9; // Made more opaque
+                
+                // Draw cloud using multiple circles - made bigger and more visible
+                ctx.beginPath();
+                ctx.arc(cloudX, cloud.y, cloud.size * 0.4, 0, Math.PI * 2);
+                ctx.arc(cloudX + cloud.size * 0.5, cloud.y, cloud.size * 0.5, 0, Math.PI * 2);
+                ctx.arc(cloudX + cloud.size * 0.9, cloud.y, cloud.size * 0.4, 0, Math.PI * 2);
+                ctx.arc(cloudX + cloud.size * 0.3, cloud.y - cloud.size * 0.25, cloud.size * 0.3, 0, Math.PI * 2);
+                ctx.arc(cloudX + cloud.size * 0.7, cloud.y - cloud.size * 0.2, cloud.size * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.closePath();
+                
+                // Add cloud outline for better visibility
+                ctx.strokeStyle = '#CCCCCC';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                console.log(`Cloud ${index + 1} drawn at (${Math.round(cloudX)}, ${cloud.y})`); // Debug log
+            }
         });
         
         ctx.globalAlpha = 1.0; // Reset transparency
@@ -694,14 +714,16 @@ class SimpleGame {
         const ctx = this.ctx;
         const time = Date.now() * 0.002; // Very slow tree movement for parallax effect
         
+        console.log('Drawing trees...'); // Debug log
+        
         // Create multiple trees at different positions - start them visible on screen
         const treePositions = [
-            { x: 600, y: this.ground.y - 120, size: 100 },  // Start from middle
-            { x: 800, y: this.ground.y - 140, size: 120 },  // Start from middle-right
-            { x: 1000, y: this.ground.y - 110, size: 90 },  // Start from middle-right
-            { x: 1200, y: this.ground.y - 130, size: 110 }, // Start from right edge
-            { x: 1400, y: this.ground.y - 125, size: 105 }, // Start from off-screen right
-            { x: 1600, y: this.ground.y - 135, size: 115 }  // Start from off-screen right
+            { x: 600, y: this.ground.y - 120, size: 120 },  // Start from middle, made bigger
+            { x: 800, y: this.ground.y - 140, size: 140 },  // Start from middle-right, made bigger
+            { x: 1000, y: this.ground.y - 110, size: 110 },  // Start from middle-right, made bigger
+            { x: 1200, y: this.ground.y - 130, size: 130 }, // Start from right edge, made bigger
+            { x: 1400, y: this.ground.y - 125, size: 125 }, // Start from off-screen right, made bigger
+            { x: 1600, y: this.ground.y - 135, size: 135 }  // Start from off-screen right, made bigger
         ];
         
         treePositions.forEach((tree, index) => {
@@ -713,28 +735,98 @@ class SimpleGame {
                 treeX = this.canvas.width + tree.size;
             }
             
-            // Draw tree trunk
+            // Only draw if tree is visible on screen
+            if (treeX > -tree.size && treeX < this.canvas.width + tree.size) {
+                // Draw tree trunk - made thicker
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(treeX - 12, tree.y, 24, 100); // Made trunk thicker and taller
+                
+                // Add trunk outline
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(treeX - 12, tree.y, 24, 100);
+                
+                // Draw tree leaves (multiple circles for foliage) - made bigger
+                ctx.fillStyle = '#228B22';
+                ctx.beginPath();
+                ctx.arc(treeX, tree.y - 25, tree.size * 0.5, 0, Math.PI * 2);
+                ctx.arc(treeX - tree.size * 0.4, tree.y - 50, tree.size * 0.45, 0, Math.PI * 2);
+                ctx.arc(treeX + tree.size * 0.4, tree.y - 45, tree.size * 0.4, 0, Math.PI * 2);
+                ctx.arc(treeX, tree.y - 75, tree.size * 0.35, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.closePath();
+                
+                // Add some darker green for depth
+                ctx.fillStyle = '#006400';
+                ctx.beginPath();
+                ctx.arc(treeX - tree.size * 0.3, tree.y - 40, tree.size * 0.3, 0, Math.PI * 2);
+                ctx.arc(treeX + tree.size * 0.3, tree.y - 60, tree.size * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.closePath();
+                
+                // Add tree outline for better visibility
+                ctx.strokeStyle = '#0B4F0B';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                console.log(`Tree ${index + 1} drawn at (${Math.round(treeX)}, ${tree.y})`); // Debug log
+            }
+        });
+    }
+
+    drawTestElements() {
+        const ctx = this.ctx;
+        const time = Date.now() * 0.001; // Slow movement for test elements
+
+        // Test cloud
+        const testCloudX = -time * 10;
+        if (testCloudX > -100 && testCloudX < this.canvas.width + 100) {
+            ctx.fillStyle = '#FFFFFF';
+            ctx.globalAlpha = 0.9;
+            ctx.beginPath();
+            ctx.arc(testCloudX, 100, 80, 0, Math.PI * 2);
+            ctx.arc(testCloudX + 100, 100, 100, 0, Math.PI * 2);
+            ctx.arc(testCloudX + 200, 100, 80, 0, Math.PI * 2);
+            ctx.arc(testCloudX + 150, 50, 100, 0, Math.PI * 2);
+            ctx.arc(testCloudX + 250, 50, 100, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+
+            ctx.strokeStyle = '#CCCCCC';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // Test tree
+        const testTreeX = -time * 5;
+        if (testTreeX > -200 && testTreeX < this.canvas.width + 200) {
             ctx.fillStyle = '#8B4513';
-            ctx.fillRect(treeX - 8, tree.y, 16, 80);
-            
-            // Draw tree leaves (multiple circles for foliage)
+            ctx.fillRect(testTreeX - 20, 150, 40, 150);
+
+            ctx.strokeStyle = '#654321';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(testTreeX - 20, 150, 40, 150);
+
             ctx.fillStyle = '#228B22';
             ctx.beginPath();
-            ctx.arc(treeX, tree.y - 20, tree.size * 0.4, 0, Math.PI * 2);
-            ctx.arc(treeX - tree.size * 0.3, tree.y - 40, tree.size * 0.35, 0, Math.PI * 2);
-            ctx.arc(treeX + tree.size * 0.3, tree.y - 35, tree.size * 0.3, 0, Math.PI * 2);
-            ctx.arc(treeX, tree.y - 60, tree.size * 0.25, 0, Math.PI * 2);
+            ctx.arc(testTreeX, 100, 100, 0, Math.PI * 2);
+            ctx.arc(testTreeX - 150, 50, 100, 0, Math.PI * 2);
+            ctx.arc(testTreeX + 150, 50, 100, 0, Math.PI * 2);
+            ctx.arc(testTreeX, 0, 100, 0, Math.PI * 2);
             ctx.fill();
             ctx.closePath();
-            
-            // Add some darker green for depth
+
             ctx.fillStyle = '#006400';
             ctx.beginPath();
-            ctx.arc(treeX - tree.size * 0.2, tree.y - 30, tree.size * 0.2, 0, Math.PI * 2);
-            ctx.arc(treeX + tree.size * 0.2, tree.y - 50, tree.size * 0.2, 0, Math.PI * 2);
+            ctx.arc(testTreeX - 100, 50, 100, 0, Math.PI * 2);
+            ctx.arc(testTreeX + 100, 50, 100, 0, Math.PI * 2);
             ctx.fill();
             ctx.closePath();
-        });
+
+            ctx.strokeStyle = '#0B4F0B';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
     }
 }
 
