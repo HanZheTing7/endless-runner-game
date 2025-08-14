@@ -491,7 +491,7 @@ class SimpleGame {
         
         // Draw head using image instead of circle
         if (this.characterHead.complete) {
-            const headSize = height * 0.24; // Make head a bit bigger
+            const headSize = height * 0.8; // Increased from 0.24 to 0.4 to make head bigger
             ctx.drawImage(
                 this.characterHead, 
                 centerX - headSize/2, 
@@ -537,12 +537,12 @@ class SimpleGame {
             ctx.stroke();
             ctx.closePath();
         } else {
-            // Running pose - simple up/down movement
+            // Running pose - arms and legs move in opposite directions like real running
             const time = Date.now() * 0.01;
             const isUp = Math.sin(time) > 0;
             
             if (isUp) {
-                // Left side up, right side down
+                // Left side up, right side down (opposite movement)
                 // Left arm up
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.3);
@@ -552,7 +552,7 @@ class SimpleGame {
                 ctx.stroke();
                 ctx.closePath();
                 
-                // Right arm down
+                // Right arm down (opposite to left)
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.3);
                 ctx.lineTo(centerX + width * 0.15, y + height * 0.45);
@@ -570,7 +570,7 @@ class SimpleGame {
                 ctx.stroke();
                 ctx.closePath();
                 
-                // Right leg down
+                // Right leg down (opposite to left)
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.65);
                 ctx.lineTo(centerX + width * 0.1, y + height * 0.9);
@@ -579,7 +579,7 @@ class SimpleGame {
                 ctx.stroke();
                 ctx.closePath();
             } else {
-                // Right side up, left side down
+                // Right side up, left side down (opposite movement)
                 // Right arm up
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.3);
@@ -589,7 +589,7 @@ class SimpleGame {
                 ctx.stroke();
                 ctx.closePath();
                 
-                // Left arm down
+                // Left arm down (opposite to right)
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.3);
                 ctx.lineTo(centerX - width * 0.15, y + height * 0.45);
@@ -607,7 +607,7 @@ class SimpleGame {
                 ctx.stroke();
                 ctx.closePath();
                 
-                // Left leg down
+                // Left leg down (opposite to right)
                 ctx.beginPath();
                 ctx.moveTo(centerX, y + height * 0.65);
                 ctx.lineTo(centerX - width * 0.1, y + height * 0.9);
