@@ -347,6 +347,25 @@ class SimpleGame {
         }
     }
     
+    // Static method to clear leaderboard from anywhere
+    static clearLeaderboardGlobal() {
+        // Clear all leaderboard data
+        localStorage.removeItem('endlessRunnerScores');
+        console.log('Leaderboard completely cleared globally');
+        
+        // Update the display to show empty leaderboard
+        const leaderboardElement = document.getElementById('leaderboard');
+        const playerRankElement = document.getElementById('playerRank');
+        
+        if (leaderboardElement) {
+            leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+        }
+        
+        if (playerRankElement) {
+            playerRankElement.textContent = '-';
+        }
+    }
+    
     render() {
         // Check if canvas and context exist
         if (!this.canvas || !this.ctx) {
@@ -430,6 +449,11 @@ class GameManager {
             this.startGame();
         });
         
+        // Clear leaderboard button (start screen)
+        document.getElementById('clearLeaderboardStartButton').addEventListener('click', () => {
+            this.clearLeaderboard();
+        });
+        
         // Username input
         document.getElementById('username').addEventListener('input', (e) => {
             this.username = e.target.value.trim();
@@ -452,9 +476,7 @@ class GameManager {
         
         // Clear leaderboard button
         document.getElementById('clearLeaderboardButton').addEventListener('click', () => {
-            if (this.game) {
-                this.game.clearLeaderboard();
-            }
+            this.clearLeaderboard();
         });
     }
     
@@ -534,6 +556,24 @@ class GameManager {
         document.getElementById(screenName + 'Screen').classList.add('active');
         this.currentScreen = screenName;
     }
+
+    clearLeaderboard() {
+        // Clear all leaderboard data
+        localStorage.removeItem('endlessRunnerScores');
+        console.log('Leaderboard completely cleared');
+        
+        // Update the display to show empty leaderboard
+        const leaderboardElement = document.getElementById('leaderboard');
+        const playerRankElement = document.getElementById('playerRank');
+        
+        if (leaderboardElement) {
+            leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+        }
+        
+        if (playerRankElement) {
+            playerRankElement.textContent = '-';
+        }
+    }
 }
 
 // Initialize game when page loads
@@ -572,5 +612,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const gameManager = new GameManager();
         window.gameManager = gameManager;
         console.log('GameManager initialized successfully');
+        
+        // Add global function to clear leaderboard from console
+        window.clearLeaderboard = () => {
+            localStorage.removeItem('endlessRunnerScores');
+            console.log('Leaderboard cleared via console command');
+            
+            // Update display if on game over screen
+            const leaderboardElement = document.getElementById('leaderboard');
+            const playerRankElement = document.getElementById('playerRank');
+            
+            if (leaderboardElement) {
+                leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+            }
+            
+            if (playerRankElement) {
+                playerRankElement.textContent = '-';
+            }
+        };
+        
+        console.log('Type "clearLeaderboard()" in console to clear leaderboard');
     }, 1500); // Increased from 1000 to 1500ms
 });
