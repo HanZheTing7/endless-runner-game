@@ -502,7 +502,7 @@ class SimpleGame {
         ctx.stroke();
         ctx.closePath();
 
-        // Draw arms with running animation
+        // Draw arms with improved running animation
         if (this.player.isJumping) {
             // Jumping pose - arms up
             ctx.beginPath();
@@ -513,18 +513,18 @@ class SimpleGame {
             ctx.stroke();
             ctx.closePath();
         } else {
-            // Running pose - arms swinging
-            const armSwing = Math.sin(Date.now() * 0.01) * 0.1;
+            // Running pose - arms swinging naturally
+            const armSwing = Math.sin(Date.now() * 0.005) * 0.25; // Slower, wider swing
             ctx.beginPath();
-            ctx.moveTo(centerX - width * (0.2 + armSwing), y + height * 0.4);
-            ctx.lineTo(centerX + width * (0.2 - armSwing), y + height * 0.4);
+            ctx.moveTo(centerX - width * (0.25 + armSwing), y + height * 0.35);
+            ctx.lineTo(centerX + width * (0.25 - armSwing), y + height * 0.35);
             ctx.strokeStyle = '#FFD700';
             ctx.lineWidth = height * 0.05;
             ctx.stroke();
             ctx.closePath();
         }
 
-        // Draw legs with running animation
+        // Draw legs with improved running animation
         if (this.player.isJumping) {
             // Jumping pose - legs together
             ctx.beginPath();
@@ -535,13 +535,13 @@ class SimpleGame {
             ctx.stroke();
             ctx.closePath();
         } else {
-            // Running pose - legs alternating
-            const legSwing = Math.sin(Date.now() * 0.01) * 0.15;
+            // Running pose - legs alternating naturally
+            const legSwing = Math.sin(Date.now() * 0.005) * 0.3; // Slower, wider swing
             ctx.beginPath();
-            ctx.moveTo(centerX - width * (0.1 + legSwing), y + height * 0.7);
-            ctx.lineTo(centerX + width * (0.1 - legSwing), y + height * 0.9);
+            ctx.moveTo(centerX - width * (0.15 + legSwing), y + height * 0.7);
+            ctx.lineTo(centerX + width * (0.15 - legSwing), y + height * 0.9);
             ctx.strokeStyle = '#FFD700';
-            ctx.lineWidth = height * 0.05;
+            ctx.lineWidth = height * 0.06;
             ctx.stroke();
             ctx.closePath();
         }
