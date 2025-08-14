@@ -508,8 +508,12 @@ class SimpleGame {
         
         // Add position indicators for first cloud and tree
         this.ctx.fillStyle = '#FFFF00'; // Yellow for position info
-        this.ctx.fillText(`Clouds: Start from x=1400-2200`, 20, 350);
-        this.ctx.fillText(`Trees: Start from x=1400-2400`, 20, 380);
+        if (this.cloudPositions && this.cloudPositions.length > 0) {
+            this.ctx.fillText(`Cloud 1: x=${Math.round(this.cloudPositions[0].currentX)}`, 20, 350);
+        }
+        if (this.treePositions && this.treePositions.length > 0) {
+            this.ctx.fillText(`Tree 1: x=${Math.round(this.treePositions[0].currentX)}`, 20, 380);
+        }
         
         // Add tree movement debug info
         this.ctx.fillStyle = '#00FF00'; // Green for tree info
@@ -674,36 +678,38 @@ class SimpleGame {
         const ctx = this.ctx;
         const time = Date.now() * 0.001; // Slow cloud movement
         
-        // Create multiple clouds at different positions - start them off-screen to the right
-        const cloudPositions = [
-            { x: 1400, y: 80, size: 80 },   // Start off-screen right
-            { x: 1600, y: 120, size: 100 }, // Start off-screen right
-            { x: 1800, y: 60, size: 90 },   // Start off-screen right
-            { x: 2000, y: 100, size: 85 },  // Start off-screen right
-            { x: 2200, y: 90, size: 95 }    // Start off-screen right
-        ];
+        // Initialize cloud positions if not already done
+        if (!this.cloudPositions) {
+            this.cloudPositions = [
+                { x: 1400, y: 80, size: 80, currentX: 1400 },   // Start off-screen right
+                { x: 1600, y: 120, size: 100, currentX: 1600 }, // Start off-screen right
+                { x: 1800, y: 60, size: 90, currentX: 1800 },   // Start off-screen right
+                { x: 2000, y: 100, size: 85, currentX: 2000 },  // Start off-screen right
+                { x: 2200, y: 90, size: 95, currentX: 2200 }    // Start off-screen right
+            ];
+        }
         
-        cloudPositions.forEach((cloud, index) => {
-            // Move clouds from right to left - start from right side
-            let cloudX = cloud.x - time * 20;
+        this.cloudPositions.forEach((cloud, index) => {
+            // Update current position - move from right to left
+            cloud.currentX -= 0.02; // Very slow movement per frame
             
             // If cloud goes off the left side, wrap it to the right side
-            if (cloudX < -cloud.size) {
-                cloudX = this.canvas.width + cloud.size + Math.random() * 200; // Add some randomness
+            if (cloud.currentX < -cloud.size) {
+                cloud.currentX = this.canvas.width + cloud.size + Math.random() * 200; // Add some randomness
             }
             
             // Only draw if cloud is visible on screen
-            if (cloudX > -cloud.size && cloudX < this.canvas.width + cloud.size) {
+            if (cloud.currentX > -cloud.size && cloud.currentX < this.canvas.width + cloud.size) {
                 ctx.fillStyle = '#FFFFFF';
                 ctx.globalAlpha = 0.9; // Made more opaque
                 
                 // Draw cloud using multiple circles - made bigger and more visible
                 ctx.beginPath();
-                ctx.arc(cloudX, cloud.y, cloud.size * 0.4, 0, Math.PI * 2);
-                ctx.arc(cloudX + cloud.size * 0.5, cloud.y, cloud.size * 0.5, 0, Math.PI * 2);
-                ctx.arc(cloudX + cloud.size * 0.9, cloud.y, cloud.size * 0.4, 0, Math.PI * 2);
-                ctx.arc(cloudX + cloud.size * 0.3, cloud.y - cloud.size * 0.25, cloud.size * 0.3, 0, Math.PI * 2);
-                ctx.arc(cloudX + cloud.size * 0.7, cloud.y - cloud.size * 0.2, cloud.size * 0.4, 0, Math.PI * 2);
+                ctx.arc(cloud.currentX, cloud.y, cloud.size * 0.4, 0, Math.PI * 2);
+                ctx.arc(cloud.currentX + cloud.size * 0.5, cloud.y, cloud.size * 0.5, 0, Math.PI * 2);
+                ctx.arc(cloud.currentX + cloud.size * 0.9, cloud.y, cloud.size * 0.4, 0, Math.PI * 2);
+                ctx.arc(cloud.currentX + cloud.size * 0.3, cloud.y - cloud.size * 0.25, cloud.size * 0.3, 0, Math.PI * 2);
+                ctx.arc(cloud.currentX + cloud.size * 0.7, cloud.y - cloud.size * 0.2, cloud.size * 0.4, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.closePath();
                 
@@ -721,51 +727,53 @@ class SimpleGame {
         const ctx = this.ctx;
         const time = Date.now() * 0.002; // Very slow tree movement for parallax effect
         
-        // Create multiple trees at different positions - start them off-screen to the right
-        const treePositions = [
-            { x: 1400, y: this.ground.y - 80, size: 120 },  // Start off-screen right
-            { x: 1600, y: this.ground.y - 100, size: 140 }, // Start off-screen right
-            { x: 1800, y: this.ground.y - 70, size: 110 },  // Start off-screen right
-            { x: 2000, y: this.ground.y - 90, size: 130 },  // Start off-screen right
-            { x: 2200, y: this.ground.y - 85, size: 125 },  // Start off-screen right
-            { x: 2400, y: this.ground.y - 95, size: 135 }   // Start off-screen right
-        ];
+        // Initialize tree positions if not already done
+        if (!this.treePositions) {
+            this.treePositions = [
+                { x: 1400, y: this.ground.y - 80, size: 120, currentX: 1400 },  // Start off-screen right
+                { x: 1600, y: this.ground.y - 100, size: 140, currentX: 1600 }, // Start off-screen right
+                { x: 1800, y: this.ground.y - 70, size: 110, currentX: 1800 },  // Start off-screen right
+                { x: 2000, y: this.ground.y - 90, size: 130, currentX: 2000 },  // Start off-screen right
+                { x: 2200, y: this.ground.y - 85, size: 125, currentX: 2200 },  // Start off-screen right
+                { x: 2400, y: this.ground.y - 95, size: 135, currentX: 2400 }   // Start off-screen right
+            ];
+        }
         
-        treePositions.forEach((tree, index) => {
-            // Move trees from right to left (parallax effect) - start from right side
-            let treeX = tree.x - time * 10;
+        this.treePositions.forEach((tree, index) => {
+            // Update current position - move from right to left (parallax effect)
+            tree.currentX -= 0.01; // Very slow movement per frame for parallax
             
             // If tree goes off the left side, wrap it to the right side
-            if (treeX < -tree.size) {
-                treeX = this.canvas.width + tree.size + Math.random() * 300; // Add some randomness
+            if (tree.currentX < -tree.size) {
+                tree.currentX = this.canvas.width + tree.size + Math.random() * 300; // Add some randomness
             }
             
             // Only draw if tree is visible on screen
-            if (treeX > -tree.size && treeX < this.canvas.width + tree.size) {
+            if (tree.currentX > -tree.size && tree.currentX < this.canvas.width + tree.size) {
                 // Draw tree trunk - positioned on the ground
                 ctx.fillStyle = '#8B4513';
-                ctx.fillRect(treeX - 12, this.ground.y - 60, 24, 60); // Trunk starts from ground, shorter height
+                ctx.fillRect(tree.currentX - 12, this.ground.y - 60, 24, 60); // Trunk starts from ground, shorter height
                 
                 // Add trunk outline
                 ctx.strokeStyle = '#654321';
                 ctx.lineWidth = 2;
-                ctx.strokeRect(treeX - 12, this.ground.y - 60, 24, 60);
+                ctx.strokeRect(tree.currentX - 12, this.ground.y - 60, 24, 60);
                 
                 // Draw tree leaves (multiple circles for foliage) - positioned above trunk
                 ctx.fillStyle = '#228B22';
                 ctx.beginPath();
-                ctx.arc(treeX, this.ground.y - 85, tree.size * 0.4, 0, Math.PI * 2);
-                ctx.arc(treeX - tree.size * 0.3, this.ground.y - 110, tree.size * 0.35, 0, Math.PI * 2);
-                ctx.arc(treeX + tree.size * 0.3, this.ground.y - 105, tree.size * 0.3, 0, Math.PI * 2);
-                ctx.arc(treeX, this.ground.y - 135, tree.size * 0.25, 0, Math.PI * 2);
+                ctx.arc(tree.currentX, this.ground.y - 85, tree.size * 0.4, 0, Math.PI * 2);
+                ctx.arc(tree.currentX - tree.size * 0.3, this.ground.y - 110, tree.size * 0.35, 0, Math.PI * 2);
+                ctx.arc(tree.currentX + tree.size * 0.3, this.ground.y - 105, tree.size * 0.3, 0, Math.PI * 2);
+                ctx.arc(tree.currentX, this.ground.y - 135, tree.size * 0.25, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.closePath();
                 
                 // Add some darker green for depth
                 ctx.fillStyle = '#006400';
                 ctx.beginPath();
-                ctx.arc(treeX - tree.size * 0.2, this.ground.y - 100, tree.size * 0.2, 0, Math.PI * 2);
-                ctx.arc(treeX + tree.size * 0.2, this.ground.y - 120, tree.size * 0.2, 0, Math.PI * 2);
+                ctx.arc(tree.currentX - tree.size * 0.2, this.ground.y - 100, tree.size * 0.2, 0, Math.PI * 2);
+                ctx.arc(tree.currentX + tree.size * 0.2, this.ground.y - 120, tree.size * 0.2, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.closePath();
                 
