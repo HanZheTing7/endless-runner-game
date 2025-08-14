@@ -446,6 +446,12 @@ class SimpleGame {
         this.ctx.fillStyle = '#87CEEB';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
+        // Draw clouds
+        this.drawClouds();
+        
+        // Draw trees
+        this.drawTrees();
+        
         // Draw ground
         this.ctx.fillStyle = '#8B4513';
         this.ctx.fillRect(0, this.ground.y, this.canvas.width, this.ground.height);
@@ -643,6 +649,82 @@ class SimpleGame {
         
         // Remove eyes and smile since we're using an image for the head
         // The image should have the face details already
+    }
+    
+    drawClouds() {
+        const ctx = this.ctx;
+        const time = Date.now() * 0.001; // Slow cloud movement
+        
+        // Create multiple clouds at different positions
+        const cloudPositions = [
+            { x: 100, y: 80, size: 60 },
+            { x: 400, y: 120, size: 80 },
+            { x: 700, y: 60, size: 70 },
+            { x: 1000, y: 100, size: 65 },
+            { x: 1300, y: 90, size: 75 }
+        ];
+        
+        cloudPositions.forEach((cloud, index) => {
+            // Move clouds slowly to the left
+            const cloudX = (cloud.x - time * 20 + index * 200) % (this.canvas.width + 200);
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.globalAlpha = 0.8;
+            
+            // Draw cloud using multiple circles
+            ctx.beginPath();
+            ctx.arc(cloudX, cloud.y, cloud.size * 0.3, 0, Math.PI * 2);
+            ctx.arc(cloudX + cloud.size * 0.4, cloud.y, cloud.size * 0.4, 0, Math.PI * 2);
+            ctx.arc(cloudX + cloud.size * 0.8, cloud.y, cloud.size * 0.3, 0, Math.PI * 2);
+            ctx.arc(cloudX + cloud.size * 0.2, cloud.y - cloud.size * 0.2, cloud.size * 0.25, 0, Math.PI * 2);
+            ctx.arc(cloudX + cloud.size * 0.6, cloud.y - cloud.size * 0.15, cloud.size * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+        });
+        
+        ctx.globalAlpha = 1.0; // Reset transparency
+    }
+    
+    drawTrees() {
+        const ctx = this.ctx;
+        const time = Date.now() * 0.002; // Very slow tree movement for parallax effect
+        
+        // Create multiple trees at different positions
+        const treePositions = [
+            { x: 50, y: this.ground.y - 120, size: 100 },
+            { x: 300, y: this.ground.y - 140, size: 120 },
+            { x: 600, y: this.ground.y - 110, size: 90 },
+            { x: 900, y: this.ground.y - 130, size: 110 },
+            { x: 1200, y: this.ground.y - 125, size: 105 },
+            { x: 1500, y: this.ground.y - 135, size: 115 }
+        ];
+        
+        treePositions.forEach((tree, index) => {
+            // Move trees slowly to the left (parallax effect)
+            const treeX = (tree.x - time * 10 + index * 250) % (this.canvas.width + 300);
+            
+            // Draw tree trunk
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(treeX - 8, tree.y, 16, 80);
+            
+            // Draw tree leaves (multiple circles for foliage)
+            ctx.fillStyle = '#228B22';
+            ctx.beginPath();
+            ctx.arc(treeX, tree.y - 20, tree.size * 0.4, 0, Math.PI * 2);
+            ctx.arc(treeX - tree.size * 0.3, tree.y - 40, tree.size * 0.35, 0, Math.PI * 2);
+            ctx.arc(treeX + tree.size * 0.3, tree.y - 35, tree.size * 0.3, 0, Math.PI * 2);
+            ctx.arc(treeX, tree.y - 60, tree.size * 0.25, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+            
+            // Add some darker green for depth
+            ctx.fillStyle = '#006400';
+            ctx.beginPath();
+            ctx.arc(treeX - tree.size * 0.2, tree.y - 30, tree.size * 0.2, 0, Math.PI * 2);
+            ctx.arc(treeX + tree.size * 0.2, tree.y - 50, tree.size * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+        });
     }
 }
 
