@@ -10,6 +10,7 @@ class SimpleGame {
         this.score = 0;
         this.distance = 0;
         this.gameSpeed = 2.5; // Increased from 2 to 2.5 for better pacing
+        this.obstacleFrequency = 1; // Start with 1 obstacle, increases with difficulty
         
         // Game objects
         this.player = { x: 150, y: 450, width: 50, height: 80, velocityY: 0, isJumping: false };
@@ -75,15 +76,50 @@ class SimpleGame {
     }
     
     createInitialObstacles() {
-        // Create only 1 initial obstacle
-        const obstacle = {
-            x: 900,
-            y: this.ground.y - 50, // Reduced height from 90 to 50
-            width: 40,
-            height: 50 // Reduced height from 90 to 50
-        };
+        // Create only 1 initial obstacle with random height
+        const obstacle = this.createRandomObstacle(900);
         this.obstacles.push(obstacle);
         console.log('Initial obstacle created:', this.obstacles.length);
+    }
+    
+    createRandomObstacle(x) {
+        // Calculate maximum jump height (player can jump 220px up from ground)
+        const maxJumpHeight = this.ground.y - 220;
+        
+        // Random height between 30 and 80 pixels (ensuring it's clearable)
+        const minHeight = 30;
+        const maxHeight = Math.min(80, this.ground.y - maxJumpHeight - 20); // Ensure clearance
+        
+        const height = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
+        
+        // Random width between 30 and 50 pixels
+        const width = Math.floor(Math.random() * (50 - 30 + 1)) + 30;
+        
+        // Position obstacle so it's always clearable
+        const y = this.ground.y - height;
+        
+        return {
+            x: x,
+            y: y,
+            width: width,
+            height: height
+        };
+    }
+    
+    updateDifficulty() {
+        // Increase game speed every 500 distance units
+        const speedIncrease = Math.floor(this.distance / 500);
+        this.gameSpeed = 2.5 + (speedIncrease * 0.5);
+        
+        // Cap maximum speed at 6.0
+        this.gameSpeed = Math.min(this.gameSpeed, 6.0);
+        
+        // Increase obstacle frequency every 1000 distance units
+        const frequencyIncrease = Math.floor(this.distance / 1000);
+        this.obstacleFrequency = 1 + frequencyIncrease;
+        
+        // Cap maximum obstacle frequency at 3
+        this.obstacleFrequency = Math.min(this.obstacleFrequency, 3);
     }
     
     jump() {
@@ -153,19 +189,17 @@ class SimpleGame {
         this.obstacles = this.obstacles.filter(obstacle => obstacle.x + obstacle.width > -50);
         
         // Add new obstacles if needed
-        if (this.obstacles.length < 1) {
-            const newObstacle = {
-                x: this.canvas.width + 300,
-                y: this.ground.y - 50, // Reduced height from 90 to 50
-                width: 40,
-                height: 50 // Reduced height from 90 to 50
-            };
+        if (this.obstacles.length < this.obstacleFrequency) {
+            const newObstacle = this.createRandomObstacle(this.canvas.width + 300);
             this.obstacles.push(newObstacle);
         }
         
         // Update game stats
         this.distance += this.gameSpeed * 0.1;
         this.score = Math.floor(this.distance);
+        
+        // Progressive difficulty based on distance
+        this.updateDifficulty();
         
         // Update UI
         const currentScoreElement = document.getElementById('currentScore');
@@ -401,6 +435,12 @@ class SimpleGame {
             this.ctx.font = 'bold 16px Arial';
             this.ctx.fillText(canClear ? 'CLEAR' : 'BLOCK', obstacle.x + obstacle.width/2, obstacle.y - 10);
             
+            // Add difficulty indicator (based on obstacle size)
+            const difficulty = Math.round((obstacle.height * obstacle.width) / 100); // Simple difficulty calculation
+            this.ctx.fillStyle = difficulty <= 2 ? '#00FF00' : difficulty <= 3 ? '#FFFF00' : '#FF6600';
+            this.ctx.font = 'bold 14px Arial';
+            this.ctx.fillText(`L${difficulty}`, obstacle.x + obstacle.width/2, obstacle.y + obstacle.height + 20);
+            
             this.ctx.fillStyle = '#FF4444';
         });
         
@@ -413,11 +453,12 @@ class SimpleGame {
         this.ctx.font = '20px Arial';
         this.ctx.textAlign = 'left';
         this.ctx.fillText(`Obstacles: ${this.obstacles.length}`, 20, 50);
-        this.ctx.fillText(`Game Speed: ${this.gameSpeed}`, 20, 80);
+        this.ctx.fillText(`Game Speed: ${this.gameSpeed.toFixed(1)}`, 20, 80);
         this.ctx.fillText(`Canvas: ${this.canvas.width}x${this.canvas.height}`, 20, 110);
         this.ctx.fillText(`Jump Power: ${Math.abs(this.jumpPower)}`, 20, 170);
         this.ctx.fillText(`Player Y: ${Math.round(this.player.y)}`, 20, 200);
         this.ctx.fillText(`Gravity: ${this.gravity}`, 20, 230);
+        this.ctx.fillText(`Difficulty: ${this.obstacleFrequency} obstacle(s)`, 20, 260);
         
         if (this.obstacles.length > 0) {
             this.ctx.fillText(`First obstacle at: (${Math.round(this.obstacles[0].x)}, ${Math.round(this.obstacles[0].y)})`, 20, 140);
