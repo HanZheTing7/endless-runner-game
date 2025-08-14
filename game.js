@@ -297,51 +297,66 @@ class SimpleGame {
         
         // Get current leaderboard
         let scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
+        console.log('Current scores in localStorage:', scores);
         
         // Get current username
         const username = window.gameManager ? window.gameManager.username : 'Player';
+        console.log('Current username:', username);
+        console.log('Current game score:', this.score);
         
         // Check if player already has a score and compare with current score
         const existingPlayerIndex = scores.findIndex(score => score.username === username);
+        console.log('Existing player index:', existingPlayerIndex);
         
         if (existingPlayerIndex !== -1) {
             // Player exists - only update if new score is higher
-            const existingScore = scores[existingPlayerIndex].score;
-            if (this.score > existingScore) {
+            const existingScore = parseInt(scores[existingPlayerIndex].score);
+            const newScore = parseInt(this.score);
+            console.log('Existing score found:', existingScore, 'Type:', typeof existingScore);
+            console.log('New score:', newScore, 'Type:', typeof newScore);
+            console.log('Is new score higher?', newScore > existingScore);
+            
+            if (newScore > existingScore) {
                 // New score is higher - update it
                 scores[existingPlayerIndex] = {
                     username: username,
-                    score: this.score,
+                    score: newScore,
                     distance: Math.floor(this.distance),
                     timestamp: Date.now()
                 };
-                console.log(`Updated ${username} with higher score: ${this.score} (was: ${existingScore})`);
+                console.log(`Updated ${username} with higher score: ${newScore} (was: ${existingScore})`);
             } else {
                 // New score is lower - keep the old higher score
-                console.log(`Keeping ${username}'s higher score: ${existingScore} (new was: ${this.score})`);
+                console.log(`Keeping ${username}'s higher score: ${existingScore} (new was: ${newScore})`);
+                // Don't update anything - keep the existing score
             }
         } else {
             // New player - add their score
             scores.push({
                 username: username,
-                score: this.score,
+                score: parseInt(this.score),
                 distance: Math.floor(this.distance),
                 timestamp: Date.now()
             });
             console.log(`Added new player ${username} with score ${this.score}`);
         }
         
+        console.log('Scores after processing:', scores);
+        
         // Sort by score (highest first)
         scores.sort((a, b) => b.score - a.score);
+        console.log('Scores after sorting:', scores);
         
         // Keep only top 10
         scores = scores.slice(0, 10);
+        console.log('Final scores (top 10):', scores);
         
         // Save to localStorage
         localStorage.setItem('endlessRunnerScores', JSON.stringify(scores));
         
         // Find player rank
         const playerRank = scores.findIndex(score => score.username === username) + 1;
+        console.log('Player rank:', playerRank);
         
         playerRankElement.textContent = playerRank;
         
