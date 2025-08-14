@@ -524,7 +524,7 @@ class SimpleGame {
             ctx.drawImage(
                 this.characterHead, 
                 centerX - headSize/2, 
-                y + height * 0.03, 
+                y + height * 0.01, 
                 headSize, 
                 headSize
             );
