@@ -502,7 +502,7 @@ class SimpleGame {
         ctx.stroke();
         ctx.closePath();
 
-        // Draw arms with realistic running animation (up and down movement)
+        // Draw arms with dramatic up and down running animation
         if (this.player.isJumping) {
             // Jumping pose - arms up
             ctx.beginPath();
@@ -513,31 +513,31 @@ class SimpleGame {
             ctx.stroke();
             ctx.closePath();
         } else {
-            // Running pose - arms move up and down like real running
-            const time = Date.now() * 0.004; // Animation speed
-            const leftArmUp = Math.sin(time) * 0.15; // Left arm goes up and down
-            const rightArmUp = Math.sin(time + Math.PI) * 0.15; // Right arm opposite
+            // Running pose - arms move dramatically up and down
+            const time = Date.now() * 0.006; // Animation speed
+            const leftArmUp = Math.sin(time) * 0.3; // Left arm goes way up and down
+            const rightArmUp = Math.sin(time + Math.PI) * 0.3; // Right arm opposite
             
-            // Left arm - moves up and down
+            // Left arm - dramatic up and down movement
             ctx.beginPath();
             ctx.moveTo(centerX, y + height * 0.35);
-            ctx.lineTo(centerX - width * 0.25, y + height * (0.35 - leftArmUp));
+            ctx.lineTo(centerX - width * 0.2, y + height * (0.35 - leftArmUp));
             ctx.strokeStyle = '#FFD700';
             ctx.lineWidth = height * 0.05;
             ctx.stroke();
             ctx.closePath();
             
-            // Right arm - moves up and down (opposite phase)
+            // Right arm - dramatic up and down movement (opposite phase)
             ctx.beginPath();
             ctx.moveTo(centerX, y + height * 0.35);
-            ctx.lineTo(centerX + width * 0.25, y + height * (0.35 - rightArmUp));
+            ctx.lineTo(centerX + width * 0.2, y + height * (0.35 - rightArmUp));
             ctx.strokeStyle = '#FFD700';
             ctx.lineWidth = height * 0.05;
             ctx.stroke();
             ctx.closePath();
         }
 
-        // Draw legs with realistic running animation (up and down movement)
+        // Draw legs with dramatic up and down running animation
         if (this.player.isJumping) {
             // Jumping pose - legs together
             ctx.beginPath();
@@ -548,24 +548,24 @@ class SimpleGame {
             ctx.stroke();
             ctx.closePath();
         } else {
-            // Running pose - legs move up and down like real running
-            const time = Date.now() * 0.004; // Same timing as arms
-            const leftLegUp = Math.sin(time) * 0.2; // Left leg goes up and down
-            const rightLegUp = Math.sin(time + Math.PI) * 0.2; // Right leg opposite
+            // Running pose - legs move dramatically up and down
+            const time = Date.now() * 0.006; // Same timing as arms
+            const leftLegUp = Math.sin(time) * 0.4; // Left leg goes way up and down
+            const rightLegUp = Math.sin(time + Math.PI) * 0.4; // Right leg opposite
             
-            // Left leg - moves up and down
+            // Left leg - dramatic up and down movement
             ctx.beginPath();
             ctx.moveTo(centerX, y + height * 0.7);
-            ctx.lineTo(centerX - width * 0.15, y + height * (0.9 - leftLegUp));
+            ctx.lineTo(centerX - width * 0.1, y + height * (0.9 - leftLegUp));
             ctx.strokeStyle = '#FFD700';
             ctx.lineWidth = height * 0.06;
             ctx.stroke();
             ctx.closePath();
             
-            // Right leg - moves up and down (opposite phase)
+            // Right leg - dramatic up and down movement (opposite phase)
             ctx.beginPath();
             ctx.moveTo(centerX, y + height * 0.7);
-            ctx.lineTo(centerX + width * 0.15, y + height * (0.9 - rightLegUp));
+            ctx.lineTo(centerX + width * 0.1, y + height * (0.9 - rightLegUp));
             ctx.strokeStyle = '#FFD700';
             ctx.lineWidth = height * 0.06;
             ctx.stroke();
