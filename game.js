@@ -329,6 +329,24 @@ class SimpleGame {
         console.log('Cleaned leaderboard, removed duplicates. New count:', cleanedScores.length);
     }
     
+    clearLeaderboard() {
+        // Clear all leaderboard data
+        localStorage.removeItem('endlessRunnerScores');
+        console.log('Leaderboard completely cleared');
+        
+        // Update the display to show empty leaderboard
+        const leaderboardElement = document.getElementById('leaderboard');
+        const playerRankElement = document.getElementById('playerRank');
+        
+        if (leaderboardElement) {
+            leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+        }
+        
+        if (playerRankElement) {
+            playerRankElement.textContent = '-';
+        }
+    }
+    
     render() {
         // Check if canvas and context exist
         if (!this.canvas || !this.ctx) {
@@ -430,6 +448,13 @@ class GameManager {
         
         document.getElementById('mainMenuButton').addEventListener('click', () => {
             this.showMainMenu();
+        });
+        
+        // Clear leaderboard button
+        document.getElementById('clearLeaderboardButton').addEventListener('click', () => {
+            if (this.game) {
+                this.game.clearLeaderboard();
+            }
         });
     }
     
