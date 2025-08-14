@@ -655,13 +655,13 @@ class SimpleGame {
         const ctx = this.ctx;
         const time = Date.now() * 0.001; // Slow cloud movement
         
-        // Create multiple clouds at different positions - start them further to the right
+        // Create multiple clouds at different positions - start them visible on screen
         const cloudPositions = [
-            { x: 1200, y: 80, size: 60 },   // Start from right side
-            { x: 1400, y: 120, size: 80 },  // Start from right side
-            { x: 1600, y: 60, size: 70 },   // Start from right side
-            { x: 1800, y: 100, size: 65 },  // Start from right side
-            { x: 2000, y: 90, size: 75 }    // Start from right side
+            { x: 800, y: 80, size: 60 },   // Start from middle-right
+            { x: 1000, y: 120, size: 80 }, // Start from middle-right
+            { x: 1200, y: 60, size: 70 },  // Start from right edge
+            { x: 1400, y: 100, size: 65 }, // Start from off-screen right
+            { x: 1600, y: 90, size: 75 }   // Start from off-screen right
         ];
         
         cloudPositions.forEach((cloud, index) => {
@@ -694,14 +694,14 @@ class SimpleGame {
         const ctx = this.ctx;
         const time = Date.now() * 0.002; // Very slow tree movement for parallax effect
         
-        // Create multiple trees at different positions - start them further to the right
+        // Create multiple trees at different positions - start them visible on screen
         const treePositions = [
-            { x: 1200, y: this.ground.y - 120, size: 100 },  // Start from right side
-            { x: 1400, y: this.ground.y - 140, size: 120 },  // Start from right side
-            { x: 1600, y: this.ground.y - 110, size: 90 },   // Start from right side
-            { x: 1800, y: this.ground.y - 130, size: 110 },  // Start from right side
-            { x: 2000, y: this.ground.y - 125, size: 105 },  // Start from right side
-            { x: 2200, y: this.ground.y - 135, size: 115 }   // Start from right side
+            { x: 600, y: this.ground.y - 120, size: 100 },  // Start from middle
+            { x: 800, y: this.ground.y - 140, size: 120 },  // Start from middle-right
+            { x: 1000, y: this.ground.y - 110, size: 90 },  // Start from middle-right
+            { x: 1200, y: this.ground.y - 130, size: 110 }, // Start from right edge
+            { x: 1400, y: this.ground.y - 125, size: 105 }, // Start from off-screen right
+            { x: 1600, y: this.ground.y - 135, size: 115 }  // Start from off-screen right
         ];
         
         treePositions.forEach((tree, index) => {
