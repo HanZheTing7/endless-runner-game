@@ -681,17 +681,17 @@ class SimpleGame {
         // Initialize cloud positions if not already done
         if (!this.cloudPositions) {
             this.cloudPositions = [
-                { x: 1400, y: 80, size: 80, currentX: 1400 },   // Start off-screen right
-                { x: 1600, y: 120, size: 100, currentX: 1600 }, // Start off-screen right
-                { x: 1800, y: 60, size: 90, currentX: 1800 },   // Start off-screen right
-                { x: 2000, y: 100, size: 85, currentX: 2000 },  // Start off-screen right
-                { x: 2200, y: 90, size: 95, currentX: 2200 }    // Start off-screen right
+                { x: 1300, y: 80, size: 80, currentX: 1300 },   // Start just off-screen right
+                { x: 1350, y: 120, size: 100, currentX: 1350 }, // Start just off-screen right
+                { x: 1400, y: 60, size: 90, currentX: 1400 },   // Start just off-screen right
+                { x: 1450, y: 100, size: 85, currentX: 1450 },  // Start just off-screen right
+                { x: 1500, y: 90, size: 95, currentX: 1500 }    // Start just off-screen right
             ];
         }
         
         this.cloudPositions.forEach((cloud, index) => {
             // Update current position - move from right to left
-            cloud.currentX -= 0.02; // Very slow movement per frame
+            cloud.currentX -= 0.5; // Increased movement speed for better visibility
             
             // If cloud goes off the left side, wrap it to the right side
             if (cloud.currentX < -cloud.size) {
@@ -730,18 +730,18 @@ class SimpleGame {
         // Initialize tree positions if not already done
         if (!this.treePositions) {
             this.treePositions = [
-                { x: 1400, y: this.ground.y - 80, size: 120, currentX: 1400 },  // Start off-screen right
-                { x: 1600, y: this.ground.y - 100, size: 140, currentX: 1600 }, // Start off-screen right
-                { x: 1800, y: this.ground.y - 70, size: 110, currentX: 1800 },  // Start off-screen right
-                { x: 2000, y: this.ground.y - 90, size: 130, currentX: 2000 },  // Start off-screen right
-                { x: 2200, y: this.ground.y - 85, size: 125, currentX: 2200 },  // Start off-screen right
-                { x: 2400, y: this.ground.y - 95, size: 135, currentX: 2400 }   // Start off-screen right
+                { x: 1300, y: this.ground.y - 80, size: 120, currentX: 1300 },  // Start just off-screen right
+                { x: 1350, y: this.ground.y - 100, size: 140, currentX: 1350 }, // Start just off-screen right
+                { x: 1400, y: this.ground.y - 70, size: 110, currentX: 1400 },  // Start just off-screen right
+                { x: 1450, y: this.ground.y - 90, size: 130, currentX: 1450 },  // Start just off-screen right
+                { x: 1500, y: this.ground.y - 85, size: 125, currentX: 1500 },  // Start just off-screen right
+                { x: 1550, y: this.ground.y - 95, size: 135, currentX: 1550 }   // Start just off-screen right
             ];
         }
         
         this.treePositions.forEach((tree, index) => {
             // Update current position - move from right to left (parallax effect)
-            tree.currentX -= 0.01; // Very slow movement per frame for parallax
+            tree.currentX -= 0.3; // Increased movement speed for better visibility
             
             // If tree goes off the left side, wrap it to the right side
             if (tree.currentX < -tree.size) {
