@@ -603,7 +603,7 @@ class SimpleGame {
     drawSpeechBubble() {
         const ctx = this.ctx;
         const bubbleX = this.player.x + this.player.width / 2 - 100;
-        const bubbleY = this.player.y - 150; // Moved much higher to clear the head
+        const bubbleY = this.player.y - 200; // Moved even higher for better clearance
         const bubbleWidth = 200;
         const bubbleHeight = 60;
         const cornerRadius = 10;
