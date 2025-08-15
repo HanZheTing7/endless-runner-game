@@ -603,11 +603,11 @@ class SimpleGame {
     drawSpeechBubble() {
         const ctx = this.ctx;
         const bubbleX = this.player.x + this.player.width / 2 - 100;
-        const bubbleY = this.player.y - 80;
+        const bubbleY = this.player.y - 150; // Moved much higher to clear the head
         const bubbleWidth = 200;
         const bubbleHeight = 60;
         const cornerRadius = 10;
-        const tailSize = 15;
+        const tailSize = 20; // Made tail slightly longer to reach character
         
         // Draw speech bubble background
         ctx.fillStyle = '#FFFFFF';
