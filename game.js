@@ -34,6 +34,14 @@ class SimpleGame {
         this.typewriterSpeed = 100; // milliseconds between characters
         this.lastTypewriterTime = 0;
         
+        // Character transition properties
+        this.isTransitioning = false;
+        this.transitionStartX = 0;
+        this.transitionEndX = 0;
+        this.transitionProgress = 0;
+        this.transitionDuration = 2000; // 2 seconds
+        this.transitionStartTime = 0;
+        
         this.init();
     }
     
@@ -105,8 +113,15 @@ class SimpleGame {
         // Position player on ground
         this.player.y = this.ground.y - this.player.height;
         
-        // Update player x position relative to screen width
-        this.player.x = Math.min(150, this.canvas.width * 0.1);
+        // Update player x position based on game state
+        if (this.storyMode && !this.isTransitioning) {
+            // Center the character during story mode
+            this.player.x = (this.canvas.width / 2) - (this.player.width / 2);
+        } else if (!this.isTransitioning) {
+            // Normal game position (left side)
+            this.player.x = Math.min(150, this.canvas.width * 0.1);
+        }
+        // During transition, x position is handled by transition logic
     }
     
     setupControls() {
@@ -235,10 +250,25 @@ class SimpleGame {
     }
     
     startActualGame() {
-        console.log('Starting actual game');
+        console.log('Starting transition to game');
+        
+        // Start transition animation
+        this.isTransitioning = true;
+        this.transitionStartX = this.player.x; // Current center position
+        this.transitionEndX = Math.min(150, this.canvas.width * 0.1); // Target left position
+        this.transitionProgress = 0;
+        this.transitionStartTime = Date.now();
+        
+        // Update game state but keep story mode until transition completes
+        this.gameState = 'transitioning';
+    }
+    
+    completeTransition() {
+        console.log('Transition complete - starting actual game');
         this.gameState = 'playing';
         this.storyMode = false;
         this.gameRunning = true;
+        this.isTransitioning = false;
     }
     
     stop() {
@@ -253,6 +283,9 @@ class SimpleGame {
         if (this.storyMode) {
             this.updateStory();
             this.renderStory();
+        } else if (this.isTransitioning) {
+            this.updateTransition();
+            this.renderTransition();
         } else if (this.gameRunning) {
             this.update();
             this.render();
@@ -274,6 +307,64 @@ class SimpleGame {
             this.typewriterIndex++;
             this.lastTypewriterTime = currentTime;
         }
+    }
+    
+    updateTransition() {
+        const currentTime = Date.now();
+        const elapsed = currentTime - this.transitionStartTime;
+        
+        // Calculate transition progress (0 to 1)
+        this.transitionProgress = Math.min(elapsed / this.transitionDuration, 1);
+        
+        // Use easing function for smooth transition
+        const easeProgress = this.easeInOutCubic(this.transitionProgress);
+        
+        // Interpolate player position
+        this.player.x = this.transitionStartX + (this.transitionEndX - this.transitionStartX) * easeProgress;
+        
+        // Check if transition is complete
+        if (this.transitionProgress >= 1) {
+            this.player.x = this.transitionEndX;
+            this.completeTransition();
+        }
+    }
+    
+    easeInOutCubic(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+    
+    renderTransition() {
+        // Check if canvas and context exist
+        if (!this.canvas || !this.ctx) {
+            console.error('Canvas or context not available');
+            return;
+        }
+        
+        // Clear canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Draw sky
+        this.ctx.fillStyle = '#87CEEB';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Draw clouds
+        this.drawClouds();
+        
+        // Draw trees
+        this.drawTrees();
+        
+        // Draw ground
+        this.ctx.fillStyle = '#8B4513';
+        this.ctx.fillRect(0, this.ground.y, this.canvas.width, this.ground.height);
+        
+        // Draw character (now in running animation as it moves)
+        this.drawStickman(this.player.x, this.player.y, this.player.width, this.player.height);
+        
+        // Add transition instruction text
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = '24px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('Get ready to run!', this.canvas.width / 2, this.canvas.height / 4);
     }
     
     update() {
