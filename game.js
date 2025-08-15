@@ -699,21 +699,32 @@ class SimpleGame {
             // Only draw if cloud is visible on screen
             if (cloud.currentX > -cloud.size && cloud.currentX < this.canvas.width + cloud.size) {
                 ctx.fillStyle = '#FFFFFF';
-                ctx.globalAlpha = 0.9; // Made more opaque
+                ctx.globalAlpha = 0.85; // Slightly transparent for natural look
                 
-                // Draw cloud using multiple circles - made bigger and more visible
+                // Draw fluffy cloud using multiple overlapping circles
                 ctx.beginPath();
-                ctx.arc(cloud.currentX, cloud.y, cloud.size * 0.4, 0, Math.PI * 2);
-                ctx.arc(cloud.currentX + cloud.size * 0.5, cloud.y, cloud.size * 0.5, 0, Math.PI * 2);
-                ctx.arc(cloud.currentX + cloud.size * 0.9, cloud.y, cloud.size * 0.4, 0, Math.PI * 2);
-                ctx.arc(cloud.currentX + cloud.size * 0.3, cloud.y - cloud.size * 0.25, cloud.size * 0.3, 0, Math.PI * 2);
-                ctx.arc(cloud.currentX + cloud.size * 0.7, cloud.y - cloud.size * 0.2, cloud.size * 0.4, 0, Math.PI * 2);
+                
+                // Main cloud body (bottom row of circles)
+                ctx.arc(cloud.currentX, cloud.y, cloud.size * 0.35, 0, Math.PI * 2);
+                ctx.arc(cloud.currentX + cloud.size * 0.4, cloud.y, cloud.size * 0.4, 0, Math.PI * 2);
+                ctx.arc(cloud.currentX + cloud.size * 0.8, cloud.y, cloud.size * 0.3, 0, Math.PI * 2);
+                ctx.arc(cloud.currentX + cloud.size * 1.1, cloud.y, cloud.size * 0.25, 0, Math.PI * 2);
+                
+                // Top puffs (upper row of circles)
+                ctx.arc(cloud.currentX + cloud.size * 0.2, cloud.y - cloud.size * 0.25, cloud.size * 0.3, 0, Math.PI * 2);
+                ctx.arc(cloud.currentX + cloud.size * 0.6, cloud.y - cloud.size * 0.3, cloud.size * 0.35, 0, Math.PI * 2);
+                ctx.arc(cloud.currentX + cloud.size * 0.9, cloud.y - cloud.size * 0.2, cloud.size * 0.25, 0, Math.PI * 2);
+                
+                // Extra small puffs for detail
+                ctx.arc(cloud.currentX + cloud.size * 0.1, cloud.y - cloud.size * 0.1, cloud.size * 0.2, 0, Math.PI * 2);
+                ctx.arc(cloud.currentX + cloud.size * 1.0, cloud.y - cloud.size * 0.05, cloud.size * 0.18, 0, Math.PI * 2);
+                
                 ctx.fill();
                 ctx.closePath();
                 
-                // Add cloud outline for better visibility
-                ctx.strokeStyle = '#CCCCCC';
-                ctx.lineWidth = 2;
+                // Add subtle shadow/depth with light gray outline
+                ctx.strokeStyle = '#E0E0E0';
+                ctx.lineWidth = 1;
                 ctx.stroke();
             }
         });
