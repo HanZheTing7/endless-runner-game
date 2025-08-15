@@ -681,11 +681,9 @@ class SimpleGame {
         // Initialize cloud positions if not already done
         if (!this.cloudPositions) {
             this.cloudPositions = [
-                { x: 1300, y: 80, size: 80, currentX: 1300 },   // Start just off-screen right
-                { x: 1500, y: 120, size: 100, currentX: 1500 }, // Spread out more
-                { x: 1700, y: 60, size: 90, currentX: 1700 },   // Spread out more
-                { x: 1900, y: 100, size: 85, currentX: 1900 },  // Spread out more
-                { x: 2100, y: 90, size: 95, currentX: 2100 }    // Spread out more
+                { x: 1300, y: 80, size: 80, currentX: 1300 },   // Cloud 1
+                { x: 1700, y: 120, size: 100, currentX: 1700 }, // Cloud 2
+                { x: 2100, y: 60, size: 90, currentX: 2100 }    // Cloud 3
             ];
         }
         
@@ -730,12 +728,9 @@ class SimpleGame {
         // Initialize tree positions if not already done
         if (!this.treePositions) {
             this.treePositions = [
-                { x: 1400, y: this.ground.y - 80, size: 120, currentX: 1400 },  // Start just off-screen right
-                { x: 1700, y: this.ground.y - 100, size: 140, currentX: 1700 }, // Spread out more
-                { x: 2000, y: this.ground.y - 70, size: 110, currentX: 2000 },  // Spread out more
-                { x: 2300, y: this.ground.y - 90, size: 130, currentX: 2300 },  // Spread out more
-                { x: 2600, y: this.ground.y - 85, size: 125, currentX: 2600 },  // Spread out more
-                { x: 2900, y: this.ground.y - 95, size: 135, currentX: 2900 }   // Spread out more
+                { x: 1400, y: this.ground.y - 80, size: 120, currentX: 1400 },  // Tree 1
+                { x: 2000, y: this.ground.y - 100, size: 140, currentX: 2000 }, // Tree 2
+                { x: 2600, y: this.ground.y - 90, size: 130, currentX: 2600 }   // Tree 3
             ];
         }
         
