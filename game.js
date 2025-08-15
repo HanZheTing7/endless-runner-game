@@ -682,16 +682,16 @@ class SimpleGame {
         if (!this.cloudPositions) {
             this.cloudPositions = [
                 { x: 1300, y: 80, size: 80, currentX: 1300 },   // Start just off-screen right
-                { x: 1350, y: 120, size: 100, currentX: 1350 }, // Start just off-screen right
-                { x: 1400, y: 60, size: 90, currentX: 1400 },   // Start just off-screen right
-                { x: 1450, y: 100, size: 85, currentX: 1450 },  // Start just off-screen right
-                { x: 1500, y: 90, size: 95, currentX: 1500 }    // Start just off-screen right
+                { x: 1500, y: 120, size: 100, currentX: 1500 }, // Spread out more
+                { x: 1700, y: 60, size: 90, currentX: 1700 },   // Spread out more
+                { x: 1900, y: 100, size: 85, currentX: 1900 },  // Spread out more
+                { x: 2100, y: 90, size: 95, currentX: 2100 }    // Spread out more
             ];
         }
         
         this.cloudPositions.forEach((cloud, index) => {
             // Update current position - move from right to left
-            cloud.currentX -= 0.5; // Increased movement speed for better visibility
+            cloud.currentX -= 0.3; // Same speed as trees
             
             // If cloud goes off the left side, wrap it to the right side
             if (cloud.currentX < -cloud.size) {
@@ -730,12 +730,12 @@ class SimpleGame {
         // Initialize tree positions if not already done
         if (!this.treePositions) {
             this.treePositions = [
-                { x: 1300, y: this.ground.y - 80, size: 120, currentX: 1300 },  // Start just off-screen right
-                { x: 1350, y: this.ground.y - 100, size: 140, currentX: 1350 }, // Start just off-screen right
-                { x: 1400, y: this.ground.y - 70, size: 110, currentX: 1400 },  // Start just off-screen right
-                { x: 1450, y: this.ground.y - 90, size: 130, currentX: 1450 },  // Start just off-screen right
-                { x: 1500, y: this.ground.y - 85, size: 125, currentX: 1500 },  // Start just off-screen right
-                { x: 1550, y: this.ground.y - 95, size: 135, currentX: 1550 }   // Start just off-screen right
+                { x: 1400, y: this.ground.y - 80, size: 120, currentX: 1400 },  // Start just off-screen right
+                { x: 1700, y: this.ground.y - 100, size: 140, currentX: 1700 }, // Spread out more
+                { x: 2000, y: this.ground.y - 70, size: 110, currentX: 2000 },  // Spread out more
+                { x: 2300, y: this.ground.y - 90, size: 130, currentX: 2300 },  // Spread out more
+                { x: 2600, y: this.ground.y - 85, size: 125, currentX: 2600 },  // Spread out more
+                { x: 2900, y: this.ground.y - 95, size: 135, currentX: 2900 }   // Spread out more
             ];
         }
         
