@@ -25,6 +25,15 @@ class SimpleGame {
         this.characterHead = new Image();
         this.characterHead.src = 'character-head.png'; // You can change this to your image file
         
+        // Story mode properties
+        this.gameState = 'start'; // 'start', 'story', 'playing', 'gameOver'
+        this.storyMode = false;
+        this.storyText = "Hi, I am Siew Keat.";
+        this.displayedText = "";
+        this.typewriterIndex = 0;
+        this.typewriterSpeed = 100; // milliseconds between characters
+        this.lastTypewriterTime = 0;
+        
         this.init();
     }
     
@@ -71,10 +80,40 @@ class SimpleGame {
     }
     
     setupControls() {
-        document.addEventListener('keydown', (e) => {
-            if (this.gameRunning && (e.code === 'Space' || e.code === 'ArrowUp')) {
-                e.preventDefault();
+        // Canvas click for jumping or story progression
+        this.canvas.addEventListener('click', () => {
+            if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
+                // Story is complete, start the actual game
+                this.startActualGame();
+            } else if (this.gameRunning) {
+                // Game is running, jump
                 this.jump();
+            }
+        });
+        
+        // Touch events for mobile
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
+                // Story is complete, start the actual game
+                this.startActualGame();
+            } else if (this.gameRunning) {
+                // Game is running, jump
+                this.jump();
+            }
+        });
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                e.preventDefault();
+                if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
+                    // Story is complete, start the actual game
+                    this.startActualGame();
+                } else if (this.gameRunning) {
+                    // Game is running, jump
+                    this.jump();
+                }
             }
         });
     }
@@ -150,8 +189,26 @@ class SimpleGame {
             return;
         }
         
-        this.gameRunning = true;
+        console.log('Starting story mode');
+        
+        // Enter story mode first
+        this.gameState = 'story';
+        this.storyMode = true;
+        this.gameRunning = false; // Don't start game logic yet
+        
+        // Reset story properties
+        this.displayedText = "";
+        this.typewriterIndex = 0;
+        this.lastTypewriterTime = 0;
+        
         this.gameLoop();
+    }
+    
+    startActualGame() {
+        console.log('Starting actual game');
+        this.gameState = 'playing';
+        this.storyMode = false;
+        this.gameRunning = true;
     }
     
     stop() {
@@ -163,12 +220,30 @@ class SimpleGame {
     }
     
     gameLoop() {
-        if (!this.gameRunning) return;
-        
-        this.update();
-        this.render();
+        if (this.storyMode) {
+            this.updateStory();
+            this.renderStory();
+        } else if (this.gameRunning) {
+            this.update();
+            this.render();
+        } else {
+            return;
+        }
         
         this.animationId = requestAnimationFrame(() => this.gameLoop());
+    }
+    
+    updateStory() {
+        const currentTime = Date.now();
+        
+        // Handle typewriter effect
+        if (this.typewriterIndex < this.storyText.length && 
+            currentTime - this.lastTypewriterTime > this.typewriterSpeed) {
+            
+            this.displayedText += this.storyText[this.typewriterIndex];
+            this.typewriterIndex++;
+            this.lastTypewriterTime = currentTime;
+        }
     }
     
     update() {
@@ -430,6 +505,135 @@ class SimpleGame {
         if (playerRankElement) {
             playerRankElement.textContent = '-';
         }
+    }
+    
+    renderStory() {
+        // Check if canvas and context exist
+        if (!this.canvas || !this.ctx) {
+            console.error('Canvas or context not available');
+            return;
+        }
+        
+        // Clear canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Draw sky
+        this.ctx.fillStyle = '#87CEEB';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Draw ground
+        this.ctx.fillStyle = '#8B4513';
+        this.ctx.fillRect(0, this.ground.y, this.canvas.width, this.ground.height);
+        
+        // Draw character (standing still)
+        this.drawStickmanStanding(this.player.x + this.player.width / 2, this.player.y, this.player.height);
+        
+        // Draw speech bubble with typing text
+        if (this.displayedText.length > 0) {
+            this.drawSpeechBubble();
+        }
+        
+        // Add instruction text at bottom
+        if (this.typewriterIndex >= this.storyText.length) {
+            this.ctx.fillStyle = '#FFFFFF';
+            this.ctx.font = '20px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText('Touch anywhere to start the game!', this.canvas.width / 2, this.canvas.height - 50);
+        }
+    }
+    
+    drawStickmanStanding(centerX, y, height) {
+        const ctx = this.ctx;
+        
+        // Draw head using image instead of circle
+        if (this.characterHead.complete) {
+            const headSize = height * 0.8;
+            ctx.drawImage(
+                this.characterHead,
+                centerX - headSize/2,
+                y + height * 0.27 - headSize,
+                headSize,
+                headSize
+            );
+        } else {
+            // Fallback to circle if image isn't loaded yet
+            ctx.beginPath();
+            ctx.arc(centerX, y + height * 0.15, height * 0.12, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFD700';
+            ctx.fill();
+            ctx.closePath();
+        }
+        
+        // Body (standing still)
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        
+        // Torso
+        ctx.beginPath();
+        ctx.moveTo(centerX, y + height * 0.27);
+        ctx.lineTo(centerX, y + height * 0.65);
+        ctx.stroke();
+        
+        // Left arm (relaxed)
+        ctx.beginPath();
+        ctx.moveTo(centerX, y + height * 0.35);
+        ctx.lineTo(centerX - 20, y + height * 0.55);
+        ctx.stroke();
+        
+        // Right arm (relaxed)
+        ctx.beginPath();
+        ctx.moveTo(centerX, y + height * 0.35);
+        ctx.lineTo(centerX + 20, y + height * 0.55);
+        ctx.stroke();
+        
+        // Left leg (standing)
+        ctx.beginPath();
+        ctx.moveTo(centerX, y + height * 0.65);
+        ctx.lineTo(centerX - 15, y + height);
+        ctx.stroke();
+        
+        // Right leg (standing)
+        ctx.beginPath();
+        ctx.moveTo(centerX, y + height * 0.65);
+        ctx.lineTo(centerX + 15, y + height);
+        ctx.stroke();
+    }
+    
+    drawSpeechBubble() {
+        const ctx = this.ctx;
+        const bubbleX = this.player.x + this.player.width / 2 - 100;
+        const bubbleY = this.player.y - 80;
+        const bubbleWidth = 200;
+        const bubbleHeight = 60;
+        const cornerRadius = 10;
+        const tailSize = 15;
+        
+        // Draw speech bubble background
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        
+        // Bubble main body
+        ctx.beginPath();
+        ctx.roundRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight, cornerRadius);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Bubble tail (pointing to character)
+        ctx.beginPath();
+        ctx.moveTo(this.player.x + this.player.width / 2 - tailSize/2, bubbleY + bubbleHeight);
+        ctx.lineTo(this.player.x + this.player.width / 2, bubbleY + bubbleHeight + tailSize);
+        ctx.lineTo(this.player.x + this.player.width / 2 + tailSize/2, bubbleY + bubbleHeight);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Draw text inside bubble
+        ctx.fillStyle = '#000000';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.displayedText, bubbleX + bubbleWidth / 2, bubbleY + bubbleHeight / 2 + 5);
     }
     
     render() {
