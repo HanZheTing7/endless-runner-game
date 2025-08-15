@@ -668,24 +668,7 @@ class SimpleGame {
         this.obstacles.forEach((obstacle, index) => {
             this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             
-            // Add obstacle number
-            this.ctx.fillStyle = '#FFFFFF';
-            this.ctx.font = 'bold 30px Arial';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(`${index + 1}`, obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 10);
-            
-            // Add clearance indicator (green if clearable, red if not)
-            const jumpHeight = this.player.y - 220;
-            const canClear = jumpHeight < obstacle.y;
-            this.ctx.fillStyle = canClear ? '#00FF00' : '#FF0000';
-            this.ctx.font = 'bold 16px Arial';
-            this.ctx.fillText(canClear ? 'CLEAR' : 'BLOCK', obstacle.x + obstacle.width/2, obstacle.y - 10);
-            
-            // Add difficulty indicator (based on obstacle size)
-            const difficulty = Math.round((obstacle.height * obstacle.width) / 100); // Simple difficulty calculation
-            this.ctx.fillStyle = difficulty <= 2 ? '#00FF00' : difficulty <= 3 ? '#FFFF00' : '#FF6600';
-            this.ctx.font = 'bold 14px Arial';
-            this.ctx.fillText(`L${difficulty}`, obstacle.x + obstacle.width/2, obstacle.y + obstacle.height + 20);
+
             
             this.ctx.fillStyle = '#FF4444';
         });
@@ -693,58 +676,7 @@ class SimpleGame {
         // Draw player
         this.drawStickman(this.player.x, this.player.y, this.player.width, this.player.height);
         
-        // Draw debug info
-        this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = '20px Arial';
-        this.ctx.textAlign = 'left';
-        this.ctx.fillText(`Obstacles: ${this.obstacles.length}`, 20, 50);
-        this.ctx.fillText(`Game Speed: ${this.gameSpeed.toFixed(1)}`, 20, 80);
-        this.ctx.fillText(`Canvas: ${this.canvas.width}x${this.canvas.height}`, 20, 110);
-        this.ctx.fillText(`Jump Power: ${Math.abs(this.jumpPower)}`, 20, 170);
-        this.ctx.fillText(`Player Y: ${Math.round(this.player.y)}`, 20, 200);
-        this.ctx.fillText(`Gravity: ${this.gravity}`, 20, 230);
-        this.ctx.fillText(`Difficulty: ${this.obstacleFrequency} obstacle(s)`, 20, 260);
-        
-        // Add background debug info
-        this.ctx.fillStyle = '#00FFFF'; // Cyan color for background info
-        this.ctx.fillText(`Background: Clouds & Trees from Right`, 20, 290);
-        this.ctx.fillText(`Ground Y: ${this.ground.y}`, 20, 320);
-        
-        // Add position indicators for first cloud and tree
-        this.ctx.fillStyle = '#FFFF00'; // Yellow for position info
-        if (this.cloudPositions && this.cloudPositions.length > 0) {
-            this.ctx.fillText(`Cloud 1: x=${Math.round(this.cloudPositions[0].currentX)}`, 20, 350);
-        }
-        if (this.treePositions && this.treePositions.length > 0) {
-            this.ctx.fillText(`Tree 1: x=${Math.round(this.treePositions[0].currentX)}`, 20, 380);
-        }
-        
-        // Add tree movement debug info
-        this.ctx.fillStyle = '#00FF00'; // Green for tree info
-        this.ctx.fillText(`Movement: Right to Left`, 20, 410);
-        this.ctx.fillText(`Ground Level: y=${this.ground.y}`, 20, 440);
-        this.ctx.fillText(`Tree Base: y=${this.ground.y - 60}`, 20, 470);
-        
-        if (this.obstacles.length > 0) {
-            this.ctx.fillText(`First obstacle at: (${Math.round(this.obstacles[0].x)}, ${Math.round(this.obstacles[0].y)})`, 20, 140);
-            // Show if player can clear the obstacle
-            const obstacleHeight = this.obstacles[0].y;
-            const jumpHeight = this.player.y - 220; // Match the indicator line
-            const canClear = jumpHeight < obstacleHeight;
-            this.ctx.fillStyle = canClear ? '#00FF00' : '#FF0000';
-            this.ctx.fillText(`Can clear: ${canClear ? 'YES' : 'NO'}`, 20, 260);
-            this.ctx.fillStyle = '#FFFFFF';
-        }
-        
-        // Draw jump height indicator
-        this.ctx.strokeStyle = '#FFFF00';
-        this.ctx.lineWidth = 3;
-        this.ctx.setLineDash([8, 8]);
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.player.x + this.player.width/2, this.player.y);
-        this.ctx.lineTo(this.player.x + this.player.width/2, this.player.y - 220); // Increased from 180 to 220 to show new jump height
-        this.ctx.stroke();
-        this.ctx.setLineDash([]);
+
     }
 
     drawStickman(x, y, width, height) {
