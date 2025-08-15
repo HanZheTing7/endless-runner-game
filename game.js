@@ -12,7 +12,7 @@ class SimpleGame {
         this.gameSpeed = 2.5; // Increased from 2 to 2.5 for better pacing
         this.obstacleFrequency = 1; // Start with 1 obstacle, increases with difficulty
         
-        // Game objects
+        // Game objects (positions will be updated in setupCanvas)
         this.player = { x: 150, y: 450, width: 50, height: 80, velocityY: 0, isJumping: false };
         this.ground = { y: 530, height: 70 };
         this.obstacles = [];
@@ -74,9 +74,39 @@ class SimpleGame {
     }
     
     setupCanvas() {
-        this.canvas.width = 1200;
-        this.canvas.height = 600;
+        // Set canvas to fullscreen
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        
+        // Update canvas style to prevent blurriness
+        this.canvas.style.width = window.innerWidth + 'px';
+        this.canvas.style.height = window.innerHeight + 'px';
+        
+        // Update game objects positions based on screen size
+        this.updateGameObjectPositions();
+        
         console.log('Canvas setup - Width:', this.canvas.width, 'Height:', this.canvas.height);
+        
+        // Add resize listener to maintain fullscreen
+        window.addEventListener('resize', () => {
+            this.canvas.width = window.innerWidth;
+            this.canvas.height = window.innerHeight;
+            this.canvas.style.width = window.innerWidth + 'px';
+            this.canvas.style.height = window.innerHeight + 'px';
+            this.updateGameObjectPositions();
+        });
+    }
+    
+    updateGameObjectPositions() {
+        // Position ground at bottom of screen
+        this.ground.y = this.canvas.height - 70;
+        this.ground.height = 70;
+        
+        // Position player on ground
+        this.player.y = this.ground.y - this.player.height;
+        
+        // Update player x position relative to screen width
+        this.player.x = Math.min(150, this.canvas.width * 0.1);
     }
     
     setupControls() {
@@ -120,7 +150,7 @@ class SimpleGame {
     
     createInitialObstacles() {
         // Create only 1 initial obstacle with random height
-        const obstacle = this.createRandomObstacle(900);
+        const obstacle = this.createRandomObstacle(this.canvas.width + 200);
         this.obstacles.push(obstacle);
         console.log('Initial obstacle created:', this.obstacles.length);
     }
