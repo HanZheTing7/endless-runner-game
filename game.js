@@ -23,7 +23,7 @@ class SimpleGame {
         
         // Character image
         this.characterHead = new Image();
-        this.characterHead.src = 'character-head.png'; // You can change this to your image file
+        this.characterHead.src = 'sk-head.jpg'; // You can change this to your image file
         
         // Story mode properties
         this.gameState = 'start'; // 'start', 'story', 'playing', 'gameOver'
