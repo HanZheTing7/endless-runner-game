@@ -127,8 +127,10 @@ class SimpleGame {
     setupControls() {
         // Canvas click for jumping or story progression
         this.canvas.addEventListener('click', () => {
+            console.log('Canvas clicked - storyMode:', this.storyMode, 'typewriterIndex:', this.typewriterIndex, 'storyTextLength:', this.storyText.length);
             if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
                 // Story is complete, start the actual game
+                console.log('Starting actual game from click');
                 this.startActualGame();
             } else if (this.gameRunning) {
                 // Game is running, jump
@@ -139,8 +141,10 @@ class SimpleGame {
         // Touch events for mobile
         this.canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            console.log('Canvas touched - storyMode:', this.storyMode, 'typewriterIndex:', this.typewriterIndex, 'storyTextLength:', this.storyText.length);
             if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
                 // Story is complete, start the actual game
+                console.log('Starting actual game from touch');
                 this.startActualGame();
             } else if (this.gameRunning) {
                 // Game is running, jump
@@ -306,6 +310,10 @@ class SimpleGame {
             this.displayedText += this.storyText[this.typewriterIndex];
             this.typewriterIndex++;
             this.lastTypewriterTime = currentTime;
+            
+            if (this.typewriterIndex >= this.storyText.length) {
+                console.log('Typewriter effect complete - ready for user input');
+            }
         }
     }
     
@@ -656,6 +664,7 @@ class SimpleGame {
         
         // Add instruction text at bottom
         if (this.typewriterIndex >= this.storyText.length) {
+            console.log('Showing instruction text - ready to start game');
             this.ctx.fillStyle = '#FFFFFF';
             this.ctx.font = '20px Arial';
             this.ctx.textAlign = 'center';
