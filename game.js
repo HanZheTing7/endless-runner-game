@@ -127,28 +127,32 @@ class SimpleGame {
     setupControls() {
         // Canvas click for jumping or story progression
         this.canvas.addEventListener('click', () => {
-            console.log('Canvas clicked - storyMode:', this.storyMode, 'typewriterIndex:', this.typewriterIndex, 'storyTextLength:', this.storyText.length);
-            if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
+            console.log('Canvas clicked - storyMode:', this.storyMode, 'typewriterIndex:', this.typewriterIndex, 'storyTextLength:', this.storyText.length, 'isTransitioning:', this.isTransitioning);
+            if (this.storyMode && this.typewriterIndex >= this.storyText.length && !this.isTransitioning) {
                 // Story is complete, start the actual game
                 console.log('Starting actual game from click');
                 this.startActualGame();
             } else if (this.gameRunning) {
                 // Game is running, jump
                 this.jump();
+            } else {
+                console.log('Click ignored - conditions not met');
             }
         });
         
         // Touch events for mobile
         this.canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            console.log('Canvas touched - storyMode:', this.storyMode, 'typewriterIndex:', this.typewriterIndex, 'storyTextLength:', this.storyText.length);
-            if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
+            console.log('Canvas touched - storyMode:', this.storyMode, 'typewriterIndex:', this.typewriterIndex, 'storyTextLength:', this.storyText.length, 'isTransitioning:', this.isTransitioning);
+            if (this.storyMode && this.typewriterIndex >= this.storyText.length && !this.isTransitioning) {
                 // Story is complete, start the actual game
                 console.log('Starting actual game from touch');
                 this.startActualGame();
             } else if (this.gameRunning) {
                 // Game is running, jump
                 this.jump();
+            } else {
+                console.log('Touch ignored - conditions not met');
             }
         });
         
@@ -156,12 +160,16 @@ class SimpleGame {
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'ArrowUp') {
                 e.preventDefault();
-                if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
+                console.log('Keyboard pressed - storyMode:', this.storyMode, 'typewriterIndex:', this.typewriterIndex, 'storyTextLength:', this.storyText.length, 'isTransitioning:', this.isTransitioning);
+                if (this.storyMode && this.typewriterIndex >= this.storyText.length && !this.isTransitioning) {
                     // Story is complete, start the actual game
+                    console.log('Starting actual game from keyboard');
                     this.startActualGame();
                 } else if (this.gameRunning) {
                     // Game is running, jump
                     this.jump();
+                } else {
+                    console.log('Keyboard ignored - conditions not met');
                 }
             }
         });
@@ -244,16 +252,28 @@ class SimpleGame {
         this.gameState = 'story';
         this.storyMode = true;
         this.gameRunning = false; // Don't start game logic yet
+        this.isTransitioning = false; // Make sure we're not transitioning
         
         // Reset story properties
         this.displayedText = "";
         this.typewriterIndex = 0;
-        this.lastTypewriterTime = 0;
+        this.lastTypewriterTime = Date.now(); // Set initial time
+        
+        console.log('Story initialized - storyText:', this.storyText, 'length:', this.storyText.length, 'typewriterIndex:', this.typewriterIndex);
+        
+        // Update positions for story mode
+        this.updateGameObjectPositions();
         
         this.gameLoop();
     }
     
     startActualGame() {
+        // Prevent multiple calls
+        if (this.isTransitioning || this.gameRunning || this.gameState === 'transitioning') {
+            console.log('startActualGame called but already transitioning/running');
+            return;
+        }
+        
         console.log('Starting transition to game');
         
         // Start transition animation
