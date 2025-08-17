@@ -161,7 +161,7 @@ class SimpleGame {
             this.player.x = Math.min(150, this.canvas.width * 0.1);
             // Position wife behind player and make her visible (only if not already set)
             if (!this.wife.isVisible) {
-                this.wife.x = Math.max(5, this.player.x - 130);
+                this.wife.x = Math.max(5, this.player.x - 160);
                 this.wife.isVisible = true;
 
             }
@@ -354,7 +354,7 @@ class SimpleGame {
         
         // Make sure wife becomes visible and is positioned correctly
         this.wife.isVisible = true;
-        this.wife.x = Math.max(5, this.player.x - 130); // 130 pixels behind player, more gap
+        this.wife.x = Math.max(5, this.player.x - 160); // 130 pixels behind player, more gap
 
     }
     
@@ -546,7 +546,7 @@ class SimpleGame {
         // Update wife position (chasing behavior)
         if (this.wife.isVisible) {
             // Wife tries to catch up to player but ALWAYS stays behind
-            const targetDistance = 130; // Desired distance behind player (more gap)
+            const targetDistance = 160; // Desired distance behind player (more gap)
             const currentDistance = this.player.x - this.wife.x;
             
             if (currentDistance > targetDistance + 30) {
@@ -1477,34 +1477,34 @@ class SimpleGame {
         const rightArmEndX = rightShoulderX + width * (baseReach + rightArmSwing * 0.3);
         const rightArmEndY = shoulderY + height * (0.1 - rightArmSwing * 0.15); // Natural swing
         
-        // Draw arms (skin color)
+        // Draw arms as rectangles (skin color)
         ctx.fillStyle = '#FDBCB4';
         ctx.strokeStyle = '#E8A589';
         ctx.lineWidth = 1;
         
-        // Left arm
-        ctx.beginPath();
-        ctx.ellipse(
-            (leftShoulderX + leftArmEndX) / 2,
-            (shoulderY + leftArmEndY) / 2,
-            6, height * 0.1,
-            Math.atan2(leftArmEndY - shoulderY, leftArmEndX - leftShoulderX),
-            0, Math.PI * 2
-        );
-        ctx.fill();
-        ctx.stroke();
+        // Left arm (rectangular)
+        const leftArmWidth = 8;
+        const leftArmLength = Math.sqrt(Math.pow(leftArmEndX - leftShoulderX, 2) + Math.pow(leftArmEndY - shoulderY, 2));
+        const leftArmAngle = Math.atan2(leftArmEndY - shoulderY, leftArmEndX - leftShoulderX);
         
-        // Right arm
-        ctx.beginPath();
-        ctx.ellipse(
-            (rightShoulderX + rightArmEndX) / 2,
-            (shoulderY + rightArmEndY) / 2,
-            6, height * 0.1,
-            Math.atan2(rightArmEndY - shoulderY, rightArmEndX - rightShoulderX),
-            0, Math.PI * 2
-        );
-        ctx.fill();
-        ctx.stroke();
+        ctx.save();
+        ctx.translate(leftShoulderX, shoulderY);
+        ctx.rotate(leftArmAngle);
+        ctx.fillRect(0, -leftArmWidth/2, leftArmLength, leftArmWidth);
+        ctx.strokeRect(0, -leftArmWidth/2, leftArmLength, leftArmWidth);
+        ctx.restore();
+        
+        // Right arm (rectangular)
+        const rightArmWidth = 8;
+        const rightArmLength = Math.sqrt(Math.pow(rightArmEndX - rightShoulderX, 2) + Math.pow(rightArmEndY - shoulderY, 2));
+        const rightArmAngle = Math.atan2(rightArmEndY - shoulderY, rightArmEndX - rightShoulderX);
+        
+        ctx.save();
+        ctx.translate(rightShoulderX, shoulderY);
+        ctx.rotate(rightArmAngle);
+        ctx.fillRect(0, -rightArmWidth/2, rightArmLength, rightArmWidth);
+        ctx.strokeRect(0, -rightArmWidth/2, rightArmLength, rightArmWidth);
+        ctx.restore();
         
         // Hands
         ctx.fillStyle = '#FDBCB4';
