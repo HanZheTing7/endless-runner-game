@@ -37,11 +37,10 @@ class SimpleGame {
         this.currentLineIndex = 0;
         this.displayedText = "";
         this.typewriterIndex = 0;
-        this.typewriterSpeed = 80; // milliseconds between characters
+        this.typewriterSpeed = 50; // milliseconds between characters (faster)
         this.lastTypewriterTime = 0;
-        this.lineDelay = 1500; // Delay between lines in milliseconds
-        this.waitingForNextLine = false;
-        this.lineWaitStartTime = 0;
+        this.currentLineComplete = false; // Track if current line is fully displayed
+        this.waitingForUserTap = false; // Waiting for user to tap to continue
         
         // Character transition properties
         this.isTransitioning = false;
@@ -159,10 +158,9 @@ class SimpleGame {
                 return;
             }
             
-            if (this.storyMode && this.currentLineIndex >= this.storyLines.length) {
-                // Story is complete, start the actual game
-                console.log('Starting actual game from click');
-                this.startActualGame();
+            if (this.storyMode) {
+                // Handle story progression
+                this.handleStoryTap();
             } else if (this.gameRunning) {
                 // Game is running, jump
                 this.jump();
@@ -187,24 +185,22 @@ class SimpleGame {
                 return;
             }
             
-            if (this.storyMode && this.currentLineIndex >= this.storyLines.length) {
-                // Story is complete, start the actual game
-                console.log('Starting actual game from touch');
-                this.startActualGame();
+            if (this.storyMode) {
+                // Handle story progression
+                this.handleStoryTap();
             } else if (this.gameRunning) {
                 // Game is running, jump
                 this.jump();
             }
         });
 
-        // Keyboard controls
+                // Keyboard controls
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'ArrowUp') {
-                        e.preventDefault();
-                if (this.storyMode && this.currentLineIndex >= this.storyLines.length) {
-                    // Story is complete, start the actual game
-                    console.log('Starting actual game from keyboard');
-                    this.startActualGame();
+                e.preventDefault();
+                if (this.storyMode) {
+                    // Handle story progression
+                    this.handleStoryTap();
                 } else if (this.gameRunning) {
                     // Game is running, jump
                     this.jump();
@@ -301,8 +297,8 @@ class SimpleGame {
         this.typewriterIndex = 0;
         this.lastTypewriterTime = Date.now(); // Set initial time
         this.instructionShown = false; // Reset instruction flag
-        this.waitingForNextLine = false;
-        this.lineWaitStartTime = 0;
+        this.currentLineComplete = false;
+        this.waitingForUserTap = false;
         
         console.log('Story initialized - lines:', this.storyLines.length, 'currentLine:', this.currentLineIndex);
         
@@ -371,20 +367,8 @@ class SimpleGame {
         
         const currentLine = this.storyLines[this.currentLineIndex];
         
-        // If waiting for next line delay
-        if (this.waitingForNextLine) {
-            if (currentTime - this.lineWaitStartTime > this.lineDelay) {
-                // Move to next line
-                this.currentLineIndex++;
-                this.displayedText = "";
-                this.typewriterIndex = 0;
-                this.waitingForNextLine = false;
-                this.lastTypewriterTime = currentTime;
-                
-                if (this.currentLineIndex >= this.storyLines.length) {
-                    console.log('All story lines complete - ready for user input');
-                }
-            }
+        // If waiting for user tap, don't continue typing
+        if (this.waitingForUserTap) {
             return;
         }
         
@@ -396,17 +380,49 @@ class SimpleGame {
             this.typewriterIndex++;
             this.lastTypewriterTime = currentTime;
             
-            // If current line is complete, start waiting for next line
+            // If current line is complete, wait for user tap
             if (this.typewriterIndex >= currentLine.length) {
                 console.log(`Line ${this.currentLineIndex + 1} complete:`, currentLine);
-                if (this.currentLineIndex < this.storyLines.length - 1) {
-                    // More lines to show, start delay
-                    this.waitingForNextLine = true;
-                    this.lineWaitStartTime = currentTime;
-                } else {
-                    // Last line complete
-                    console.log('All story lines complete - ready for user input');
-                }
+                this.currentLineComplete = true;
+                this.waitingForUserTap = true;
+            }
+        }
+    }
+    
+    // Handle user tap during story
+    handleStoryTap() {
+        if (this.currentLineIndex >= this.storyLines.length) {
+            // All lines shown, start game
+            console.log('Starting game after final story tap');
+            this.startActualGame();
+            return;
+        }
+        
+        const currentLine = this.storyLines[this.currentLineIndex];
+        
+        if (!this.currentLineComplete) {
+            // Line is still typing, show full line instantly
+            console.log('Completing current line instantly');
+            this.displayedText = currentLine;
+            this.typewriterIndex = currentLine.length;
+            this.currentLineComplete = true;
+            this.waitingForUserTap = true;
+        } else {
+            // Line is complete, move to next line
+            console.log(`Moving to next line (${this.currentLineIndex + 1})`);
+            this.currentLineIndex++;
+            
+            if (this.currentLineIndex >= this.storyLines.length) {
+                // All lines complete, show instruction
+                console.log('All story lines complete - ready for final tap');
+                this.waitingForUserTap = true;
+            } else {
+                // Start typing next line
+                this.displayedText = "";
+                this.typewriterIndex = 0;
+                this.currentLineComplete = false;
+                this.waitingForUserTap = false;
+                this.lastTypewriterTime = Date.now();
             }
         }
     }
@@ -759,20 +775,24 @@ class SimpleGame {
         // Add skip button (always visible) and instruction text
         this.drawSkipButton();
         
+        // Show instruction text based on story state
+        this.ctx.fillStyle = '#FFFFFF';
+        const instructionFontSize = Math.max(12, Math.min(20, this.canvas.width * 0.025));
+        this.ctx.font = `${instructionFontSize}px Arial`;
+        this.ctx.textAlign = 'center';
+        
+        // Position instruction text with better spacing from bottom
+        const bottomMargin = Math.max(30, this.canvas.height * 0.08);
+        
         if (this.currentLineIndex >= this.storyLines.length) {
-            // Only log once when instruction first appears
-            if (!this.instructionShown) {
-                console.log('Showing instruction text - ready to start game');
-                this.instructionShown = true;
-            }
-            this.ctx.fillStyle = '#FFFFFF';
-            const instructionFontSize = Math.max(14, Math.min(24, this.canvas.width * 0.03));
-            this.ctx.font = `${instructionFontSize}px Arial`;
-            this.ctx.textAlign = 'center';
-            
-            // Position instruction text with better spacing from bottom
-            const bottomMargin = Math.max(30, this.canvas.height * 0.08);
+            // All lines complete, ready to start game
             this.ctx.fillText('Touch anywhere to start the game!', this.canvas.width / 2, this.canvas.height - bottomMargin);
+        } else if (this.waitingForUserTap) {
+            // Waiting for user to continue to next line
+            this.ctx.fillText('Touch to continue...', this.canvas.width / 2, this.canvas.height - bottomMargin);
+        } else if (!this.currentLineComplete) {
+            // Line is still typing
+            this.ctx.fillText('Touch to skip typing...', this.canvas.width / 2, this.canvas.height - bottomMargin);
         }
     }
     
