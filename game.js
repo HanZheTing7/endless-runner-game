@@ -161,7 +161,7 @@ class SimpleGame {
             this.player.x = Math.min(150, this.canvas.width * 0.1);
             // Position wife behind player and make her visible (only if not already set)
             if (!this.wife.isVisible) {
-                this.wife.x = Math.max(10, this.player.x - 120);
+                this.wife.x = Math.max(5, this.player.x - 100);
                 this.wife.isVisible = true;
 
             }
@@ -354,7 +354,7 @@ class SimpleGame {
         
         // Make sure wife becomes visible and is positioned correctly
         this.wife.isVisible = true;
-        this.wife.x = Math.max(10, this.player.x - 120); // 120 pixels behind player, more to the left
+        this.wife.x = Math.max(5, this.player.x - 100); // 100 pixels behind player, ensure fully visible
 
     }
     
@@ -546,7 +546,7 @@ class SimpleGame {
         // Update wife position (chasing behavior)
         if (this.wife.isVisible) {
             // Wife tries to catch up to player but ALWAYS stays behind
-            const targetDistance = 120; // Desired distance behind player (more to the left)
+            const targetDistance = 100; // Desired distance behind player (ensure visibility)
             const currentDistance = this.player.x - this.wife.x;
             
             if (currentDistance > targetDistance + 30) {
@@ -566,8 +566,9 @@ class SimpleGame {
             }
             
             // Keep wife on screen (don't let her fall too far behind)
-            if (this.wife.x < -this.wife.width) {
-                this.wife.x = -this.wife.width + 10;
+            // Ensure wife is fully visible on mobile devices
+            if (this.wife.x < 0) {
+                this.wife.x = 5; // Keep at least 5px from left edge
             }
         }
 
@@ -1456,23 +1457,23 @@ class SimpleGame {
         const bodyBounce = Math.sin(cycle * 2) * 0.015;
         const bounceOffset = height * bodyBounce;
         
-        // Arm swing calculations
-        const leftArmAngle = Math.sin(cycle * 2) * 0.5;
-        const rightArmAngle = Math.sin(cycle * 2 + Math.PI) * 0.5;
+        // Chasing arm pose - both arms reaching forward toward husband
+        const armReach = Math.sin(cycle * 3) * 0.1 + 0.8; // Slight variation in reach
         
         // Leg movement (under dress)
         const leftLegAngle = Math.sin(cycle * 2 + Math.PI) * 0.4;
         const rightLegAngle = Math.sin(cycle * 2) * 0.4;
         
-        // Calculate arm positions
+        // Calculate arm positions - both reaching forward
         const leftShoulderX = centerX - dressWidth * 0.25;
         const rightShoulderX = centerX + dressWidth * 0.25;
         const shoulderY = y + height * 0.35 + bounceOffset;
         
-        const leftArmEndX = leftShoulderX + width * (0.1 + leftArmAngle * 0.3);
-        const leftArmEndY = shoulderY + height * (0.15 - Math.abs(leftArmAngle) * 0.15);
-        const rightArmEndX = rightShoulderX + width * (0.1 + rightArmAngle * 0.3);
-        const rightArmEndY = shoulderY + height * (0.15 - Math.abs(rightArmAngle) * 0.15);
+        // Both arms reach forward (to the right) in chasing pose
+        const leftArmEndX = leftShoulderX + width * armReach;
+        const leftArmEndY = shoulderY + height * 0.05; // Slightly raised
+        const rightArmEndX = rightShoulderX + width * armReach;
+        const rightArmEndY = shoulderY + height * 0.05; // Slightly raised
         
         // Draw arms (skin color)
         ctx.fillStyle = '#FDBCB4';
