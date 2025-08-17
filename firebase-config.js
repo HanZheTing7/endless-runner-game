@@ -41,12 +41,10 @@ try {
             }
         },
 
-        // Get top scores from leaderboard
+        // Get top scores from leaderboard (deduplicated by username)
         async getTopScores(limit = 10) {
             try {
                 const snapshot = await database.ref('scores')
-                    .orderByChild('score')
-                    .limitToLast(limit)
                     .once('value');
                 
                 const scores = [];
@@ -57,8 +55,18 @@ try {
                     });
                 });
                 
-                // Sort by score (highest first) and return top scores
-                return scores
+                // Create a map to keep only the highest score for each username
+                const uniqueScores = new Map();
+                
+                scores.forEach(score => {
+                    if (!uniqueScores.has(score.username) || 
+                        score.score > uniqueScores.get(score.username).score) {
+                        uniqueScores.set(score.username, score);
+                    }
+                });
+                
+                // Convert back to array, sort by score (highest first), and return top scores
+                return Array.from(uniqueScores.values())
                     .sort((a, b) => b.score - a.score)
                     .slice(0, limit);
             } catch (error) {
@@ -148,7 +156,21 @@ try {
         async getTopScores(limit = 10) {
             try {
                 const scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
-                return scores.slice(0, limit);
+                
+                // Create a map to keep only the highest score for each username
+                const uniqueScores = new Map();
+                
+                scores.forEach(score => {
+                    if (!uniqueScores.has(score.username) || 
+                        score.score > uniqueScores.get(score.username).score) {
+                        uniqueScores.set(score.username, score);
+                    }
+                });
+                
+                // Convert back to array, sort by score (highest first), and return top scores
+                return Array.from(uniqueScores.values())
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, limit);
             } catch (error) {
                 console.error('Error getting local scores:', error);
                 return [];

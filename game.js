@@ -1737,10 +1737,31 @@ class GameManager {
             this.showLeaderboardScreen();
         });
         
-        // Username input
+        // Username input with debouncing
+        let usernameTimeout;
         document.getElementById('username').addEventListener('input', (e) => {
             this.username = e.target.value.trim();
-            this.validateUsername();
+            
+            // Clear previous timeout
+            if (usernameTimeout) {
+                clearTimeout(usernameTimeout);
+            }
+            
+            // Reset UI immediately for basic validation
+            const errorElement = document.getElementById('usernameError');
+            const startButton = document.getElementById('startButton');
+            
+            if (this.username.length < 3) {
+                errorElement.textContent = 'Username must be at least 3 characters long';
+                errorElement.style.color = '#ff4444';
+                startButton.disabled = true;
+                return;
+            }
+            
+            // Debounce the Firebase check
+            usernameTimeout = setTimeout(() => {
+                this.validateUsername();
+            }, 500); // Wait 500ms after user stops typing
         });
         
 
@@ -1761,7 +1782,7 @@ class GameManager {
 
         // Back to menu button (leaderboard screen)
         document.getElementById('backToMenuButton').addEventListener('click', () => {
-            this.showScreen('startScreen');
+            this.showScreen('start');
         });
 
         // Clear leaderboard button (leaderboard screen)
@@ -1771,10 +1792,14 @@ class GameManager {
         });
     }
     
-    validateUsername() {
+    async validateUsername() {
         const errorElement = document.getElementById('usernameError');
         const startButton = document.getElementById('startButton');
         
+        // Reset error message color
+        errorElement.style.color = '#ff4444'; // Red color for errors
+        
+        // Basic validation first
         if (this.username.length < 3) {
             errorElement.textContent = 'Username must be at least 3 characters long';
             startButton.disabled = true;
@@ -1787,14 +1812,57 @@ class GameManager {
             return false;
         }
         
-        errorElement.textContent = '';
-        startButton.disabled = false;
-        return true;
+        // Check for special characters
+        const validPattern = /^[a-zA-Z0-9_-]+$/;
+        if (!validPattern.test(this.username)) {
+            errorElement.textContent = 'Username can only contain letters, numbers, underscore, and dash';
+            startButton.disabled = true;
+            return false;
+        }
+        
+        try {
+            // Check uniqueness in Firebase
+            errorElement.textContent = 'Checking username availability...';
+            startButton.disabled = true;
+            
+            const exists = await window.FirebaseHelper.checkUsernameExists(this.username);
+            
+            if (exists) {
+                errorElement.textContent = 'Username already taken. Please choose a different one.';
+                startButton.disabled = true;
+                return false;
+            }
+            
+            // Username is valid and unique
+            errorElement.textContent = '✓ Username available';
+            errorElement.style.color = '#4CAF50'; // Green color for success
+            startButton.disabled = false;
+            return true;
+            
+        } catch (error) {
+            console.error('Error checking username:', error);
+            errorElement.textContent = 'Error checking username. Please try again.';
+            startButton.disabled = true;
+            return false;
+        }
     }
     
-    startGame() {
+    async startGame() {
         if (!this.username || this.username.length < 3) {
             alert('Please enter a valid username');
+            return;
+        }
+        
+        // Final check for username uniqueness before starting
+        try {
+            const exists = await window.FirebaseHelper.checkUsernameExists(this.username);
+            if (exists) {
+                alert('Username is already taken. Please choose a different username.');
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking username before game start:', error);
+            alert('Error validating username. Please try again.');
             return;
         }
         
