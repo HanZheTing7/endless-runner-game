@@ -775,24 +775,16 @@ class SimpleGame {
         // Add skip button (always visible) and instruction text
         this.drawSkipButton();
         
-        // Show instruction text based on story state
-        this.ctx.fillStyle = '#FFFFFF';
-        const instructionFontSize = Math.max(12, Math.min(20, this.canvas.width * 0.025));
-        this.ctx.font = `${instructionFontSize}px Arial`;
-        this.ctx.textAlign = 'center';
-        
-        // Position instruction text with better spacing from bottom
-        const bottomMargin = Math.max(30, this.canvas.height * 0.08);
-        
+        // Show instruction text only when all lines are complete
         if (this.currentLineIndex >= this.storyLines.length) {
-            // All lines complete, ready to start game
+            this.ctx.fillStyle = '#FFFFFF';
+            const instructionFontSize = Math.max(14, Math.min(24, this.canvas.width * 0.03));
+            this.ctx.font = `${instructionFontSize}px Arial`;
+            this.ctx.textAlign = 'center';
+            
+            // Position instruction text with better spacing from bottom
+            const bottomMargin = Math.max(30, this.canvas.height * 0.08);
             this.ctx.fillText('Touch anywhere to start the game!', this.canvas.width / 2, this.canvas.height - bottomMargin);
-        } else if (this.waitingForUserTap) {
-            // Waiting for user to continue to next line
-            this.ctx.fillText('Touch to continue...', this.canvas.width / 2, this.canvas.height - bottomMargin);
-        } else if (!this.currentLineComplete) {
-            // Line is still typing
-            this.ctx.fillText('Touch to skip typing...', this.canvas.width / 2, this.canvas.height - bottomMargin);
         }
     }
     
