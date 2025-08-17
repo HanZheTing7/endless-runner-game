@@ -28,11 +28,20 @@ class SimpleGame {
         // Story mode properties
         this.gameState = 'start'; // 'start', 'story', 'playing', 'gameOver'
         this.storyMode = false;
-        this.storyText = "Hi, I am Siew Keat.";
+        this.storyLines = [
+            "This is Wong Siew Keat.",
+            "He is a married man.",
+            "He forgot to inform his wife he went out.",
+            "Help him escape."
+        ];
+        this.currentLineIndex = 0;
         this.displayedText = "";
         this.typewriterIndex = 0;
-        this.typewriterSpeed = 100; // milliseconds between characters
+        this.typewriterSpeed = 80; // milliseconds between characters
         this.lastTypewriterTime = 0;
+        this.lineDelay = 1500; // Delay between lines in milliseconds
+        this.waitingForNextLine = false;
+        this.lineWaitStartTime = 0;
         
         // Character transition properties
         this.isTransitioning = false;
@@ -150,7 +159,7 @@ class SimpleGame {
                 return;
             }
             
-            if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
+            if (this.storyMode && this.currentLineIndex >= this.storyLines.length) {
                 // Story is complete, start the actual game
                 console.log('Starting actual game from click');
                 this.startActualGame();
@@ -178,7 +187,7 @@ class SimpleGame {
                 return;
             }
             
-            if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
+            if (this.storyMode && this.currentLineIndex >= this.storyLines.length) {
                 // Story is complete, start the actual game
                 console.log('Starting actual game from touch');
                 this.startActualGame();
@@ -192,7 +201,7 @@ class SimpleGame {
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'ArrowUp') {
                         e.preventDefault();
-                if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
+                if (this.storyMode && this.currentLineIndex >= this.storyLines.length) {
                     // Story is complete, start the actual game
                     console.log('Starting actual game from keyboard');
                     this.startActualGame();
@@ -287,12 +296,15 @@ class SimpleGame {
         this.isTransitioning = false; // Make sure we're not transitioning
         
         // Reset story properties
+        this.currentLineIndex = 0;
         this.displayedText = "";
         this.typewriterIndex = 0;
         this.lastTypewriterTime = Date.now(); // Set initial time
         this.instructionShown = false; // Reset instruction flag
+        this.waitingForNextLine = false;
+        this.lineWaitStartTime = 0;
         
-        console.log('Story initialized - storyText:', this.storyText, 'length:', this.storyText.length, 'typewriterIndex:', this.typewriterIndex);
+        console.log('Story initialized - lines:', this.storyLines.length, 'currentLine:', this.currentLineIndex);
         
         // Update positions for story mode
         this.updateGameObjectPositions();
@@ -352,16 +364,49 @@ class SimpleGame {
     updateStory() {
         const currentTime = Date.now();
         
-        // Handle typewriter effect
-        if (this.typewriterIndex < this.storyText.length && 
+        // Check if we have more lines to show
+        if (this.currentLineIndex >= this.storyLines.length) {
+            return; // All lines complete
+        }
+        
+        const currentLine = this.storyLines[this.currentLineIndex];
+        
+        // If waiting for next line delay
+        if (this.waitingForNextLine) {
+            if (currentTime - this.lineWaitStartTime > this.lineDelay) {
+                // Move to next line
+                this.currentLineIndex++;
+                this.displayedText = "";
+                this.typewriterIndex = 0;
+                this.waitingForNextLine = false;
+                this.lastTypewriterTime = currentTime;
+                
+                if (this.currentLineIndex >= this.storyLines.length) {
+                    console.log('All story lines complete - ready for user input');
+                }
+            }
+            return;
+        }
+        
+        // Handle typewriter effect for current line
+        if (this.typewriterIndex < currentLine.length && 
             currentTime - this.lastTypewriterTime > this.typewriterSpeed) {
             
-            this.displayedText += this.storyText[this.typewriterIndex];
+            this.displayedText += currentLine[this.typewriterIndex];
             this.typewriterIndex++;
             this.lastTypewriterTime = currentTime;
             
-            if (this.typewriterIndex >= this.storyText.length) {
-                console.log('Typewriter effect complete - ready for user input');
+            // If current line is complete, start waiting for next line
+            if (this.typewriterIndex >= currentLine.length) {
+                console.log(`Line ${this.currentLineIndex + 1} complete:`, currentLine);
+                if (this.currentLineIndex < this.storyLines.length - 1) {
+                    // More lines to show, start delay
+                    this.waitingForNextLine = true;
+                    this.lineWaitStartTime = currentTime;
+                } else {
+                    // Last line complete
+                    console.log('All story lines complete - ready for user input');
+                }
             }
         }
     }
@@ -714,7 +759,7 @@ class SimpleGame {
         // Add skip button (always visible) and instruction text
         this.drawSkipButton();
         
-        if (this.typewriterIndex >= this.storyText.length) {
+        if (this.currentLineIndex >= this.storyLines.length) {
             // Only log once when instruction first appears
             if (!this.instructionShown) {
                 console.log('Showing instruction text - ready to start game');
