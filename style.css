@@ -197,37 +197,7 @@ body {
     left: 0;
 }
 
-.game-controls {
-    position: fixed;
-    bottom: 20px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    z-index: 20;
-}
 
-.control-btn {
-    padding: 15px 25px;
-    border: none;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    font-size: 1rem;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    transition: all 0.2s ease;
-    min-width: 100px;
-}
-
-.control-btn:active {
-    transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.3);
-}
 
 /* Game Over Screen */
 #gameOverScreen h2 {
@@ -338,17 +308,6 @@ body {
         font-size: 1rem;
     }
     
-    .game-controls {
-        bottom: 15px;
-        gap: 15px;
-    }
-    
-    .control-btn {
-        padding: 12px 20px;
-        min-width: 80px;
-        font-size: 0.9rem;
-    }
-    
     .game-header {
         padding: 10px 15px;
     }
@@ -368,17 +327,6 @@ body {
         min-width: 160px;
         padding: 10px 20px;
         font-size: 0.9rem;
-    }
-    
-    .game-controls {
-        bottom: 10px;
-        gap: 10px;
-    }
-    
-    .control-btn {
-        padding: 10px 15px;
-        min-width: 70px;
-        font-size: 0.8rem;
     }
 }
 

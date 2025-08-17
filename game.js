@@ -43,6 +43,12 @@ class SimpleGame {
         this.transitionStartTime = 0;
         this.instructionShown = false;
         
+        // Skip button properties
+        this.skipButton = {
+            x: 0, y: 0, width: 0, height: 0,
+            visible: false
+        };
+        
         this.init();
     }
 
@@ -130,7 +136,20 @@ class SimpleGame {
     
     setupControls() {
         // Canvas click for jumping or story progression
-        this.canvas.addEventListener('click', () => {
+        this.canvas.addEventListener('click', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+            
+            // Check if click is on skip button during story mode
+            if (this.storyMode && this.skipButton.visible && 
+                clickX >= this.skipButton.x && clickX <= this.skipButton.x + this.skipButton.width &&
+                clickY >= this.skipButton.y && clickY <= this.skipButton.y + this.skipButton.height) {
+                console.log('Skip button clicked');
+                this.startActualGame();
+                return;
+            }
+            
             if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
                 // Story is complete, start the actual game
                 console.log('Starting actual game from click');
@@ -144,6 +163,21 @@ class SimpleGame {
         // Touch events for mobile
         this.canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            
+            const rect = this.canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const touchX = touch.clientX - rect.left;
+            const touchY = touch.clientY - rect.top;
+            
+            // Check if touch is on skip button during story mode
+            if (this.storyMode && this.skipButton.visible && 
+                touchX >= this.skipButton.x && touchX <= this.skipButton.x + this.skipButton.width &&
+                touchY >= this.skipButton.y && touchY <= this.skipButton.y + this.skipButton.height) {
+                console.log('Skip button touched');
+                this.startActualGame();
+                return;
+            }
+            
             if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
                 // Story is complete, start the actual game
                 console.log('Starting actual game from touch');
@@ -677,7 +711,9 @@ class SimpleGame {
             this.drawSpeechBubble();
         }
         
-        // Add instruction text at bottom
+        // Add skip button (always visible) and instruction text
+        this.drawSkipButton();
+        
         if (this.typewriterIndex >= this.storyText.length) {
             // Only log once when instruction first appears
             if (!this.instructionShown) {
@@ -693,6 +729,42 @@ class SimpleGame {
             const bottomMargin = Math.max(30, this.canvas.height * 0.08);
             this.ctx.fillText('Touch anywhere to start the game!', this.canvas.width / 2, this.canvas.height - bottomMargin);
         }
+    }
+    
+    drawSkipButton() {
+        const ctx = this.ctx;
+        
+        // Skip button dimensions (responsive)
+        const buttonWidth = Math.max(60, Math.min(100, this.canvas.width * 0.12));
+        const buttonHeight = Math.max(30, Math.min(50, this.canvas.height * 0.05));
+        
+        // Position skip button at top-right corner
+        const margin = Math.max(10, this.canvas.width * 0.02);
+        const buttonX = this.canvas.width - buttonWidth - margin;
+        const buttonY = margin;
+        
+        // Update skip button properties for click detection
+        this.skipButton.x = buttonX;
+        this.skipButton.y = buttonY;
+        this.skipButton.width = buttonWidth;
+        this.skipButton.height = buttonHeight;
+        this.skipButton.visible = true;
+        
+        // Draw button background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+        
+        // Draw button border
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(buttonX, buttonY, buttonWidth, buttonHeight);
+        
+        // Draw button text
+        ctx.fillStyle = '#FFFFFF';
+        const fontSize = Math.max(10, Math.min(16, this.canvas.width * 0.02));
+        ctx.font = `${fontSize}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText('SKIP', buttonX + buttonWidth / 2, buttonY + buttonHeight / 2 + fontSize / 3);
     }
     
     drawStickmanStanding(centerX, y, height) {
