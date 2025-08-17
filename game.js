@@ -906,56 +906,56 @@ class SimpleGame {
         ctx.closePath();
         ctx.fill();
         
-        // Standing suit sleeves and arms (relaxed position)
+        // Suit pants legs (standing position) - Draw legs FIRST (behind body)
         ctx.fillStyle = '#2C3E50'; // Same suit color
         ctx.strokeStyle = '#1A252F';
         ctx.lineWidth = 1;
         
-        // Left suit sleeve (relaxed)
+        // Left leg (positioned at left edge of body)
         ctx.beginPath();
-        ctx.ellipse(centerX - width * 0.15, y + height * 0.5, 8, height * 0.12, -0.2, 0, Math.PI * 2);
+        ctx.ellipse(centerX - suitWidth * 0.3, y + height * 0.82, 9, height * 0.18, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
         
-        // Right suit sleeve (relaxed)
+        // Right leg (positioned at right edge of body)
         ctx.beginPath();
-        ctx.ellipse(centerX + width * 0.15, y + height * 0.5, 8, height * 0.12, 0.2, 0, Math.PI * 2);
+        ctx.ellipse(centerX + suitWidth * 0.3, y + height * 0.82, 9, height * 0.18, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
         
-        // Hands (relaxed position)
+        // Standing suit sleeves and arms (relaxed position) - Draw arms AFTER body (on top)
+        ctx.fillStyle = '#2C3E50'; // Same suit color
+        ctx.strokeStyle = '#1A252F';
+        ctx.lineWidth = 1;
+        
+        // Left suit sleeve (relaxed, positioned at shoulder)
+        ctx.beginPath();
+        ctx.ellipse(centerX - suitWidth * 0.35, y + height * 0.45, 8, height * 0.12, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Right suit sleeve (relaxed, positioned at shoulder)
+        ctx.beginPath();
+        ctx.ellipse(centerX + suitWidth * 0.35, y + height * 0.45, 8, height * 0.12, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Hands (relaxed position) - Draw LAST (on top of everything)
         ctx.fillStyle = '#FDBCB4'; // Light skin tone
         ctx.beginPath();
-        ctx.arc(centerX - width * 0.2, y + height * 0.58, 5, 0, Math.PI * 2);
+        ctx.arc(centerX - suitWidth * 0.45, y + height * 0.55, 5, 0, Math.PI * 2);
         ctx.fill();
         ctx.beginPath();
-        ctx.arc(centerX + width * 0.2, y + height * 0.58, 5, 0, Math.PI * 2);
+        ctx.arc(centerX + suitWidth * 0.45, y + height * 0.55, 5, 0, Math.PI * 2);
         ctx.fill();
         
-        // Suit pants legs (standing position)
-        ctx.fillStyle = '#2C3E50'; // Same suit color
-        ctx.strokeStyle = '#1A252F';
-        ctx.lineWidth = 1;
-        
-        // Left leg
-        ctx.beginPath();
-        ctx.ellipse(centerX - width * 0.08, y + height * 0.82, 9, height * 0.18, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        
-        // Right leg
-        ctx.beginPath();
-        ctx.ellipse(centerX + width * 0.08, y + height * 0.82, 9, height * 0.18, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        
-        // Dress shoes (standing position)
+        // Dress shoes (standing position) - positioned under the legs
         ctx.fillStyle = '#000000';
         ctx.beginPath();
-        ctx.ellipse(centerX - width * 0.08, y + height * 0.97, 8, 4, 0, 0, Math.PI * 2);
+        ctx.ellipse(centerX - suitWidth * 0.3, y + height * 0.97, 8, 4, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.beginPath();
-        ctx.ellipse(centerX + width * 0.08, y + height * 0.97, 8, 4, 0, 0, Math.PI * 2);
+        ctx.ellipse(centerX + suitWidth * 0.3, y + height * 0.97, 8, 4, 0, 0, Math.PI * 2);
         ctx.fill();
     }
     
@@ -1231,64 +1231,38 @@ class SimpleGame {
             const bounceOffset = height * bodyBounce;
             const hipOffset = width * hipRotation;
             
-            // Draw suit sleeves and arms
-            const leftArmEndX = centerX - width * (0.2 + leftArmAngle * 0.3) + hipOffset;
-            const leftArmEndY = y + height * (0.55 - leftArmAngle * 0.4) + bounceOffset;
-            const rightArmEndX = centerX + width * (0.2 + rightArmAngle * 0.3) + hipOffset;
-            const rightArmEndY = y + height * (0.55 - rightArmAngle * 0.4) + bounceOffset;
+            // Calculate shoulder and hip positions (at edges of body)
+            const leftShoulderX = centerX + hipOffset - suitWidth * 0.35;
+            const rightShoulderX = centerX + hipOffset + suitWidth * 0.35;
+            const shoulderY = y + height * 0.4 + bounceOffset;
             
-            // Left suit sleeve
+            const leftHipX = centerX + hipOffset - suitWidth * 0.3;
+            const rightHipX = centerX + hipOffset + suitWidth * 0.3;
+            const hipY = y + height * 0.75 + bounceOffset;
+            
+            // Calculate limb end positions
+            const leftArmEndX = leftShoulderX - width * (0.2 + leftArmAngle * 0.3);
+            const leftArmEndY = shoulderY + height * (0.15 - leftArmAngle * 0.4);
+            const rightArmEndX = rightShoulderX + width * (0.2 + rightArmAngle * 0.3);
+            const rightArmEndY = shoulderY + height * (0.15 - rightArmAngle * 0.4);
+            
+            const leftLegEndX = leftHipX - width * (0.1 + leftLegAngle * 0.2);
+            const leftLegEndY = hipY + height * (0.25 - leftLegAngle * 0.2);
+            const rightLegEndX = rightHipX + width * (0.1 + rightLegAngle * 0.2);
+            const rightLegEndY = hipY + height * (0.25 - rightLegAngle * 0.2);
+            
+            // Draw suit pants legs FIRST (behind body)
             ctx.fillStyle = '#2C3E50'; // Same suit color
             ctx.strokeStyle = '#1A252F';
             ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.ellipse(
-                (centerX + hipOffset + leftArmEndX) / 2,
-                (y + height * 0.4 + bounceOffset + leftArmEndY) / 2,
-                8, height * 0.12,
-                Math.atan2(leftArmEndY - (y + height * 0.4 + bounceOffset), leftArmEndX - (centerX + hipOffset)),
-                0, Math.PI * 2
-            );
-            ctx.fill();
-            ctx.stroke();
-            
-            // Right suit sleeve
-            ctx.beginPath();
-            ctx.ellipse(
-                (centerX + hipOffset + rightArmEndX) / 2,
-                (y + height * 0.4 + bounceOffset + rightArmEndY) / 2,
-                8, height * 0.12,
-                Math.atan2(rightArmEndY - (y + height * 0.4 + bounceOffset), rightArmEndX - (centerX + hipOffset)),
-                0, Math.PI * 2
-            );
-            ctx.fill();
-            ctx.stroke();
-            
-            // Hands (skin color)
-            ctx.fillStyle = '#FDBCB4'; // Light skin tone
-            ctx.beginPath();
-            ctx.arc(leftArmEndX, leftArmEndY, 5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(rightArmEndX, rightArmEndY, 5, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw suit pants legs
-            const leftLegEndX = centerX - width * (0.1 + leftLegAngle * 0.2) + hipOffset;
-            const leftLegEndY = y + height * (1.0 - leftLegAngle * 0.2) + bounceOffset;
-            const rightLegEndX = centerX + width * (0.1 + rightLegAngle * 0.2) + hipOffset;
-            const rightLegEndY = y + height * (1.0 - rightLegAngle * 0.2) + bounceOffset;
             
             // Left suit pants leg
-            ctx.fillStyle = '#2C3E50'; // Same suit color
-            ctx.strokeStyle = '#1A252F';
-            ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.ellipse(
-                (centerX + hipOffset + leftLegEndX) / 2,
-                (y + height * 0.75 + bounceOffset + leftLegEndY) / 2,
+                (leftHipX + leftLegEndX) / 2,
+                (hipY + leftLegEndY) / 2,
                 9, height * 0.18,
-                Math.atan2(leftLegEndY - (y + height * 0.75 + bounceOffset), leftLegEndX - (centerX + hipOffset)),
+                Math.atan2(leftLegEndY - hipY, leftLegEndX - leftHipX),
                 0, Math.PI * 2
             );
             ctx.fill();
@@ -1297,16 +1271,54 @@ class SimpleGame {
             // Right suit pants leg
             ctx.beginPath();
             ctx.ellipse(
-                (centerX + hipOffset + rightLegEndX) / 2,
-                (y + height * 0.75 + bounceOffset + rightLegEndY) / 2,
+                (rightHipX + rightLegEndX) / 2,
+                (hipY + rightLegEndY) / 2,
                 9, height * 0.18,
-                Math.atan2(rightLegEndY - (y + height * 0.75 + bounceOffset), rightLegEndX - (centerX + hipOffset)),
+                Math.atan2(rightLegEndY - hipY, rightLegEndX - rightHipX),
                 0, Math.PI * 2
             );
             ctx.fill();
             ctx.stroke();
             
-            // Dress shoes (black)
+            // Draw suit sleeves and arms ON TOP of body
+            ctx.fillStyle = '#2C3E50'; // Same suit color
+            ctx.strokeStyle = '#1A252F';
+            ctx.lineWidth = 1;
+            
+            // Left suit sleeve
+            ctx.beginPath();
+            ctx.ellipse(
+                (leftShoulderX + leftArmEndX) / 2,
+                (shoulderY + leftArmEndY) / 2,
+                8, height * 0.12,
+                Math.atan2(leftArmEndY - shoulderY, leftArmEndX - leftShoulderX),
+                0, Math.PI * 2
+            );
+            ctx.fill();
+            ctx.stroke();
+            
+            // Right suit sleeve
+            ctx.beginPath();
+            ctx.ellipse(
+                (rightShoulderX + rightArmEndX) / 2,
+                (shoulderY + rightArmEndY) / 2,
+                8, height * 0.12,
+                Math.atan2(rightArmEndY - shoulderY, rightArmEndX - rightShoulderX),
+                0, Math.PI * 2
+            );
+            ctx.fill();
+            ctx.stroke();
+            
+            // Hands (skin color) - Draw LAST (on top of everything)
+            ctx.fillStyle = '#FDBCB4'; // Light skin tone
+            ctx.beginPath();
+            ctx.arc(leftArmEndX, leftArmEndY, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(rightArmEndX, rightArmEndY, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Dress shoes (black) - positioned at leg ends
             ctx.fillStyle = '#000000';
             ctx.beginPath();
             ctx.ellipse(leftLegEndX, leftLegEndY - 2, 8, 4, 0, 0, Math.PI * 2);
