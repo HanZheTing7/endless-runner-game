@@ -1321,10 +1321,7 @@ class GameManager {
             this.validateUsername();
         });
         
-        // Game control buttons
-        document.getElementById('jumpBtn').addEventListener('click', () => {
-            if (this.game) this.game.jump();
-        });
+
         
         // Game over buttons
         document.getElementById('restartButton').addEventListener('click', () => {
