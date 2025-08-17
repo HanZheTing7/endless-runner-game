@@ -45,7 +45,7 @@ class SimpleGame {
         
         this.init();
     }
-    
+
     init() {
         console.log('Initializing SimpleGame');
         
@@ -115,66 +115,52 @@ class SimpleGame {
         this.player.y = this.ground.y - this.player.height;
         
         // Update player x position based on game state
-        if (this.storyMode && !this.isTransitioning) {
+        if (this.storyMode) {
             // Center the character during story mode
             this.player.x = (this.canvas.width / 2) - (this.player.width / 2);
-        } else if (!this.isTransitioning) {
+        } else {
             // Normal game position (left side)
             this.player.x = Math.min(150, this.canvas.width * 0.1);
         }
-        // During transition, x position is handled by transition logic
     }
     
     setupControls() {
         // Canvas click for jumping or story progression
         this.canvas.addEventListener('click', () => {
-            console.log('Canvas clicked - storyMode:', this.storyMode, 'typewriterIndex:', this.typewriterIndex, 'storyTextLength:', this.storyText.length, 'isTransitioning:', this.isTransitioning);
-            console.log('Condition check: storyMode && typewriterIndex >= storyTextLength && !isTransitioning =', 
-                this.storyMode, '&&', this.typewriterIndex >= this.storyText.length, '&&', !this.isTransitioning, '=', 
-                (this.storyMode && this.typewriterIndex >= this.storyText.length && !this.isTransitioning));
-            
-            if (this.storyMode && this.typewriterIndex >= this.storyText.length && !this.isTransitioning) {
+            if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
                 // Story is complete, start the actual game
                 console.log('Starting actual game from click');
                 this.startActualGame();
             } else if (this.gameRunning) {
                 // Game is running, jump
                 this.jump();
-            } else {
-                console.log('Click ignored - conditions not met');
             }
         });
         
         // Touch events for mobile
         this.canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            console.log('Canvas touched - storyMode:', this.storyMode, 'typewriterIndex:', this.typewriterIndex, 'storyTextLength:', this.storyText.length, 'isTransitioning:', this.isTransitioning);
-            if (this.storyMode && this.typewriterIndex >= this.storyText.length && !this.isTransitioning) {
+            if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
                 // Story is complete, start the actual game
                 console.log('Starting actual game from touch');
                 this.startActualGame();
             } else if (this.gameRunning) {
                 // Game is running, jump
                 this.jump();
-            } else {
-                console.log('Touch ignored - conditions not met');
             }
         });
-        
+
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'ArrowUp') {
-                e.preventDefault();
-                console.log('Keyboard pressed - storyMode:', this.storyMode, 'typewriterIndex:', this.typewriterIndex, 'storyTextLength:', this.storyText.length, 'isTransitioning:', this.isTransitioning);
-                if (this.storyMode && this.typewriterIndex >= this.storyText.length && !this.isTransitioning) {
+                        e.preventDefault();
+                if (this.storyMode && this.typewriterIndex >= this.storyText.length) {
                     // Story is complete, start the actual game
                     console.log('Starting actual game from keyboard');
                     this.startActualGame();
                 } else if (this.gameRunning) {
                     // Game is running, jump
                     this.jump();
-                } else {
-                    console.log('Keyboard ignored - conditions not met');
                 }
             }
         });
@@ -275,22 +261,21 @@ class SimpleGame {
     
     startActualGame() {
         // Prevent multiple calls
-        if (this.isTransitioning || this.gameRunning || this.gameState === 'transitioning') {
-            console.log('startActualGame called but already transitioning/running');
+        if (this.gameRunning || this.gameState === 'playing') {
+            console.log('startActualGame called but already running');
             return;
         }
+
+        console.log('Starting actual game directly');
         
-        console.log('Starting transition to game');
+        // Start game immediately
+        this.gameState = 'playing';
+        this.storyMode = false;
+        this.gameRunning = true;
+        this.isTransitioning = false;
         
-        // Start transition animation
-        this.isTransitioning = true;
-        this.transitionStartX = this.player.x; // Current center position
-        this.transitionEndX = Math.min(150, this.canvas.width * 0.1); // Target left position
-        this.transitionProgress = 0;
-        this.transitionStartTime = Date.now();
-        
-        // Update game state but keep story mode until transition completes
-        this.gameState = 'transitioning';
+        // Move player to left position immediately
+        this.player.x = Math.min(150, this.canvas.width * 0.1);
     }
     
     completeTransition() {
@@ -313,9 +298,6 @@ class SimpleGame {
         if (this.storyMode) {
             this.updateStory();
             this.renderStory();
-        } else if (this.isTransitioning) {
-            this.updateTransition();
-            this.renderTransition();
         } else if (this.gameRunning) {
             this.update();
             this.render();
