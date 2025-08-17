@@ -107,9 +107,13 @@ class SimpleGame {
     }
     
     updateGameObjectPositions() {
-        // Position ground at bottom of screen
-        this.ground.y = this.canvas.height - 70;
-        this.ground.height = 70;
+        // Make character size responsive to screen size
+        this.player.width = Math.max(40, Math.min(60, this.canvas.width * 0.05));
+        this.player.height = Math.max(60, Math.min(100, this.canvas.height * 0.08));
+        
+        // Position ground at bottom of screen (responsive height)
+        this.ground.height = Math.max(50, this.canvas.height * 0.08);
+        this.ground.y = this.canvas.height - this.ground.height;
         
         // Position player on ground
         this.player.y = this.ground.y - this.player.height;
@@ -174,17 +178,20 @@ class SimpleGame {
     }
     
     createRandomObstacle(x) {
-        // Calculate maximum jump height (player can jump 220px up from ground)
-        const maxJumpHeight = this.ground.y - 220;
+        // Calculate maximum jump height (responsive to screen size)
+        const jumpHeightRatio = Math.min(220, this.canvas.height * 0.3);
+        const maxJumpHeight = this.ground.y - jumpHeightRatio;
         
-        // Random height between 30 and 80 pixels (ensuring it's clearable)
-        const minHeight = 30;
-        const maxHeight = Math.min(80, this.ground.y - maxJumpHeight - 20); // Ensure clearance
+        // Responsive obstacle dimensions
+        const minHeight = Math.max(20, this.canvas.height * 0.03);
+        const maxHeight = Math.min(Math.max(50, this.canvas.height * 0.08), this.ground.y - maxJumpHeight - 20);
         
         const height = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
         
-        // Random width between 30 and 50 pixels
-        const width = Math.floor(Math.random() * (50 - 30 + 1)) + 30;
+        // Responsive width
+        const minWidth = Math.max(15, this.canvas.width * 0.015);
+        const maxWidth = Math.max(25, this.canvas.width * 0.025);
+        const width = Math.floor(Math.random() * (maxWidth - minWidth + 1)) + minWidth;
         
         // Position obstacle so it's always clearable
         const y = this.ground.y - height;
@@ -678,9 +685,13 @@ class SimpleGame {
                 this.instructionShown = true;
             }
             this.ctx.fillStyle = '#FFFFFF';
-            this.ctx.font = '20px Arial';
+            const instructionFontSize = Math.max(14, Math.min(24, this.canvas.width * 0.03));
+            this.ctx.font = `${instructionFontSize}px Arial`;
             this.ctx.textAlign = 'center';
-            this.ctx.fillText('Touch anywhere to start the game!', this.canvas.width / 2, this.canvas.height - 50);
+            
+            // Position instruction text with better spacing from bottom
+            const bottomMargin = Math.max(30, this.canvas.height * 0.08);
+            this.ctx.fillText('Touch anywhere to start the game!', this.canvas.width / 2, this.canvas.height - bottomMargin);
         }
     }
     
@@ -744,12 +755,17 @@ class SimpleGame {
     
     drawSpeechBubble() {
         const ctx = this.ctx;
-        const bubbleX = this.player.x + this.player.width / 2 - 100;
-        const bubbleY = this.player.y - 150; // Moved even higher for better clearance
-        const bubbleWidth = 200;
-        const bubbleHeight = 60;
+        
+        // Make bubble responsive to screen size
+        const bubbleWidth = Math.min(300, this.canvas.width * 0.8); // Max 300px or 80% of screen width
+        const bubbleHeight = Math.max(60, this.canvas.height * 0.08); // Min 60px or 8% of screen height
+        
+        // Center the bubble horizontally on screen, not relative to character
+        const bubbleX = (this.canvas.width - bubbleWidth) / 2;
+        const bubbleY = Math.max(20, this.player.y - 150); // At least 20px from top
+        
         const cornerRadius = 10;
-        const tailSize = 20; // Made tail slightly longer to reach character
+        const tailSize = 20;
         
         // Draw speech bubble background
         ctx.fillStyle = '#FFFFFF';
@@ -771,11 +787,43 @@ class SimpleGame {
         ctx.fill();
         ctx.stroke();
         
-        // Draw text inside bubble
+        // Draw text inside bubble with responsive font size
         ctx.fillStyle = '#000000';
-        ctx.font = '16px Arial';
+        const fontSize = Math.max(12, Math.min(20, this.canvas.width * 0.025)); // Responsive font size
+        ctx.font = `${fontSize}px Arial`;
         ctx.textAlign = 'center';
-        ctx.fillText(this.displayedText, bubbleX + bubbleWidth / 2, bubbleY + bubbleHeight / 2 + 5);
+        
+        // Handle text wrapping for longer text on small screens
+        const maxWidth = bubbleWidth - 20; // Leave some padding
+        const words = this.displayedText.split(' ');
+        let line = '';
+        let y = bubbleY + bubbleHeight / 2;
+        
+        // Simple text wrapping
+        if (ctx.measureText(this.displayedText).width <= maxWidth) {
+            // Text fits in one line
+            ctx.fillText(this.displayedText, bubbleX + bubbleWidth / 2, y + 5);
+        } else {
+            // Text needs wrapping
+            const lines = [];
+            for (let i = 0; i < words.length; i++) {
+                const testLine = line + words[i] + ' ';
+                if (ctx.measureText(testLine).width > maxWidth && i > 0) {
+                    lines.push(line);
+                    line = words[i] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            lines.push(line);
+            
+            // Draw multiple lines
+            const lineHeight = fontSize + 4;
+            const startY = y - (lines.length - 1) * lineHeight / 2;
+            lines.forEach((textLine, index) => {
+                ctx.fillText(textLine.trim(), bubbleX + bubbleWidth / 2, startY + index * lineHeight + 5);
+            });
+        }
     }
     
     render() {
