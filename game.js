@@ -26,7 +26,7 @@ class SimpleGame {
             speed: this.gameSpeed * 0.8, // Slightly slower than game speed
             isVisible: false // Initially hidden during story
         };
-        console.log('Wife character initialized:', this.wife);
+
         
         // Game physics
         this.gravity = 0.6; // Reduced from 0.8 to make jump last longer
@@ -163,7 +163,7 @@ class SimpleGame {
             if (!this.wife.isVisible) {
                 this.wife.x = Math.max(20, this.player.x - 80);
                 this.wife.isVisible = true;
-                console.log('Wife positioned in updateGameObjectPositions:', this.wife.x, this.wife.y, 'Visible:', this.wife.isVisible);
+
             }
         }
     }
@@ -220,10 +220,10 @@ class SimpleGame {
             }
         });
 
-                // Keyboard controls
+        // Keyboard controls
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'ArrowUp') {
-                e.preventDefault();
+                        e.preventDefault();
                 if (this.storyMode) {
                     // Handle story progression
                     this.handleStoryTap();
@@ -355,9 +355,7 @@ class SimpleGame {
         // Make sure wife becomes visible and is positioned correctly
         this.wife.isVisible = true;
         this.wife.x = Math.max(20, this.player.x - 80); // 80 pixels behind player
-        console.log('Wife made visible at position:', this.wife.x, this.wife.y);
-        console.log('Player position:', this.player.x, this.player.y);
-        console.log('Canvas dimensions:', this.canvas.width, this.canvas.height);
+
     }
     
     completeTransition() {
@@ -547,19 +545,24 @@ class SimpleGame {
         
         // Update wife position (chasing behavior)
         if (this.wife.isVisible) {
-            // Wife tries to catch up to player but stays behind
+            // Wife tries to catch up to player but ALWAYS stays behind
             const targetDistance = 80; // Desired distance behind player
             const currentDistance = this.player.x - this.wife.x;
             
-            if (currentDistance > targetDistance + 10) {
-                // Wife is too far behind, speed up
-                this.wife.x += this.gameSpeed * 1.2;
+            if (currentDistance > targetDistance + 20) {
+                // Wife is too far behind, speed up (but not too much)
+                this.wife.x += this.gameSpeed * 0.95;
             } else if (currentDistance < targetDistance - 10) {
-                // Wife is too close, slow down
-                this.wife.x += this.gameSpeed * 0.5;
+                // Wife is too close, slow down significantly
+                this.wife.x += this.gameSpeed * 0.3;
             } else {
-                // Maintain steady chase
-                this.wife.x += this.gameSpeed * 0.9;
+                // Maintain steady chase at slightly slower speed
+                this.wife.x += this.gameSpeed * 0.8;
+            }
+            
+            // CRITICAL: Ensure wife never gets ahead of player
+            if (this.wife.x > this.player.x - 50) {
+                this.wife.x = this.player.x - 50; // Force her to stay at least 50px behind
             }
             
             // Keep wife on screen (don't let her fall too far behind)
@@ -1087,7 +1090,7 @@ class SimpleGame {
             });
         }
     }
-    
+
     render() {
         // Check if canvas and context exist
         if (!this.canvas || !this.ctx) {
@@ -1130,10 +1133,7 @@ class SimpleGame {
         
         // Draw wife character (if visible)
         if (this.wife.isVisible) {
-            console.log('Drawing wife at:', this.wife.x, this.wife.y, 'Size:', this.wife.width, this.wife.height);
             this.drawWife(this.wife.x, this.wife.y, this.wife.width, this.wife.height);
-        } else {
-            console.log('Wife not visible. StoryMode:', this.storyMode, 'Wife.isVisible:', this.wife.isVisible);
         }
 
     }
