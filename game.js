@@ -157,8 +157,8 @@ class SimpleGame {
             // Hide wife during story mode
             this.wife.isVisible = false;
         } else {
-            // Normal game position (left side)
-            this.player.x = Math.min(150, this.canvas.width * 0.1);
+            // Normal game position (moved a bit more to the right)
+            this.player.x = Math.min(200, this.canvas.width * 0.15);
             // Position wife behind player and make her visible (only if not already set)
             if (!this.wife.isVisible) {
                 this.wife.x = Math.max(5, this.player.x - 160);
@@ -349,8 +349,8 @@ class SimpleGame {
         this.gameRunning = true;
         this.isTransitioning = false;
         
-        // Move player to left position immediately
-        this.player.x = Math.min(150, this.canvas.width * 0.1);
+        // Move player to left position immediately (moved a bit more to the right)
+        this.player.x = Math.min(200, this.canvas.width * 0.15);
         
         // Make sure wife becomes visible and is positioned correctly
         this.wife.isVisible = true;
@@ -1749,9 +1749,9 @@ class GameManager {
             this.startGame();
         });
         
-        // Clear leaderboard button (start screen)
-        document.getElementById('clearLeaderboardStartButton').addEventListener('click', () => {
-            this.clearLeaderboard();
+        // See leaderboard button (start screen)
+        document.getElementById('seeLeaderboardButton').addEventListener('click', () => {
+            this.showLeaderboardScreen();
         });
         
         // Username input
@@ -1774,6 +1774,17 @@ class GameManager {
         // Clear leaderboard button
         document.getElementById('clearLeaderboardButton').addEventListener('click', () => {
             this.clearLeaderboard();
+        });
+
+        // Back to menu button (leaderboard screen)
+        document.getElementById('backToMenuButton').addEventListener('click', () => {
+            this.showScreen('startScreen');
+        });
+
+        // Clear leaderboard button (leaderboard screen)
+        document.getElementById('clearLeaderboardFromViewButton').addEventListener('click', () => {
+            this.clearLeaderboard();
+            this.showLeaderboardScreen(); // Refresh the leaderboard display
         });
     }
     
@@ -1852,6 +1863,14 @@ class GameManager {
         // Show target screen
         document.getElementById(screenName + 'Screen').classList.add('active');
         this.currentScreen = screenName;
+    }
+
+    showLeaderboardScreen() {
+        // Show leaderboard screen
+        this.showScreen('leaderboard');
+        
+        // Load and display leaderboard data
+        this.displayLeaderboard('leaderboardDisplay');
     }
 
     clearLeaderboard() {

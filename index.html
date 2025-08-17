@@ -18,7 +18,7 @@
                 <div id="usernameError" class="error-message"></div>
             </div>
             <button id="startButton" class="btn btn-primary">START GAME</button>
-            <button id="clearLeaderboardStartButton" class="btn btn-danger">CLEAR LEADERBOARD</button>
+            <button id="seeLeaderboardButton" class="btn btn-secondary">SEE LEADERBOARD</button>
             <div class="instructions">
                 <p><strong>Controls:</strong></p>
                 <p>• Tap/Click to Jump</p>
@@ -59,6 +59,21 @@
                 <button id="restartButton" class="btn btn-primary">PLAY AGAIN</button>
                 <button id="mainMenuButton" class="btn btn-secondary">MAIN MENU</button>
                 <button id="clearLeaderboardButton" class="btn btn-danger">CLEAR LEADERBOARD</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Screen -->
+    <div id="leaderboardScreen" class="screen">
+        <div class="container">
+            <h2>LEADERBOARD</h2>
+            <div class="leaderboard-section">
+                <h3>TOP 10 PLAYERS</h3>
+                <div id="leaderboardDisplay" class="leaderboard"></div>
+            </div>
+            <div class="leaderboard-buttons">
+                <button id="backToMenuButton" class="btn btn-primary">BACK TO MENU</button>
+                <button id="clearLeaderboardFromViewButton" class="btn btn-danger">CLEAR LEADERBOARD</button>
             </div>
         </div>
     </div>
