@@ -26,6 +26,7 @@ class SimpleGame {
             speed: this.gameSpeed * 0.8, // Slightly slower than game speed
             isVisible: false // Initially hidden during story
         };
+        console.log('Wife character initialized:', this.wife);
         
         // Game physics
         this.gravity = 0.6; // Reduced from 0.8 to make jump last longer
@@ -158,9 +159,12 @@ class SimpleGame {
         } else {
             // Normal game position (left side)
             this.player.x = Math.min(150, this.canvas.width * 0.1);
-            // Position wife behind player and make her visible
-            this.wife.x = Math.max(20, this.player.x - this.wife.width - 30);
-            this.wife.isVisible = true;
+            // Position wife behind player and make her visible (only if not already set)
+            if (!this.wife.isVisible) {
+                this.wife.x = Math.max(20, this.player.x - 80);
+                this.wife.isVisible = true;
+                console.log('Wife positioned in updateGameObjectPositions:', this.wife.x, this.wife.y, 'Visible:', this.wife.isVisible);
+            }
         }
     }
     
@@ -347,6 +351,13 @@ class SimpleGame {
         
         // Move player to left position immediately
         this.player.x = Math.min(150, this.canvas.width * 0.1);
+        
+        // Make sure wife becomes visible and is positioned correctly
+        this.wife.isVisible = true;
+        this.wife.x = Math.max(20, this.player.x - 80); // 80 pixels behind player
+        console.log('Wife made visible at position:', this.wife.x, this.wife.y);
+        console.log('Player position:', this.player.x, this.player.y);
+        console.log('Canvas dimensions:', this.canvas.width, this.canvas.height);
     }
     
     completeTransition() {
@@ -1119,7 +1130,10 @@ class SimpleGame {
         
         // Draw wife character (if visible)
         if (this.wife.isVisible) {
+            console.log('Drawing wife at:', this.wife.x, this.wife.y, 'Size:', this.wife.width, this.wife.height);
             this.drawWife(this.wife.x, this.wife.y, this.wife.width, this.wife.height);
+        } else {
+            console.log('Wife not visible. StoryMode:', this.storyMode, 'Wife.isVisible:', this.wife.isVisible);
         }
 
     }
