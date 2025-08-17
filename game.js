@@ -161,7 +161,7 @@ class SimpleGame {
             this.player.x = Math.min(150, this.canvas.width * 0.1);
             // Position wife behind player and make her visible (only if not already set)
             if (!this.wife.isVisible) {
-                this.wife.x = Math.max(20, this.player.x - 80);
+                this.wife.x = Math.max(10, this.player.x - 120);
                 this.wife.isVisible = true;
 
             }
@@ -354,7 +354,7 @@ class SimpleGame {
         
         // Make sure wife becomes visible and is positioned correctly
         this.wife.isVisible = true;
-        this.wife.x = Math.max(20, this.player.x - 80); // 80 pixels behind player
+        this.wife.x = Math.max(10, this.player.x - 120); // 120 pixels behind player, more to the left
 
     }
     
@@ -546,13 +546,13 @@ class SimpleGame {
         // Update wife position (chasing behavior)
         if (this.wife.isVisible) {
             // Wife tries to catch up to player but ALWAYS stays behind
-            const targetDistance = 80; // Desired distance behind player
+            const targetDistance = 120; // Desired distance behind player (more to the left)
             const currentDistance = this.player.x - this.wife.x;
             
-            if (currentDistance > targetDistance + 20) {
+            if (currentDistance > targetDistance + 30) {
                 // Wife is too far behind, speed up (but not too much)
                 this.wife.x += this.gameSpeed * 0.95;
-            } else if (currentDistance < targetDistance - 10) {
+            } else if (currentDistance < targetDistance - 15) {
                 // Wife is too close, slow down significantly
                 this.wife.x += this.gameSpeed * 0.3;
             } else {
@@ -561,8 +561,8 @@ class SimpleGame {
             }
             
             // CRITICAL: Ensure wife never gets ahead of player
-            if (this.wife.x > this.player.x - 50) {
-                this.wife.x = this.player.x - 50; // Force her to stay at least 50px behind
+            if (this.wife.x > this.player.x - 80) {
+                this.wife.x = this.player.x - 80; // Force her to stay at least 80px behind
             }
             
             // Keep wife on screen (don't let her fall too far behind)
@@ -854,10 +854,10 @@ class SimpleGame {
         const buttonWidth = Math.max(60, Math.min(100, this.canvas.width * 0.12));
         const buttonHeight = Math.max(30, Math.min(50, this.canvas.height * 0.05));
         
-        // Position skip button at top-right corner
-        const margin = Math.max(10, this.canvas.width * 0.02);
-        const buttonX = this.canvas.width - buttonWidth - margin;
-        const buttonY = margin;
+        // Position skip button below main character
+        const margin = Math.max(20, this.canvas.width * 0.02);
+        const buttonX = this.player.x + (this.player.width / 2) - (buttonWidth / 2);
+        const buttonY = this.player.y + this.player.height + margin;
         
         // Update skip button properties for click detection
         this.skipButton.x = buttonX;
