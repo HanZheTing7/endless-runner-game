@@ -836,13 +836,34 @@ class SimpleGame {
         const ctx = this.ctx;
         
         // Skip button dimensions (responsive and more modern)
-        const buttonWidth = Math.max(80, Math.min(120, this.canvas.width * 0.15));
-        const buttonHeight = Math.max(35, Math.min(55, this.canvas.height * 0.06));
+        // Enhanced mobile responsiveness with better scaling
+        const isMobile = this.canvas.width < 768; // Detect mobile-like screen sizes
+        const baseWidthRatio = isMobile ? 0.2 : 0.15; // Larger on mobile for easier tapping
+        const baseHeightRatio = isMobile ? 0.08 : 0.06;
         
-        // Position skip button below main character
-        const margin = Math.max(25, this.canvas.width * 0.025);
+        const buttonWidth = Math.max(90, Math.min(140, this.canvas.width * baseWidthRatio));
+        const buttonHeight = Math.max(40, Math.min(60, this.canvas.height * baseHeightRatio));
+        
+        // Position skip button below main character with responsive margins
+        // Add extra margin to avoid Android system bar and ensure visibility
+        const baseMargin = Math.max(25, this.canvas.width * 0.025);
+        const systemBarSafeArea = Math.max(40, this.canvas.height * 0.08); // Extra space for system bars
+        const totalMargin = baseMargin + systemBarSafeArea;
+        
         const buttonX = this.player.x + (this.player.width / 2) - (buttonWidth / 2);
-        const buttonY = this.player.y + this.player.height + margin;
+        let buttonY = this.player.y + this.player.height + totalMargin;
+        
+        // Ensure button doesn't go below visible area (keep it within 85% of screen height)
+        const maxY = this.canvas.height * 0.85 - buttonHeight;
+        if (buttonY > maxY) {
+            buttonY = maxY;
+        }
+        
+        // Ensure button doesn't overlap with character (minimum distance)
+        const minY = this.player.y + this.player.height + baseMargin;
+        if (buttonY < minY) {
+            buttonY = minY;
+        }
         
         // Update skip button properties for click detection
         this.skipButton.x = buttonX;
@@ -902,39 +923,15 @@ class SimpleGame {
         ctx.shadowBlur = 2;
         ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
         
-        const fontSize = Math.max(12, Math.min(18, this.canvas.width * 0.025));
+        // Enhanced font sizing for better mobile readability
+        const baseFontRatio = isMobile ? 0.035 : 0.025; // Larger font on mobile
+        const fontSize = Math.max(14, Math.min(20, this.canvas.width * baseFontRatio));
         ctx.font = `bold ${fontSize}px Orbitron, Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
         // Draw main text
         ctx.fillText('SKIP', buttonX + buttonWidth / 2, buttonY + buttonHeight / 2);
-        
-        // Draw animated arrow icon
-        const arrowX = buttonX + buttonWidth / 2 + fontSize * 1.2;
-        const arrowY = buttonY + buttonHeight / 2;
-        const arrowOffset = Math.sin(time * 4) * 2; // Moving arrow animation
-        
-        ctx.save();
-        ctx.translate(arrowX + arrowOffset, arrowY);
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        
-        // Draw arrow (>>)
-        ctx.beginPath();
-        ctx.moveTo(-3, -4);
-        ctx.lineTo(2, 0);
-        ctx.lineTo(-3, 4);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(2, -4);
-        ctx.lineTo(7, 0);
-        ctx.lineTo(2, 4);
-        ctx.stroke();
-        
-        ctx.restore();
         
         // Reset shadow
         ctx.shadowBlur = 0;
