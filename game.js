@@ -1792,6 +1792,8 @@ class GameManager {
         this.init();
     }
     
+
+
     // Generate a simple browser fingerprint
     generateBrowserId() {
         // Check if we already have a browser ID stored
