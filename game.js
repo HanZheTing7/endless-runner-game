@@ -41,6 +41,7 @@ class SimpleGame {
         this.transitionProgress = 0;
         this.transitionDuration = 2000; // 2 seconds
         this.transitionStartTime = 0;
+        this.instructionShown = false;
         
         this.init();
     }
@@ -128,6 +129,10 @@ class SimpleGame {
         // Canvas click for jumping or story progression
         this.canvas.addEventListener('click', () => {
             console.log('Canvas clicked - storyMode:', this.storyMode, 'typewriterIndex:', this.typewriterIndex, 'storyTextLength:', this.storyText.length, 'isTransitioning:', this.isTransitioning);
+            console.log('Condition check: storyMode && typewriterIndex >= storyTextLength && !isTransitioning =', 
+                this.storyMode, '&&', this.typewriterIndex >= this.storyText.length, '&&', !this.isTransitioning, '=', 
+                (this.storyMode && this.typewriterIndex >= this.storyText.length && !this.isTransitioning));
+            
             if (this.storyMode && this.typewriterIndex >= this.storyText.length && !this.isTransitioning) {
                 // Story is complete, start the actual game
                 console.log('Starting actual game from click');
@@ -258,6 +263,7 @@ class SimpleGame {
         this.displayedText = "";
         this.typewriterIndex = 0;
         this.lastTypewriterTime = Date.now(); // Set initial time
+        this.instructionShown = false; // Reset instruction flag
         
         console.log('Story initialized - storyText:', this.storyText, 'length:', this.storyText.length, 'typewriterIndex:', this.typewriterIndex);
         
@@ -684,7 +690,11 @@ class SimpleGame {
         
         // Add instruction text at bottom
         if (this.typewriterIndex >= this.storyText.length) {
-            console.log('Showing instruction text - ready to start game');
+            // Only log once when instruction first appears
+            if (!this.instructionShown) {
+                console.log('Showing instruction text - ready to start game');
+                this.instructionShown = true;
+            }
             this.ctx.fillStyle = '#FFFFFF';
             this.ctx.font = '20px Arial';
             this.ctx.textAlign = 'center';
