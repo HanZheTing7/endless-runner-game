@@ -384,7 +384,7 @@ class SimpleGame {
         } else {
             return;
         }
-        
+
         this.animationId = requestAnimationFrame(() => this.gameLoop());
     }
     
@@ -605,7 +605,7 @@ class SimpleGame {
             }
         });
     }
-    
+
     gameOver() {
         this.stop();
         console.log('Game Over triggered. Score:', this.score, 'Distance:', this.distance);
@@ -647,7 +647,7 @@ class SimpleGame {
                 setTimeout(() => {
                     this.loadLeaderboard();
                 }, 100);
-            } catch (error) {
+        } catch (error) {
                 console.error('Error showing game over screen:', error);
                 // Fallback to alert
                 alert(`Game Over! Score: ${this.score}, Distance: ${Math.floor(this.distance)}m`);
@@ -659,7 +659,7 @@ class SimpleGame {
         }
     }
     
-    loadLeaderboard() {
+    async loadLeaderboard() {
         // Check if elements exist before trying to access them
         const leaderboardElement = document.getElementById('leaderboard');
         const playerRankElement = document.getElementById('playerRank');
@@ -669,140 +669,123 @@ class SimpleGame {
             return;
         }
         
-        // Get current leaderboard
-        let scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
-        console.log('Current scores in localStorage:', scores);
-        
         // Get current username
         const username = window.gameManager ? window.gameManager.username : 'Player';
         console.log('Current username:', username);
         console.log('Current game score:', this.score);
         
-        // Check if player already has a score and compare with current score
-        const existingPlayerIndex = scores.findIndex(score => score.username === username);
-        console.log('Existing player index:', existingPlayerIndex);
-        
-        if (existingPlayerIndex !== -1) {
-            // Player exists - only update if new score is higher
-            const existingScore = parseInt(scores[existingPlayerIndex].score);
-            const newScore = parseInt(this.score);
-            console.log('Existing score found:', existingScore, 'Type:', typeof existingScore);
-            console.log('New score:', newScore, 'Type:', typeof newScore);
-            console.log('Is new score higher?', newScore > existingScore);
-            
-            if (newScore > existingScore) {
-                // New score is higher - update it
-                scores[existingPlayerIndex] = {
-                    username: username,
-                    score: newScore,
-                    distance: Math.floor(this.distance),
-                    timestamp: Date.now()
-                };
-                console.log(`Updated ${username} with higher score: ${newScore} (was: ${existingScore})`);
-            } else {
-                // New score is lower - keep the old higher score
-                console.log(`Keeping ${username}'s higher score: ${existingScore} (new was: ${newScore})`);
-                // Don't update anything - keep the existing score
-            }
-        } else {
-            // New player - add their score
-            scores.push({
-                username: username,
-                score: parseInt(this.score),
-                distance: Math.floor(this.distance),
-                timestamp: Date.now()
-            });
-            console.log(`Added new player ${username} with score ${this.score}`);
-        }
-        
-        console.log('Scores after processing:', scores);
-        
-        // Sort by score (highest first)
-        scores.sort((a, b) => b.score - a.score);
-        console.log('Scores after sorting:', scores);
-        
-        // Keep only top 10
-        scores = scores.slice(0, 10);
-        console.log('Final scores (top 10):', scores);
-        
-        // Save to localStorage
-        localStorage.setItem('endlessRunnerScores', JSON.stringify(scores));
-        
-        // Find player rank
-        const playerRank = scores.findIndex(score => score.username === username) + 1;
-        console.log('Player rank:', playerRank);
-        
-        playerRankElement.textContent = playerRank;
-        
-        // Display leaderboard
-        leaderboardElement.innerHTML = scores.map((score, index) => `
-            <div class="leaderboard-item ${score.username === username ? 'current-player' : ''}">
-                <span class="rank">${index + 1}</span>
-                <span class="username">${score.username}</span>
-                <span class="score">${score.score}</span>
-            </div>
-        `).join('');
-        
-        // Log the final leaderboard for debugging
-        console.log('Final leaderboard:', scores.map(s => `${s.username}: ${s.score}`));
-    }
-    
-    cleanupLeaderboard() {
-        // Get current leaderboard
-        let scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
-        
-        // Create a map to keep only the highest score for each username
-        const uniqueScores = new Map();
-        
-        scores.forEach(score => {
-            if (!uniqueScores.has(score.username) || score.score > uniqueScores.get(score.username).score) {
-                uniqueScores.set(score.username, score);
-            }
-        });
-        
-        // Convert back to array and sort
-        const cleanedScores = Array.from(uniqueScores.values()).sort((a, b) => b.score - a.score);
-        
-        // Save cleaned leaderboard
-        localStorage.setItem('endlessRunnerScores', JSON.stringify(cleanedScores));
-        
-        console.log('Cleaned leaderboard, removed duplicates. New count:', cleanedScores.length);
-    }
-    
-    clearLeaderboard() {
-        // Clear all leaderboard data
-        localStorage.removeItem('endlessRunnerScores');
-        console.log('Leaderboard completely cleared');
-        
-        // Update the display to show empty leaderboard
-        const leaderboardElement = document.getElementById('leaderboard');
-        const playerRankElement = document.getElementById('playerRank');
-        
-        if (leaderboardElement) {
-            leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
-        }
-        
-        if (playerRankElement) {
+        try {
+            // Show loading state
+            leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>Loading leaderboard...</span></div>';
             playerRankElement.textContent = '-';
+            
+            // Get all scores from Firebase to check user's existing scores
+            const allScores = await window.FirebaseHelper.getTopScores(100);
+            const userScores = allScores.filter(score => score.username === username);
+            const userHighScore = userScores.length > 0 ? Math.max(...userScores.map(s => s.score)) : 0;
+            
+            console.log(`User's existing high score: ${userHighScore}`);
+            console.log(`Current game score: ${this.score}`);
+            
+            // Only save if this is a new high score
+            if (this.score >= userHighScore) {
+                console.log('Saving new high score to Firebase');
+                await window.FirebaseHelper.saveScore(username, this.score, Math.floor(this.distance));
+                console.log(`Saved new high score for ${username}: ${this.score}`);
+            } else {
+                console.log(`Score ${this.score} not higher than existing best ${userHighScore} for ${username}`);
+            }
+            
+            // Get top 10 scores from Firebase
+            const topScores = await window.FirebaseHelper.getTopScores(10);
+            console.log('Loaded top scores from Firebase:', topScores);
+            
+            // Get player rank
+            const playerRank = await window.FirebaseHelper.getPlayerRank(this.score);
+            console.log('Player rank:', playerRank);
+            
+            // Update UI
+            playerRankElement.textContent = playerRank > 0 ? playerRank : '-';
+            
+            // Display leaderboard
+            if (topScores.length === 0) {
+                leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+            } else {
+                leaderboardElement.innerHTML = topScores.map((score, index) => `
+                    <div class="leaderboard-item ${score.username === username ? 'current-player' : ''}">
+                        <span class="rank">${index + 1}</span>
+                        <span class="username">${score.username}</span>
+                        <span class="score">${score.score}</span>
+                    </div>
+                `).join('');
+            }
+            
+            console.log('Leaderboard updated from Firebase');
+            
+        } catch (error) {
+            console.error('Error loading leaderboard from Firebase:', error);
+            
+            // Show error message
+            leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>Error loading leaderboard</span></div>';
+            playerRankElement.textContent = '-';
+        }
+    }
+    
+
+    
+    async clearLeaderboard() {
+        try {
+            // Clear all leaderboard data from Firebase
+            const success = await window.FirebaseHelper.clearAllScores();
+            
+            if (success) {
+                console.log('Leaderboard completely cleared from Firebase');
+                
+                // Update the display to show empty leaderboard
+                const leaderboardElement = document.getElementById('leaderboard');
+                const playerRankElement = document.getElementById('playerRank');
+                
+                if (leaderboardElement) {
+                    leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+                }
+                
+                if (playerRankElement) {
+                    playerRankElement.textContent = '-';
+                }
+                
+            } else {
+                console.error('Failed to clear leaderboard');
+            }
+        } catch (error) {
+            console.error('Error clearing leaderboard:', error);
         }
     }
     
     // Static method to clear leaderboard from anywhere
-    static clearLeaderboardGlobal() {
-        // Clear all leaderboard data
-        localStorage.removeItem('endlessRunnerScores');
-        console.log('Leaderboard completely cleared globally');
-        
-        // Update the display to show empty leaderboard
-        const leaderboardElement = document.getElementById('leaderboard');
-        const playerRankElement = document.getElementById('playerRank');
-        
-        if (leaderboardElement) {
-            leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
-        }
-        
-        if (playerRankElement) {
-            playerRankElement.textContent = '-';
+    static async clearLeaderboardGlobal() {
+        try {
+            // Clear all leaderboard data from Firebase
+            const success = await window.FirebaseHelper.clearAllScores();
+            
+            if (success) {
+                console.log('Leaderboard completely cleared globally from Firebase');
+                
+                // Update the display to show empty leaderboard
+                const leaderboardElement = document.getElementById('leaderboard');
+                const playerRankElement = document.getElementById('playerRank');
+                
+                if (leaderboardElement) {
+                    leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+                }
+                
+                if (playerRankElement) {
+                    playerRankElement.textContent = '-';
+                }
+            } else {
+                console.error('Failed to clear leaderboard globally');
+            }
+        } catch (error) {
+            console.error('Error clearing leaderboard globally:', error);
         }
     }
     
@@ -1873,21 +1856,71 @@ class GameManager {
         this.displayLeaderboard('leaderboardDisplay');
     }
 
-    clearLeaderboard() {
-        // Clear all leaderboard data
-        localStorage.removeItem('endlessRunnerScores');
-        console.log('Leaderboard completely cleared');
+    async displayLeaderboard(elementId) {
+        const leaderboardElement = document.getElementById(elementId);
         
-        // Update the display to show empty leaderboard
-        const leaderboardElement = document.getElementById('leaderboard');
-        const playerRankElement = document.getElementById('playerRank');
-        
-        if (leaderboardElement) {
-            leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+        if (!leaderboardElement) {
+            console.error('Leaderboard element not found:', elementId);
+            return;
         }
         
-        if (playerRankElement) {
-            playerRankElement.textContent = '-';
+        try {
+            // Show loading state
+            leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>Loading leaderboard...</span></div>';
+            
+            // Get top 10 scores from Firebase
+            const scores = await window.FirebaseHelper.getTopScores(10);
+            console.log('Displaying leaderboard from Firebase:', scores);
+            
+            // Display leaderboard
+            if (scores.length === 0) {
+                leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+            } else {
+                leaderboardElement.innerHTML = scores.map((score, index) => `
+                    <div class="leaderboard-item">
+                        <span class="rank">${index + 1}</span>
+                        <span class="username">${score.username}</span>
+                        <span class="score">${score.score}</span>
+                    </div>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Error displaying leaderboard from Firebase:', error);
+            leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>Error loading leaderboard</span></div>';
+        }
+    }
+
+    async clearLeaderboard() {
+        try {
+            // Clear all leaderboard data from Firebase
+            const success = await window.FirebaseHelper.clearAllScores();
+            
+            if (success) {
+                console.log('Leaderboard completely cleared from Firebase');
+                
+                // Update the display to show empty leaderboard
+                const leaderboardElement = document.getElementById('leaderboard');
+                const playerRankElement = document.getElementById('playerRank');
+                
+                if (leaderboardElement) {
+                    leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+                }
+                
+                if (playerRankElement) {
+                    playerRankElement.textContent = '-';
+                }
+                
+                // Also update leaderboard display if we're on the leaderboard screen
+                const leaderboardDisplayElement = document.getElementById('leaderboardDisplay');
+                if (leaderboardDisplayElement) {
+                    leaderboardDisplayElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+                }
+                
+            } else {
+                console.error('Failed to clear leaderboard');
+            }
+        } catch (error) {
+            console.error('Error clearing leaderboard:', error);
         }
     }
 }
@@ -1930,23 +1963,37 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('GameManager initialized successfully');
         
         // Add global function to clear leaderboard from console
-        window.clearLeaderboard = () => {
-            localStorage.removeItem('endlessRunnerScores');
-            console.log('Leaderboard cleared via console command');
-            
-            // Update display if on game over screen
-            const leaderboardElement = document.getElementById('leaderboard');
-            const playerRankElement = document.getElementById('playerRank');
-            
-            if (leaderboardElement) {
-                leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
-            }
-            
-            if (playerRankElement) {
-                playerRankElement.textContent = '-';
+        window.clearLeaderboard = async () => {
+            try {
+                const success = await window.FirebaseHelper.clearAllScores();
+                if (success) {
+                    console.log('Leaderboard cleared via console command');
+                    
+                    // Update display if on game over screen
+                    const leaderboardElement = document.getElementById('leaderboard');
+                    const playerRankElement = document.getElementById('playerRank');
+                    
+                    if (leaderboardElement) {
+                        leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+                    }
+                    
+                    if (playerRankElement) {
+                        playerRankElement.textContent = '-';
+                    }
+                    
+                    // Also update leaderboard display if available
+                    const leaderboardDisplayElement = document.getElementById('leaderboardDisplay');
+                    if (leaderboardDisplayElement) {
+                        leaderboardDisplayElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+                    }
+                } else {
+                    console.error('Failed to clear leaderboard via console');
+                }
+            } catch (error) {
+                console.error('Error clearing leaderboard via console:', error);
             }
         };
         
-        console.log('Type "clearLeaderboard()" in console to clear leaderboard');
+        console.log('Type "clearLeaderboard()" in console to clear leaderboard from Firebase');
     }, 1500); // Increased from 1000 to 1500ms
 });

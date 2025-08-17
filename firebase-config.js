@@ -101,6 +101,18 @@ try {
                 console.error('Error getting player rank:', error);
                 return -1;
             }
+        },
+
+        // Clear all scores from leaderboard
+        async clearAllScores() {
+            try {
+                await database.ref('scores').remove();
+                console.log('All scores cleared from Firebase');
+                return true;
+            } catch (error) {
+                console.error('Error clearing scores from Firebase:', error);
+                return false;
+            }
         }
     };
 } catch (error) {
@@ -166,6 +178,17 @@ try {
             } catch (error) {
                 console.error('Error getting local player rank:', error);
                 return -1;
+            }
+        },
+
+        async clearAllScores() {
+            try {
+                localStorage.removeItem('endlessRunnerScores');
+                console.log('All scores cleared from localStorage');
+                return true;
+            } catch (error) {
+                console.error('Error clearing local scores:', error);
+                return false;
             }
         }
     };
