@@ -690,7 +690,8 @@ class SimpleGame {
             // Only save if this is a new high score
             if (this.score >= userHighScore) {
                 console.log('Saving new high score to Firebase');
-                await window.FirebaseHelper.saveScore(username, this.score, Math.floor(this.distance));
+                const browserId = window.gameManager ? window.gameManager.browserId : 'unknown';
+                await window.FirebaseHelper.saveScore(username, this.score, Math.floor(this.distance), browserId);
                 console.log(`Saved new high score for ${username}: ${this.score}`);
             } else {
                 console.log(`Score ${this.score} not higher than existing best ${userHighScore} for ${username}`);
@@ -1717,11 +1718,57 @@ class GameManager {
         this.username = '';
         this.gameRunning = false;
         this.game = null;
+        this.browserId = null;
         
         this.init();
     }
     
+    // Generate a simple browser fingerprint
+    generateBrowserId() {
+        // Check if we already have a browser ID stored
+        let browserId = localStorage.getItem('browserFingerprint');
+        
+        if (!browserId) {
+            // Generate a simple fingerprint based on browser characteristics
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = 'top';
+            ctx.font = '14px Arial';
+            ctx.fillText('Browser fingerprint', 2, 2);
+            
+            const fingerprint = [
+                navigator.userAgent,
+                navigator.language,
+                screen.width + 'x' + screen.height,
+                new Date().getTimezoneOffset(),
+                canvas.toDataURL(),
+                Date.now() + Math.random() // Add randomness for uniqueness
+            ].join('|');
+            
+            // Create a simple hash
+            let hash = 0;
+            for (let i = 0; i < fingerprint.length; i++) {
+                const char = fingerprint.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32-bit integer
+            }
+            
+            browserId = 'browser_' + Math.abs(hash).toString(36) + '_' + Date.now().toString(36);
+            
+            // Store it in localStorage
+            localStorage.setItem('browserFingerprint', browserId);
+            console.log('Generated new browser ID:', browserId);
+        } else {
+            console.log('Using existing browser ID:', browserId);
+        }
+        
+        return browserId;
+    }
+    
     init() {
+        // Generate or retrieve browser ID
+        this.browserId = this.generateBrowserId();
+        
         this.setupEventListeners();
         this.showScreen('start');
     }
@@ -1825,7 +1872,7 @@ class GameManager {
             errorElement.textContent = 'Checking username availability...';
             startButton.disabled = true;
             
-            const exists = await window.FirebaseHelper.checkUsernameExists(this.username);
+            const exists = await window.FirebaseHelper.checkUsernameExists(this.username, this.browserId);
             
             if (exists) {
                 errorElement.textContent = 'Username already taken. Please choose a different one.';
@@ -1855,7 +1902,7 @@ class GameManager {
         
         // Final check for username uniqueness before starting
         try {
-            const exists = await window.FirebaseHelper.checkUsernameExists(this.username);
+            const exists = await window.FirebaseHelper.checkUsernameExists(this.username, this.browserId);
             if (exists) {
                 alert('Username is already taken. Please choose a different username.');
                 return;

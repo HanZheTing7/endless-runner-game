@@ -24,12 +24,13 @@ try {
     // Firebase Database Helper Functions
     FirebaseHelper = {
         // Save score to leaderboard
-        async saveScore(username, score, distance) {
+        async saveScore(username, score, distance, browserId) {
             try {
                 const scoreData = {
                     username: username,
                     score: score,
                     distance: distance,
+                    browserId: browserId,
                     timestamp: Date.now()
                 };
                 
@@ -75,15 +76,29 @@ try {
             }
         },
 
-        // Check if username already exists
-        async checkUsernameExists(username) {
+        // Check if username already exists (considering browser ID)
+        async checkUsernameExists(username, browserId) {
             try {
                 const snapshot = await database.ref('scores')
                     .orderByChild('username')
                     .equalTo(username)
                     .once('value');
                 
-                return snapshot.exists();
+                if (!snapshot.exists()) {
+                    return false; // Username doesn't exist at all
+                }
+                
+                // Check if any of the existing usernames have the same browser ID
+                let sameUserExists = false;
+                snapshot.forEach((childSnapshot) => {
+                    const data = childSnapshot.val();
+                    if (data.browserId === browserId) {
+                        sameUserExists = true;
+                    }
+                });
+                
+                // If same user (browser ID) exists, allow it. If different user, block it.
+                return !sameUserExists;
             } catch (error) {
                 console.error('Error checking username:', error);
                 return false;
@@ -128,7 +143,7 @@ try {
     
     // Offline fallback with local storage
     FirebaseHelper = {
-        async saveScore(username, score, distance) {
+        async saveScore(username, score, distance, browserId) {
             try {
                 const scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
                 scores.push({
@@ -136,6 +151,7 @@ try {
                     username: username,
                     score: score,
                     distance: distance,
+                    browserId: browserId,
                     timestamp: Date.now()
                 });
                 
@@ -177,10 +193,22 @@ try {
             }
         },
 
-        async checkUsernameExists(username) {
+        async checkUsernameExists(username, browserId) {
             try {
                 const scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
-                return scores.some(score => score.username === username);
+                
+                // Find all scores with this username
+                const userScores = scores.filter(score => score.username === username);
+                
+                if (userScores.length === 0) {
+                    return false; // Username doesn't exist at all
+                }
+                
+                // Check if any of the existing usernames have the same browser ID
+                const sameUserExists = userScores.some(score => score.browserId === browserId);
+                
+                // If same user (browser ID) exists, allow it. If different user, block it.
+                return !sameUserExists;
             } catch (error) {
                 console.error('Error checking local username:', error);
                 return false;
