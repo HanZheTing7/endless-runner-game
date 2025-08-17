@@ -1216,40 +1216,43 @@ class SimpleGame {
             // Body bounce (up and down movement)
             const bodyBounce = Math.sin(cycle * 2) * 0.02;
             
-            // Hip rotation (side to side movement)
+            // Hip rotation (side to side movement) and forward lean
             const hipRotation = Math.sin(cycle * 2) * 0.03;
+            const forwardLean = 0.05; // Slight forward lean for running momentum
             
-            // Arm swing calculations - forward/backward movement for running to the right
-            const leftArmAngle = Math.sin(cycle * 2) * 0.4; // Left arm swings
-            const rightArmAngle = Math.sin(cycle * 2 + Math.PI) * 0.4; // Right arm opposite
+            // Arm swing calculations - running left to right with forward momentum
+            const leftArmAngle = Math.sin(cycle * 2) * 0.6; // Left arm swings forward/back
+            const rightArmAngle = Math.sin(cycle * 2 + Math.PI) * 0.6; // Right arm opposite
             
-            // Leg movement calculations - forward/backward movement for running to the right
-            const leftLegAngle = Math.sin(cycle * 2) * 0.5; // Left leg swings
-            const rightLegAngle = Math.sin(cycle * 2 + Math.PI) * 0.5; // Right leg opposite
+            // Leg movement calculations - running left to right with forward stride
+            const leftLegAngle = Math.sin(cycle * 2 + Math.PI) * 0.7; // Left leg opposite to right
+            const rightLegAngle = Math.sin(cycle * 2) * 0.7; // Right leg forward stride
             
             // Apply body bounce to all positions
             const bounceOffset = height * bodyBounce;
             const hipOffset = width * hipRotation;
             
-            // Calculate shoulder and hip positions (at edges of body)
-            const leftShoulderX = centerX + hipOffset - suitWidth * 0.35;
-            const rightShoulderX = centerX + hipOffset + suitWidth * 0.35;
+            // Calculate shoulder and hip positions (at edges of body) with forward lean
+            const leftShoulderX = centerX + hipOffset - suitWidth * 0.35 + width * forwardLean;
+            const rightShoulderX = centerX + hipOffset + suitWidth * 0.35 + width * forwardLean;
             const shoulderY = y + height * 0.4 + bounceOffset;
             
-            const leftHipX = centerX + hipOffset - suitWidth * 0.3;
-            const rightHipX = centerX + hipOffset + suitWidth * 0.3;
+            const leftHipX = centerX + hipOffset - suitWidth * 0.3 + width * forwardLean * 0.5;
+            const rightHipX = centerX + hipOffset + suitWidth * 0.3 + width * forwardLean * 0.5;
             const hipY = y + height * 0.75 + bounceOffset;
             
-            // Calculate limb end positions
-            const leftArmEndX = leftShoulderX - width * (0.2 + leftArmAngle * 0.3);
-            const leftArmEndY = shoulderY + height * (0.15 - leftArmAngle * 0.4);
-            const rightArmEndX = rightShoulderX + width * (0.2 + rightArmAngle * 0.3);
-            const rightArmEndY = shoulderY + height * (0.15 - rightArmAngle * 0.4);
+            // Calculate limb end positions for left-to-right running
+            // Arms: swing forward and backward with more horizontal movement
+            const leftArmEndX = leftShoulderX + width * (0.1 + leftArmAngle * 0.4); // Forward/back swing
+            const leftArmEndY = shoulderY + height * (0.15 - Math.abs(leftArmAngle) * 0.2); // Slight up/down
+            const rightArmEndX = rightShoulderX + width * (0.1 + rightArmAngle * 0.4); // Forward/back swing
+            const rightArmEndY = shoulderY + height * (0.15 - Math.abs(rightArmAngle) * 0.2); // Slight up/down
             
-            const leftLegEndX = leftHipX - width * (0.1 + leftLegAngle * 0.2);
-            const leftLegEndY = hipY + height * (0.25 - leftLegAngle * 0.2);
-            const rightLegEndX = rightHipX + width * (0.1 + rightLegAngle * 0.2);
-            const rightLegEndY = hipY + height * (0.25 - rightLegAngle * 0.2);
+            // Legs: stride forward and backward with more pronounced movement
+            const leftLegEndX = leftHipX + width * (0.2 + leftLegAngle * 0.5); // Forward stride
+            const leftLegEndY = hipY + height * (0.25 - Math.abs(leftLegAngle) * 0.15); // Lift during stride
+            const rightLegEndX = rightHipX + width * (0.2 + rightLegAngle * 0.5); // Forward stride
+            const rightLegEndY = hipY + height * (0.25 - Math.abs(rightLegAngle) * 0.15); // Lift during stride
             
             // Draw suit pants legs FIRST (behind body)
             ctx.fillStyle = '#2C3E50'; // Same suit color
