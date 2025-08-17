@@ -836,18 +836,18 @@ class SimpleGame {
         const ctx = this.ctx;
         
         // Skip button dimensions (responsive and more modern)
-        // Enhanced mobile responsiveness with better scaling
+        // Enhanced mobile responsiveness with better scaling - made smaller
         const isMobile = this.canvas.width < 768; // Detect mobile-like screen sizes
-        const baseWidthRatio = isMobile ? 0.2 : 0.15; // Larger on mobile for easier tapping
-        const baseHeightRatio = isMobile ? 0.08 : 0.06;
+        const baseWidthRatio = isMobile ? 0.16 : 0.12; // Smaller on both mobile and desktop
+        const baseHeightRatio = isMobile ? 0.06 : 0.045;
         
-        const buttonWidth = Math.max(90, Math.min(140, this.canvas.width * baseWidthRatio));
-        const buttonHeight = Math.max(40, Math.min(60, this.canvas.height * baseHeightRatio));
+        const buttonWidth = Math.max(70, Math.min(110, this.canvas.width * baseWidthRatio));
+        const buttonHeight = Math.max(30, Math.min(45, this.canvas.height * baseHeightRatio));
         
-        // Position skip button below main character with responsive margins
-        // Add extra margin to avoid Android system bar and ensure visibility
-        const baseMargin = Math.max(25, this.canvas.width * 0.025);
-        const systemBarSafeArea = Math.max(40, this.canvas.height * 0.08); // Extra space for system bars
+        // Position skip button below main character with responsive margins - positioned higher
+        // Reduced margins to position button higher
+        const baseMargin = Math.max(15, this.canvas.width * 0.015); // Reduced base margin
+        const systemBarSafeArea = Math.max(25, this.canvas.height * 0.04); // Reduced system bar safe area
         const totalMargin = baseMargin + systemBarSafeArea;
         
         const buttonX = this.player.x + (this.player.width / 2) - (buttonWidth / 2);
@@ -923,9 +923,9 @@ class SimpleGame {
         ctx.shadowBlur = 2;
         ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
         
-        // Enhanced font sizing for better mobile readability
-        const baseFontRatio = isMobile ? 0.035 : 0.025; // Larger font on mobile
-        const fontSize = Math.max(14, Math.min(20, this.canvas.width * baseFontRatio));
+        // Enhanced font sizing for better mobile readability - adjusted for smaller button
+        const baseFontRatio = isMobile ? 0.03 : 0.022; // Slightly smaller font to match button size
+        const fontSize = Math.max(12, Math.min(16, this.canvas.width * baseFontRatio));
         ctx.font = `bold ${fontSize}px Orbitron, Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
