@@ -16,6 +16,16 @@ class SimpleGame {
         this.player = { x: 150, y: 450, width: 50, height: 80, velocityY: 0, isJumping: false };
         this.ground = { y: 530, height: 70 };
         this.obstacles = [];
+
+        // Wife character (chasing from left)
+        this.wife = {
+            x: 50, // Behind player on left
+            y: 445, // Slightly shorter than player
+            width: 45, // Slightly smaller than player
+            height: 75, // Slightly shorter than player
+            speed: this.gameSpeed * 0.8, // Slightly slower than game speed
+            isVisible: false // Initially hidden during story
+        };
         
         // Game physics
         this.gravity = 0.6; // Reduced from 0.8 to make jump last longer
@@ -125,6 +135,10 @@ class SimpleGame {
         this.player.width = Math.max(40, Math.min(60, this.canvas.width * 0.05));
         this.player.height = Math.max(60, Math.min(100, this.canvas.height * 0.08));
         
+        // Make wife size responsive (slightly smaller than player)
+        this.wife.width = Math.max(35, Math.min(55, this.canvas.width * 0.045));
+        this.wife.height = Math.max(55, Math.min(95, this.canvas.height * 0.075));
+        
         // Position ground at bottom of screen (responsive height)
         this.ground.height = Math.max(50, this.canvas.height * 0.08);
         this.ground.y = this.canvas.height - this.ground.height;
@@ -132,13 +146,21 @@ class SimpleGame {
         // Position player on ground
         this.player.y = this.ground.y - this.player.height;
         
+        // Position wife on ground (slightly behind player)
+        this.wife.y = this.ground.y - this.wife.height;
+        
         // Update player x position based on game state
         if (this.storyMode) {
             // Center the character during story mode
             this.player.x = (this.canvas.width / 2) - (this.player.width / 2);
+            // Hide wife during story mode
+            this.wife.isVisible = false;
         } else {
             // Normal game position (left side)
             this.player.x = Math.min(150, this.canvas.width * 0.1);
+            // Position wife behind player and make her visible
+            this.wife.x = Math.max(20, this.player.x - this.wife.width - 30);
+            this.wife.isVisible = true;
         }
     }
     
@@ -512,6 +534,29 @@ class SimpleGame {
             this.obstacles.push(newObstacle);
         }
         
+        // Update wife position (chasing behavior)
+        if (this.wife.isVisible) {
+            // Wife tries to catch up to player but stays behind
+            const targetDistance = 80; // Desired distance behind player
+            const currentDistance = this.player.x - this.wife.x;
+            
+            if (currentDistance > targetDistance + 10) {
+                // Wife is too far behind, speed up
+                this.wife.x += this.gameSpeed * 1.2;
+            } else if (currentDistance < targetDistance - 10) {
+                // Wife is too close, slow down
+                this.wife.x += this.gameSpeed * 0.5;
+            } else {
+                // Maintain steady chase
+                this.wife.x += this.gameSpeed * 0.9;
+            }
+            
+            // Keep wife on screen (don't let her fall too far behind)
+            if (this.wife.x < -this.wife.width) {
+                this.wife.x = -this.wife.width + 10;
+            }
+        }
+
         // Update game stats
         this.distance += this.gameSpeed * 0.1;
         this.score = Math.floor(this.distance);
@@ -1072,6 +1117,10 @@ class SimpleGame {
         // Draw player
         this.drawStickman(this.player.x, this.player.y, this.player.width, this.player.height);
         
+        // Draw wife character (if visible)
+        if (this.wife.isVisible) {
+            this.drawWife(this.wife.x, this.wife.y, this.wife.width, this.wife.height);
+        }
 
     }
 
@@ -1333,6 +1382,161 @@ class SimpleGame {
         
         // Remove eyes and smile since we're using an image for the head
         // The image should have the face details already
+    }
+
+    drawWife(x, y, width, height) {
+        const ctx = this.ctx;
+        const centerX = x + width / 2;
+        
+        // Draw wife's head (circular with hair)
+        ctx.fillStyle = '#8B4513'; // Brown hair
+        ctx.beginPath();
+        ctx.arc(centerX, y + height * 0.15, height * 0.14, 0, Math.PI * 2); // Hair (slightly bigger)
+        ctx.fill();
+        
+        // Face
+        ctx.fillStyle = '#FDBCB4'; // Light skin tone
+        ctx.beginPath();
+        ctx.arc(centerX, y + height * 0.15, height * 0.11, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Hair style (ponytail)
+        ctx.fillStyle = '#8B4513';
+        ctx.beginPath();
+        ctx.ellipse(centerX + width * 0.2, y + height * 0.15, width * 0.1, height * 0.08, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Simple facial features
+        ctx.fillStyle = '#000000';
+        // Eyes
+        ctx.beginPath();
+        ctx.arc(centerX - width * 0.05, y + height * 0.12, 1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(centerX + width * 0.05, y + height * 0.12, 1, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw dress/blouse body
+        const dressWidth = width * 0.9;
+        
+        // Main dress body (A-line shape)
+        ctx.fillStyle = '#FF69B4'; // Pink dress
+        ctx.strokeStyle = '#E91E63'; // Darker pink outline
+        ctx.lineWidth = 2;
+        
+        ctx.beginPath();
+        // Create A-line dress shape
+        ctx.moveTo(centerX - dressWidth * 0.3, y + height * 0.27); // Top left
+        ctx.lineTo(centerX + dressWidth * 0.3, y + height * 0.27); // Top right
+        ctx.lineTo(centerX + dressWidth * 0.45, y + height * 0.7); // Bottom right (wider)
+        ctx.lineTo(centerX - dressWidth * 0.45, y + height * 0.7); // Bottom left (wider)
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Running animation for wife
+        const time = Date.now() * 0.005; // Slightly different timing than husband
+        const cycle = (time * 2) % (Math.PI * 2);
+        
+        // Body bounce
+        const bodyBounce = Math.sin(cycle * 2) * 0.015;
+        const bounceOffset = height * bodyBounce;
+        
+        // Arm swing calculations
+        const leftArmAngle = Math.sin(cycle * 2) * 0.5;
+        const rightArmAngle = Math.sin(cycle * 2 + Math.PI) * 0.5;
+        
+        // Leg movement (under dress)
+        const leftLegAngle = Math.sin(cycle * 2 + Math.PI) * 0.4;
+        const rightLegAngle = Math.sin(cycle * 2) * 0.4;
+        
+        // Calculate arm positions
+        const leftShoulderX = centerX - dressWidth * 0.25;
+        const rightShoulderX = centerX + dressWidth * 0.25;
+        const shoulderY = y + height * 0.35 + bounceOffset;
+        
+        const leftArmEndX = leftShoulderX + width * (0.1 + leftArmAngle * 0.3);
+        const leftArmEndY = shoulderY + height * (0.15 - Math.abs(leftArmAngle) * 0.15);
+        const rightArmEndX = rightShoulderX + width * (0.1 + rightArmAngle * 0.3);
+        const rightArmEndY = shoulderY + height * (0.15 - Math.abs(rightArmAngle) * 0.15);
+        
+        // Draw arms (skin color)
+        ctx.fillStyle = '#FDBCB4';
+        ctx.strokeStyle = '#E8A589';
+        ctx.lineWidth = 1;
+        
+        // Left arm
+        ctx.beginPath();
+        ctx.ellipse(
+            (leftShoulderX + leftArmEndX) / 2,
+            (shoulderY + leftArmEndY) / 2,
+            6, height * 0.1,
+            Math.atan2(leftArmEndY - shoulderY, leftArmEndX - leftShoulderX),
+            0, Math.PI * 2
+        );
+        ctx.fill();
+        ctx.stroke();
+        
+        // Right arm
+        ctx.beginPath();
+        ctx.ellipse(
+            (rightShoulderX + rightArmEndX) / 2,
+            (shoulderY + rightArmEndY) / 2,
+            6, height * 0.1,
+            Math.atan2(rightArmEndY - shoulderY, rightArmEndX - rightShoulderX),
+            0, Math.PI * 2
+        );
+        ctx.fill();
+        ctx.stroke();
+        
+        // Hands
+        ctx.fillStyle = '#FDBCB4';
+        ctx.beginPath();
+        ctx.arc(leftArmEndX, leftArmEndY, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(rightArmEndX, rightArmEndY, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Legs (visible under dress hem)
+        const leftLegX = centerX - width * 0.15 + width * leftLegAngle * 0.2;
+        const rightLegX = centerX + width * 0.15 + width * rightLegAngle * 0.2;
+        const legY = y + height * 0.7 + bounceOffset;
+        const legEndY = y + height * 0.95 + bounceOffset;
+        
+        // Left leg
+        ctx.fillStyle = '#FDBCB4'; // Skin color
+        ctx.strokeStyle = '#E8A589';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.ellipse(
+            leftLegX,
+            (legY + legEndY) / 2,
+            4, height * 0.12,
+            0, 0, Math.PI * 2
+        );
+        ctx.fill();
+        ctx.stroke();
+        
+        // Right leg
+        ctx.beginPath();
+        ctx.ellipse(
+            rightLegX,
+            (legY + legEndY) / 2,
+            4, height * 0.12,
+            0, 0, Math.PI * 2
+        );
+        ctx.fill();
+        ctx.stroke();
+        
+        // Shoes (high heels)
+        ctx.fillStyle = '#8B0000'; // Dark red shoes
+        ctx.beginPath();
+        ctx.ellipse(leftLegX, legEndY - 2, 6, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(rightLegX, legEndY - 2, 6, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
     }
     
     drawClouds() {
