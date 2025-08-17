@@ -1021,34 +1021,114 @@ class SimpleGame {
             ctx.closePath();
         }
         
-        // Draw body (vertical line)
+        // Draw suit jacket/coat body
+        const suitWidth = width * 0.8;
+        
+        // Main suit body (rounded rectangle)
+        ctx.fillStyle = '#2C3E50'; // Dark blue-gray suit
+        ctx.strokeStyle = '#1A252F'; // Darker outline
+        ctx.lineWidth = 2;
+        
+        ctx.beginPath();
+        ctx.roundRect(
+            centerX - suitWidth/2, 
+            y + height * 0.27, 
+            suitWidth, 
+            height * 0.48, 
+            8
+        );
+        ctx.fill();
+        ctx.stroke();
+        
+        // Suit lapels (V-shaped)
+        ctx.fillStyle = '#34495E'; // Slightly lighter for lapels
+        
+        // Left lapel
         ctx.beginPath();
         ctx.moveTo(centerX, y + height * 0.27);
-        ctx.lineTo(centerX, y + height * 0.65);
-        ctx.strokeStyle = '#FFD700';
-        ctx.lineWidth = height * 0.08;
-        ctx.stroke();
+        ctx.lineTo(centerX - suitWidth/4, y + height * 0.42);
+        ctx.lineTo(centerX - suitWidth/6, y + height * 0.52);
+        ctx.lineTo(centerX, y + height * 0.47);
         ctx.closePath();
+        ctx.fill();
         
-        // Realistic running animation - running to the right with forward momentum
+        // Right lapel
+        ctx.beginPath();
+        ctx.moveTo(centerX, y + height * 0.27);
+        ctx.lineTo(centerX + suitWidth/4, y + height * 0.42);
+        ctx.lineTo(centerX + suitWidth/6, y + height * 0.52);
+        ctx.lineTo(centerX, y + height * 0.47);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Suit buttons (3 gold buttons)
+        ctx.fillStyle = '#F39C12'; // Gold buttons
+        for (let i = 0; i < 3; i++) {
+            const buttonY = y + height * (0.37 + i * 0.08);
+            ctx.beginPath();
+            ctx.arc(centerX + suitWidth/8, buttonY, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // White shirt collar/tie area
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.moveTo(centerX, y + height * 0.27);
+        ctx.lineTo(centerX - suitWidth/8, y + height * 0.35);
+        ctx.lineTo(centerX, y + height * 0.43);
+        ctx.lineTo(centerX + suitWidth/8, y + height * 0.35);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Jumping animation with suit
         if (this.player.isJumping) {
-            // Jumping pose - arms up, legs together
-            ctx.beginPath();
-            ctx.moveTo(centerX, y + height * 0.3);
-            ctx.lineTo(centerX - width * 0.2, y + height * 0.1);
-            ctx.lineTo(centerX + width * 0.2, y + height * 0.1);
-            ctx.strokeStyle = '#FFD700';
-            ctx.lineWidth = height * 0.04;
-            ctx.stroke();
-            ctx.closePath();
+            // Jumping pose - arms slightly up, legs together
             
+            // Left suit sleeve (raised)
+            ctx.fillStyle = '#2C3E50';
+            ctx.strokeStyle = '#1A252F';
+            ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(centerX, y + height * 0.65);
-            ctx.lineTo(centerX, y + height * 0.9);
-            ctx.strokeStyle = '#FFD700';
-            ctx.lineWidth = height * 0.06;
+            ctx.ellipse(centerX - width * 0.15, y + height * 0.35, 8, height * 0.1, -0.3, 0, Math.PI * 2);
+            ctx.fill();
             ctx.stroke();
-            ctx.closePath();
+            
+            // Right suit sleeve (raised)
+            ctx.beginPath();
+            ctx.ellipse(centerX + width * 0.15, y + height * 0.35, 8, height * 0.1, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Hands (jumping position)
+            ctx.fillStyle = '#FDBCB4';
+            ctx.beginPath();
+            ctx.arc(centerX - width * 0.2, y + height * 0.3, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX + width * 0.2, y + height * 0.3, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Suit pants legs (together)
+            ctx.fillStyle = '#2C3E50';
+            ctx.strokeStyle = '#1A252F';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.ellipse(centerX - 5, y + height * 0.82, 8, height * 0.15, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(centerX + 5, y + height * 0.82, 8, height * 0.15, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Shoes (jumping position)
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.ellipse(centerX - 5, y + height * 0.95, 7, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(centerX + 5, y + height * 0.95, 7, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
         } else {
             // Realistic running animation - running to the right with forward momentum
             const time = Date.now() * 0.004; // Slower animation - reduced from 0.008 to 0.004
@@ -1074,55 +1154,89 @@ class SimpleGame {
             const bounceOffset = height * bodyBounce;
             const hipOffset = width * hipRotation;
             
-            // Draw arms with forward/backward movement (running to the right)
-            // Left arm - forward/backward swing
-            ctx.beginPath();
-            ctx.moveTo(centerX + hipOffset, y + height * 0.3 + bounceOffset);
-            ctx.lineTo(
-                centerX - width * (0.2 + leftArmAngle * 0.3) + hipOffset, 
-                y + height * (0.35 - leftArmAngle * 0.4) + bounceOffset
-            );
-            ctx.strokeStyle = '#FFD700';
-            ctx.lineWidth = height * 0.04;
-            ctx.stroke();
-            ctx.closePath();
+            // Draw suit sleeves and arms
+            const leftArmEndX = centerX - width * (0.2 + leftArmAngle * 0.3) + hipOffset;
+            const leftArmEndY = y + height * (0.55 - leftArmAngle * 0.4) + bounceOffset;
+            const rightArmEndX = centerX + width * (0.2 + rightArmAngle * 0.3) + hipOffset;
+            const rightArmEndY = y + height * (0.55 - rightArmAngle * 0.4) + bounceOffset;
             
-            // Right arm - forward/backward swing
+            // Left suit sleeve
+            ctx.fillStyle = '#2C3E50'; // Same suit color
+            ctx.strokeStyle = '#1A252F';
+            ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(centerX + hipOffset, y + height * 0.3 + bounceOffset);
-            ctx.lineTo(
-                centerX + width * (0.2 + rightArmAngle * 0.3) + hipOffset, 
-                y + height * (0.35 - rightArmAngle * 0.4) + bounceOffset
+            ctx.ellipse(
+                (centerX + hipOffset + leftArmEndX) / 2,
+                (y + height * 0.4 + bounceOffset + leftArmEndY) / 2,
+                8, height * 0.12,
+                Math.atan2(leftArmEndY - (y + height * 0.4 + bounceOffset), leftArmEndX - (centerX + hipOffset)),
+                0, Math.PI * 2
             );
-            ctx.strokeStyle = '#FFD700';
-            ctx.lineWidth = height * 0.04;
+            ctx.fill();
             ctx.stroke();
-            ctx.closePath();
             
-            // Draw legs with forward/backward movement (running to the right)
-            // Left leg - forward/backward swing
+            // Right suit sleeve
             ctx.beginPath();
-            ctx.moveTo(centerX + hipOffset, y + height * 0.65 + bounceOffset);
-            ctx.lineTo(
-                centerX - width * (0.1 + leftLegAngle * 0.2) + hipOffset, 
-                y + height * (0.9 - leftLegAngle * 0.5) + bounceOffset
+            ctx.ellipse(
+                (centerX + hipOffset + rightArmEndX) / 2,
+                (y + height * 0.4 + bounceOffset + rightArmEndY) / 2,
+                8, height * 0.12,
+                Math.atan2(rightArmEndY - (y + height * 0.4 + bounceOffset), rightArmEndX - (centerX + hipOffset)),
+                0, Math.PI * 2
             );
-            ctx.strokeStyle = '#FFD700';
-            ctx.lineWidth = height * 0.06;
+            ctx.fill();
             ctx.stroke();
-            ctx.closePath();
             
-            // Right leg - forward/backward swing
+            // Hands (skin color)
+            ctx.fillStyle = '#FDBCB4'; // Light skin tone
             ctx.beginPath();
-            ctx.moveTo(centerX + hipOffset, y + height * 0.65 + bounceOffset);
-            ctx.lineTo(
-                centerX + width * (0.1 + rightLegAngle * 0.2) + hipOffset, 
-                y + height * (0.9 - rightLegAngle * 0.5) + bounceOffset
+            ctx.arc(leftArmEndX, leftArmEndY, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(rightArmEndX, rightArmEndY, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw suit pants legs
+            const leftLegEndX = centerX - width * (0.1 + leftLegAngle * 0.2) + hipOffset;
+            const leftLegEndY = y + height * (1.0 - leftLegAngle * 0.2) + bounceOffset;
+            const rightLegEndX = centerX + width * (0.1 + rightLegAngle * 0.2) + hipOffset;
+            const rightLegEndY = y + height * (1.0 - rightLegAngle * 0.2) + bounceOffset;
+            
+            // Left suit pants leg
+            ctx.fillStyle = '#2C3E50'; // Same suit color
+            ctx.strokeStyle = '#1A252F';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.ellipse(
+                (centerX + hipOffset + leftLegEndX) / 2,
+                (y + height * 0.75 + bounceOffset + leftLegEndY) / 2,
+                9, height * 0.18,
+                Math.atan2(leftLegEndY - (y + height * 0.75 + bounceOffset), leftLegEndX - (centerX + hipOffset)),
+                0, Math.PI * 2
             );
-            ctx.strokeStyle = '#FFD700';
-            ctx.lineWidth = height * 0.06;
+            ctx.fill();
             ctx.stroke();
-            ctx.closePath();
+            
+            // Right suit pants leg
+            ctx.beginPath();
+            ctx.ellipse(
+                (centerX + hipOffset + rightLegEndX) / 2,
+                (y + height * 0.75 + bounceOffset + rightLegEndY) / 2,
+                9, height * 0.18,
+                Math.atan2(rightLegEndY - (y + height * 0.75 + bounceOffset), rightLegEndX - (centerX + hipOffset)),
+                0, Math.PI * 2
+            );
+            ctx.fill();
+            ctx.stroke();
+            
+            // Dress shoes (black)
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.ellipse(leftLegEndX, leftLegEndY - 2, 8, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(rightLegEndX, rightLegEndY - 2, 8, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
         }
         
         // Remove eyes and smile since we're using an image for the head
