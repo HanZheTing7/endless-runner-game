@@ -826,8 +826,9 @@ class SimpleGame {
     
     drawStickmanStanding(centerX, y, height) {
         const ctx = this.ctx;
+        const width = height * 0.6; // Approximate width for proportions
         
-        // Draw head using image instead of circle
+        // Draw head using image
         if (this.characterHead.complete) {
             const headSize = height * 0.8;
             ctx.drawImage(
@@ -846,40 +847,116 @@ class SimpleGame {
             ctx.closePath();
         }
         
-        // Body (standing still)
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
+        // Draw suit jacket/coat body (standing pose)
+        const suitWidth = width * 0.8;
         
-        // Torso
+        // Main suit body (rounded rectangle)
+        ctx.fillStyle = '#2C3E50'; // Dark blue-gray suit
+        ctx.strokeStyle = '#1A252F'; // Darker outline
+        ctx.lineWidth = 2;
+        
+        ctx.beginPath();
+        ctx.roundRect(
+            centerX - suitWidth/2, 
+            y + height * 0.27, 
+            suitWidth, 
+            height * 0.48, 
+            8
+        );
+        ctx.fill();
+        ctx.stroke();
+        
+        // Suit lapels (V-shaped)
+        ctx.fillStyle = '#34495E'; // Slightly lighter for lapels
+        
+        // Left lapel
         ctx.beginPath();
         ctx.moveTo(centerX, y + height * 0.27);
-        ctx.lineTo(centerX, y + height * 0.65);
+        ctx.lineTo(centerX - suitWidth/4, y + height * 0.42);
+        ctx.lineTo(centerX - suitWidth/6, y + height * 0.52);
+        ctx.lineTo(centerX, y + height * 0.47);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Right lapel
+        ctx.beginPath();
+        ctx.moveTo(centerX, y + height * 0.27);
+        ctx.lineTo(centerX + suitWidth/4, y + height * 0.42);
+        ctx.lineTo(centerX + suitWidth/6, y + height * 0.52);
+        ctx.lineTo(centerX, y + height * 0.47);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Suit buttons (3 gold buttons)
+        ctx.fillStyle = '#F39C12'; // Gold buttons
+        for (let i = 0; i < 3; i++) {
+            const buttonY = y + height * (0.37 + i * 0.08);
+            ctx.beginPath();
+            ctx.arc(centerX + suitWidth/8, buttonY, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // White shirt collar/tie area
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.moveTo(centerX, y + height * 0.27);
+        ctx.lineTo(centerX - suitWidth/8, y + height * 0.35);
+        ctx.lineTo(centerX, y + height * 0.43);
+        ctx.lineTo(centerX + suitWidth/8, y + height * 0.35);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Standing suit sleeves and arms (relaxed position)
+        ctx.fillStyle = '#2C3E50'; // Same suit color
+        ctx.strokeStyle = '#1A252F';
+        ctx.lineWidth = 1;
+        
+        // Left suit sleeve (relaxed)
+        ctx.beginPath();
+        ctx.ellipse(centerX - width * 0.15, y + height * 0.5, 8, height * 0.12, -0.2, 0, Math.PI * 2);
+        ctx.fill();
         ctx.stroke();
         
-        // Left arm (relaxed)
+        // Right suit sleeve (relaxed)
         ctx.beginPath();
-        ctx.moveTo(centerX, y + height * 0.35);
-        ctx.lineTo(centerX - 20, y + height * 0.55);
+        ctx.ellipse(centerX + width * 0.15, y + height * 0.5, 8, height * 0.12, 0.2, 0, Math.PI * 2);
+        ctx.fill();
         ctx.stroke();
         
-        // Right arm (relaxed)
+        // Hands (relaxed position)
+        ctx.fillStyle = '#FDBCB4'; // Light skin tone
         ctx.beginPath();
-        ctx.moveTo(centerX, y + height * 0.35);
-        ctx.lineTo(centerX + 20, y + height * 0.55);
+        ctx.arc(centerX - width * 0.2, y + height * 0.58, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(centerX + width * 0.2, y + height * 0.58, 5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Suit pants legs (standing position)
+        ctx.fillStyle = '#2C3E50'; // Same suit color
+        ctx.strokeStyle = '#1A252F';
+        ctx.lineWidth = 1;
+        
+        // Left leg
+        ctx.beginPath();
+        ctx.ellipse(centerX - width * 0.08, y + height * 0.82, 9, height * 0.18, 0, 0, Math.PI * 2);
+        ctx.fill();
         ctx.stroke();
         
-        // Left leg (standing)
+        // Right leg
         ctx.beginPath();
-        ctx.moveTo(centerX, y + height * 0.65);
-        ctx.lineTo(centerX - 15, y + height);
+        ctx.ellipse(centerX + width * 0.08, y + height * 0.82, 9, height * 0.18, 0, 0, Math.PI * 2);
+        ctx.fill();
         ctx.stroke();
         
-        // Right leg (standing)
+        // Dress shoes (standing position)
+        ctx.fillStyle = '#000000';
         ctx.beginPath();
-        ctx.moveTo(centerX, y + height * 0.65);
-        ctx.lineTo(centerX + 15, y + height);
-        ctx.stroke();
+        ctx.ellipse(centerX - width * 0.08, y + height * 0.97, 8, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(centerX + width * 0.08, y + height * 0.97, 8, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
     }
     
     drawSpeechBubble() {
