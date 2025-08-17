@@ -40,10 +40,10 @@ class SimpleGame {
         this.gameState = 'start'; // 'start', 'story', 'playing', 'gameOver'
         this.storyMode = false;
         this.storyLines = [
-            "This is Wong Siew Keat.",
-            "He is a married man.",
-            "He forgot to inform his wife he went out.",
-            "Help him escape."
+            "Meet Wong Siew Keat.",
+            "A married man bound by the rules of matrimony.",
+            "He slipped out without alerting his ultimate boss — his wife.",
+            "Your mission: Help him escape!"
         ];
         this.currentLineIndex = 0;
         this.displayedText = "";
@@ -835,12 +835,12 @@ class SimpleGame {
     drawSkipButton() {
         const ctx = this.ctx;
         
-        // Skip button dimensions (responsive)
-        const buttonWidth = Math.max(60, Math.min(100, this.canvas.width * 0.12));
-        const buttonHeight = Math.max(30, Math.min(50, this.canvas.height * 0.05));
+        // Skip button dimensions (responsive and more modern)
+        const buttonWidth = Math.max(80, Math.min(120, this.canvas.width * 0.15));
+        const buttonHeight = Math.max(35, Math.min(55, this.canvas.height * 0.06));
         
         // Position skip button below main character
-        const margin = Math.max(20, this.canvas.width * 0.02);
+        const margin = Math.max(25, this.canvas.width * 0.025);
         const buttonX = this.player.x + (this.player.width / 2) - (buttonWidth / 2);
         const buttonY = this.player.y + this.player.height + margin;
         
@@ -851,21 +851,93 @@ class SimpleGame {
         this.skipButton.height = buttonHeight;
         this.skipButton.visible = true;
         
-        // Draw button background
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+        // Animation variables
+        const time = Date.now() * 0.003;
+        const pulseScale = 1 + Math.sin(time * 2) * 0.05; // Subtle pulse effect
+        const glowIntensity = (Math.sin(time) + 1) * 0.5; // Glow animation
         
-        // Draw button border
+        // Apply scaling for pulse effect
+        const scaledWidth = buttonWidth * pulseScale;
+        const scaledHeight = buttonHeight * pulseScale;
+        const scaledX = buttonX - (scaledWidth - buttonWidth) / 2;
+        const scaledY = buttonY - (scaledHeight - buttonHeight) / 2;
+        
+        // Draw animated glow effect
+        ctx.save();
+        ctx.shadowBlur = 15 + glowIntensity * 10;
+        ctx.shadowColor = `rgba(255, 107, 107, ${0.6 + glowIntensity * 0.4})`;
+        
+        // Draw main button background with gradient
+        const gradient = ctx.createLinearGradient(scaledX, scaledY, scaledX + scaledWidth, scaledY + scaledHeight);
+        gradient.addColorStop(0, '#ff6b6b');
+        gradient.addColorStop(0.5, '#ffa726');
+        gradient.addColorStop(1, '#ff9800');
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.roundRect(scaledX, scaledY, scaledWidth, scaledHeight, scaledHeight / 2); // Rounded corners
+        ctx.fill();
+        
+        // Draw glossy overlay effect
+        const overlayGradient = ctx.createLinearGradient(scaledX, scaledY, scaledX, scaledY + scaledHeight / 2);
+        overlayGradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+        overlayGradient.addColorStop(1, 'rgba(255, 255, 255, 0.05)');
+        
+        ctx.fillStyle = overlayGradient;
+        ctx.beginPath();
+        ctx.roundRect(scaledX, scaledY, scaledWidth, scaledHeight / 2, scaledHeight / 2);
+        ctx.fill();
+        
+        // Draw subtle border
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(scaledX, scaledY, scaledWidth, scaledHeight, scaledHeight / 2);
+        ctx.stroke();
+        
+        ctx.restore();
+        
+        // Draw button text with better styling
+        ctx.fillStyle = '#FFFFFF';
+        ctx.shadowBlur = 2;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        
+        const fontSize = Math.max(12, Math.min(18, this.canvas.width * 0.025));
+        ctx.font = `bold ${fontSize}px Orbitron, Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Draw main text
+        ctx.fillText('SKIP', buttonX + buttonWidth / 2, buttonY + buttonHeight / 2);
+        
+        // Draw animated arrow icon
+        const arrowX = buttonX + buttonWidth / 2 + fontSize * 1.2;
+        const arrowY = buttonY + buttonHeight / 2;
+        const arrowOffset = Math.sin(time * 4) * 2; // Moving arrow animation
+        
+        ctx.save();
+        ctx.translate(arrowX + arrowOffset, arrowY);
         ctx.strokeStyle = '#FFFFFF';
         ctx.lineWidth = 2;
-        ctx.strokeRect(buttonX, buttonY, buttonWidth, buttonHeight);
+        ctx.lineCap = 'round';
         
-        // Draw button text
-        ctx.fillStyle = '#FFFFFF';
-        const fontSize = Math.max(10, Math.min(16, this.canvas.width * 0.02));
-        ctx.font = `${fontSize}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.fillText('SKIP', buttonX + buttonWidth / 2, buttonY + buttonHeight / 2 + fontSize / 3);
+        // Draw arrow (>>)
+        ctx.beginPath();
+        ctx.moveTo(-3, -4);
+        ctx.lineTo(2, 0);
+        ctx.lineTo(-3, 4);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(2, -4);
+        ctx.lineTo(7, 0);
+        ctx.lineTo(2, 4);
+        ctx.stroke();
+        
+        ctx.restore();
+        
+        // Reset shadow
+        ctx.shadowBlur = 0;
     }
     
     drawStickmanStanding(centerX, y, height) {
