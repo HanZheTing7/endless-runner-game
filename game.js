@@ -330,8 +330,10 @@ class SimpleGame {
         
         // Start game music during story mode for better atmosphere
         if (window.gameManager && window.gameManager.audioManager) {
+            console.log('Story mode starting - switching to game music');
             window.gameManager.audioManager.stopMainMenuMusic(); // Stop menu music
             setTimeout(() => {
+                console.log('Starting game music...');
                 window.gameManager.audioManager.playGameMusic(); // Start game music
             }, 200);
         }
@@ -1849,7 +1851,8 @@ class AudioManager {
             obstacle: [],
             gameOver: [],
             powerUp: [],
-            music: []
+            music: [],
+            gameMusic: []
         };
     }
     
@@ -1865,7 +1868,7 @@ class AudioManager {
             await this.loadSound('main_menu', 'main_menu.mp3', 'music');
             
             // Game music (plays during gameplay)
-            await this.loadSound('game_music', 'game_music.mp3', 'music');
+            await this.loadSound('game_music', 'game_music.mp3', 'gameMusic');
             
             // You can add more sounds later:
             // await this.loadSound('obstacle_hit', 'obstacle.mp3', 'obstacle');
@@ -2087,16 +2090,19 @@ class AudioManager {
             this.currentMusicTime = this.currentMusicAudio.currentTime;
         }
         
-        // Stop all music sounds
+        // Stop only main menu music sounds (not game music)
         if (this.soundPools.music) {
             for (let audio of this.soundPools.music) {
-                audio.pause();
+                // Only pause if this is actually the main menu music playing
+                if (this.currentMusicAudio === audio) {
+                    audio.pause();
+                }
             }
         }
         
-        // Also stop the original sound if it's playing
+        // Also stop the original main menu sound if it's playing
         const mainMenuSound = this.sounds['main_menu'];
-        if (mainMenuSound && mainMenuSound.audio) {
+        if (mainMenuSound && mainMenuSound.audio && this.currentMusicAudio === mainMenuSound.audio) {
             mainMenuSound.audio.pause();
         }
         
@@ -2111,12 +2117,14 @@ class AudioManager {
             this.currentGameMusicTime = this.currentGameMusicAudio.currentTime;
         }
         
-        // Stop game music
-        if (this.currentGameMusicAudio) {
-            this.currentGameMusicAudio.pause();
+        // Stop game music from the gameMusic pool
+        if (this.soundPools.gameMusic) {
+            for (let audio of this.soundPools.gameMusic) {
+                audio.pause();
+            }
         }
         
-        // Also stop the original sound if it's playing
+        // Also stop the original game music sound if it's playing
         const gameMusicSound = this.sounds['game_music'];
         if (gameMusicSound && gameMusicSound.audio) {
             gameMusicSound.audio.pause();
@@ -2152,7 +2160,7 @@ class AudioManager {
         // Update volumes for all pooled sounds
         for (let poolType in this.soundPools) {
             for (let audio of this.soundPools[poolType]) {
-                if (poolType === 'music') {
+                if (poolType === 'music' || poolType === 'gameMusic') {
                     audio.volume = this.musicVolume * this.masterVolume;
                 } else {
                     audio.volume = this.sfxVolume * this.masterVolume;
