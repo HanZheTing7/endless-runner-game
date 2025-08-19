@@ -34,7 +34,13 @@ class SimpleGame {
         
         // Character image
         this.characterHead = new Image();
-        this.characterHead.src = 'sk-head.jpg'; // You can change this to your image file
+        this.characterHead.onload = () => {
+            console.log('Character head image loaded successfully');
+        };
+        this.characterHead.onerror = () => {
+            console.error('Failed to load character head image: sk-head.png');
+        };
+        this.characterHead.src = 'sk-head.png'; // You can change this to your image file
         
         // Story mode properties
         this.gameState = 'start'; // 'start', 'story', 'playing', 'gameOver'
