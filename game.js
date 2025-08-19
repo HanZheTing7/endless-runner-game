@@ -2230,6 +2230,7 @@ class GameManager {
         this.browserId = this.generateBrowserId();
         
         this.setupEventListeners();
+        this.setupGlobalAudioEnablement();
         this.showScreen('start');
         
         // Start main menu music after a short delay to ensure audio is ready
@@ -2238,6 +2239,22 @@ class GameManager {
                 this.audioManager.playMainMenuMusic();
             }
         }, 1000);
+    }
+    
+    setupGlobalAudioEnablement() {
+        // Enable audio on any user interaction anywhere on the page
+        const enableAudioOnInteraction = () => {
+            this.audioManager.enableAudio();
+            // Remove listeners after first interaction to avoid multiple calls
+            document.removeEventListener('click', enableAudioOnInteraction);
+            document.removeEventListener('touchstart', enableAudioOnInteraction);
+            document.removeEventListener('keydown', enableAudioOnInteraction);
+        };
+        
+        // Add global event listeners for any user interaction
+        document.addEventListener('click', enableAudioOnInteraction, { passive: true });
+        document.addEventListener('touchstart', enableAudioOnInteraction, { passive: true });
+        document.addEventListener('keydown', enableAudioOnInteraction, { passive: true });
     }
     
     setupEventListeners() {
