@@ -289,6 +289,11 @@ class SimpleGame {
         if (!this.player.isJumping) {
             this.player.isJumping = true;
             this.player.velocityY = this.jumpPower;
+            
+            // Play jump sound with variation
+            if (window.gameManager && window.gameManager.audioManager) {
+                window.gameManager.audioManager.playJumpSound();
+            }
         }
     }
     
@@ -1780,6 +1785,235 @@ class SimpleGame {
     }
 }
 
+// Advanced Audio Manager
+class AudioManager {
+    constructor() {
+        this.sounds = {};
+        this.soundPools = {};
+        this.masterVolume = 0.7;
+        this.sfxVolume = 0.8;
+        this.musicVolume = 0.5;
+        this.isMuted = false;
+        this.isInitialized = false;
+        
+        this.init();
+    }
+    
+    init() {
+        // Initialize sound pools for different sound types
+        this.initializeSoundPools();
+        this.loadSounds();
+    }
+    
+    initializeSoundPools() {
+        // Create pools for frequently used sounds
+        this.soundPools = {
+            jump: [],
+            obstacle: [],
+            gameOver: [],
+            powerUp: []
+        };
+    }
+    
+    async loadSounds() {
+        try {
+            // Jump sounds with variations
+            await this.loadSound('jump_1', 'jump_1.mp3', 'jump');
+            await this.loadSound('jump_2', 'jump_2.mp3', 'jump');
+            
+            // You can add more sounds later:
+            // await this.loadSound('obstacle_hit', 'obstacle.mp3', 'obstacle');
+            // await this.loadSound('game_over', 'gameover.mp3', 'gameOver');
+            
+            this.isInitialized = true;
+            console.log('Audio system initialized successfully');
+        } catch (error) {
+            console.warn('Some audio files could not be loaded:', error);
+            this.isInitialized = false;
+        }
+    }
+    
+    async loadSound(name, filename, poolType = null) {
+        return new Promise((resolve, reject) => {
+            const audio = new Audio();
+            audio.preload = 'auto';
+            
+            audio.addEventListener('canplaythrough', () => {
+                this.sounds[name] = {
+                    audio: audio,
+                    filename: filename,
+                    poolType: poolType,
+                    isLoaded: true
+                };
+                
+                // Create sound pool instances for frequently used sounds
+                if (poolType && this.soundPools[poolType]) {
+                    for (let i = 0; i < 3; i++) { // Create 3 instances for pooling
+                        const poolAudio = new Audio();
+                        poolAudio.src = filename;
+                        poolAudio.preload = 'auto';
+                        poolAudio.volume = this.sfxVolume * this.masterVolume;
+                        this.soundPools[poolType].push(poolAudio);
+                    }
+                }
+                
+                resolve();
+            });
+            
+            audio.addEventListener('error', (e) => {
+                console.warn(`Failed to load audio: ${filename}`, e);
+                this.sounds[name] = {
+                    audio: null,
+                    filename: filename,
+                    poolType: poolType,
+                    isLoaded: false
+                };
+                resolve(); // Don't reject, just continue without this sound
+            });
+            
+            audio.src = filename;
+            audio.volume = this.sfxVolume * this.masterVolume;
+        });
+    }
+    
+    playSound(soundName, options = {}) {
+        if (this.isMuted || !this.isInitialized) return;
+        
+        const sound = this.sounds[soundName];
+        if (!sound || !sound.isLoaded) {
+            console.warn(`Sound "${soundName}" not found or not loaded`);
+            return;
+        }
+        
+        const volume = options.volume !== undefined ? options.volume : this.sfxVolume;
+        const pitch = options.pitch || 1.0;
+        const loop = options.loop || false;
+        
+        try {
+            // Use sound pool if available for better performance
+            if (sound.poolType && this.soundPools[sound.poolType]) {
+                const pooledSound = this.getAvailablePooledSound(sound.poolType);
+                if (pooledSound) {
+                    pooledSound.volume = volume * this.masterVolume;
+                    pooledSound.playbackRate = pitch;
+                    pooledSound.loop = loop;
+                    pooledSound.currentTime = 0;
+                    pooledSound.play().catch(e => console.warn('Audio play failed:', e));
+                    return;
+                }
+            }
+            
+            // Fallback to original sound
+            const audio = sound.audio.cloneNode();
+            audio.volume = volume * this.masterVolume;
+            audio.playbackRate = pitch;
+            audio.loop = loop;
+            audio.play().catch(e => console.warn('Audio play failed:', e));
+            
+        } catch (error) {
+            console.warn(`Error playing sound "${soundName}":`, error);
+        }
+    }
+    
+    getAvailablePooledSound(poolType) {
+        const pool = this.soundPools[poolType];
+        if (!pool) return null;
+        
+        // Find an available (not playing) sound in the pool
+        for (let audio of pool) {
+            if (audio.paused || audio.ended) {
+                return audio;
+            }
+        }
+        
+        // If all are playing, return the first one (will interrupt)
+        return pool[0];
+    }
+    
+    playJumpSound() {
+        // Randomly choose between jump sound variations
+        const jumpSounds = ['jump_1', 'jump_2'];
+        const randomJump = jumpSounds[Math.floor(Math.random() * jumpSounds.length)];
+        
+        // Add slight pitch variation for more variety
+        const pitchVariation = 0.9 + Math.random() * 0.2; // 0.9 to 1.1
+        
+        this.playSound(randomJump, {
+            volume: this.sfxVolume,
+            pitch: pitchVariation
+        });
+    }
+    
+    setMasterVolume(volume) {
+        this.masterVolume = Math.max(0, Math.min(1, volume));
+        this.updateAllVolumes();
+    }
+    
+    setSFXVolume(volume) {
+        this.sfxVolume = Math.max(0, Math.min(1, volume));
+        this.updateAllVolumes();
+    }
+    
+    setMusicVolume(volume) {
+        this.musicVolume = Math.max(0, Math.min(1, volume));
+        this.updateAllVolumes();
+    }
+    
+    updateAllVolumes() {
+        // Update volumes for all pooled sounds
+        for (let poolType in this.soundPools) {
+            for (let audio of this.soundPools[poolType]) {
+                audio.volume = this.sfxVolume * this.masterVolume;
+            }
+        }
+    }
+    
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        if (this.isMuted) {
+            this.stopAllSounds();
+        }
+        return this.isMuted;
+    }
+    
+    mute() {
+        this.isMuted = true;
+        this.stopAllSounds();
+    }
+    
+    unmute() {
+        this.isMuted = false;
+    }
+    
+    stopAllSounds() {
+        // Stop all pooled sounds
+        for (let poolType in this.soundPools) {
+            for (let audio of this.soundPools[poolType]) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        }
+    }
+    
+    // Preload audio on user interaction (required by browsers)
+    enableAudio() {
+        if (!this.isInitialized) return;
+        
+        // Play and immediately pause a silent sound to enable audio context
+        for (let poolType in this.soundPools) {
+            if (this.soundPools[poolType].length > 0) {
+                const audio = this.soundPools[poolType][0];
+                audio.volume = 0;
+                audio.play().then(() => {
+                    audio.pause();
+                    audio.volume = this.sfxVolume * this.masterVolume;
+                }).catch(() => {});
+                break;
+            }
+        }
+    }
+}
+
 // Game Manager
 class GameManager {
     constructor() {
@@ -1788,6 +2022,7 @@ class GameManager {
         this.gameRunning = false;
         this.game = null;
         this.browserId = null;
+        this.audioManager = new AudioManager();
         
         this.init();
     }
@@ -1847,12 +2082,21 @@ class GameManager {
     setupEventListeners() {
         // Start button
         document.getElementById('startButton').addEventListener('click', () => {
+            // Enable audio on first user interaction
+            this.audioManager.enableAudio();
             this.startGame();
         });
         
         // See leaderboard button (start screen)
         document.getElementById('seeLeaderboardButton').addEventListener('click', () => {
             this.showLeaderboardScreen();
+        });
+        
+        // Mute button
+        document.getElementById('muteButton').addEventListener('click', () => {
+            const isMuted = this.audioManager.toggleMute();
+            const muteButton = document.getElementById('muteButton');
+            muteButton.textContent = isMuted ? '🔇 SOUND OFF' : '🔊 SOUND ON';
         });
         
         // Username input with debouncing
