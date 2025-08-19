@@ -1800,8 +1800,10 @@ class AudioManager {
         this.musicVolume = 0.5;
         this.isMuted = false;
         this.isInitialized = false;
+        this.isPaused = false; // Track if music is paused due to tab visibility
         
         this.init();
+        this.setupVisibilityHandling();
     }
     
     init() {
@@ -2047,6 +2049,51 @@ class AudioManager {
         }
     }
     
+    // Setup browser visibility handling
+    setupVisibilityHandling() {
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Tab is not visible, pause music
+                this.pauseMusic();
+            } else {
+                // Tab is visible again, resume music if appropriate
+                this.resumeMusic();
+            }
+        });
+        
+        // Handle window focus/blur as backup
+        window.addEventListener('blur', () => {
+            this.pauseMusic();
+        });
+        
+        window.addEventListener('focus', () => {
+            this.resumeMusic();
+        });
+    }
+    
+    pauseMusic() {
+        if (this.isMainMenuMusicPlaying()) {
+            this.isPaused = true;
+            this.stopMainMenuMusic();
+        }
+    }
+    
+    resumeMusic() {
+        // Only resume if music was paused due to visibility and we're on appropriate screen
+        if (this.isPaused && window.gameManager) {
+            const currentScreen = window.gameManager.currentScreen;
+            if (currentScreen === 'start' || currentScreen === 'leaderboard') {
+                setTimeout(() => {
+                    this.playMainMenuMusic();
+                    this.isPaused = false;
+                }, 100);
+            } else {
+                this.isPaused = false;
+            }
+        }
+    }
+
     // Preload audio on user interaction (required by browsers)
     enableAudio() {
         if (!this.isInitialized) return;
@@ -2313,6 +2360,13 @@ class GameManager {
         this.username = '';
         document.getElementById('usernameError').textContent = '';
         document.getElementById('startButton').disabled = true;
+        
+        // Ensure music plays when returning to main menu
+        setTimeout(() => {
+            if (this.currentScreen === 'start' && !this.audioManager.isMainMenuMusicPlaying()) {
+                this.audioManager.playMainMenuMusic();
+            }
+        }, 100);
     }
     
     showScreen(screenName) {
@@ -2332,12 +2386,17 @@ class GameManager {
     handleBackgroundMusic(screenName) {
         // Play main menu music on start and leaderboard screens
         if (screenName === 'start' || screenName === 'leaderboard') {
-            if (!this.audioManager.isMainMenuMusicPlaying()) {
-                this.audioManager.playMainMenuMusic();
+            // Reset pause state when entering menu screens
+            this.audioManager.isPaused = false;
+            if (!this.audioManager.isMainMenuMusicPlaying() && !this.audioManager.isMuted) {
+                setTimeout(() => {
+                    this.audioManager.playMainMenuMusic();
+                }, 100);
             }
         } else {
             // Stop music on other screens (game, gameOver)
             this.audioManager.stopMainMenuMusic();
+            this.audioManager.isPaused = false; // Reset pause state
         }
     }
 
