@@ -167,9 +167,9 @@ class SimpleGame {
         const width = this.displayWidth || window.innerWidth;
         const height = this.displayHeight || window.innerHeight;
         
-        // Make character size responsive to screen size
-        this.player.width = Math.max(40, Math.min(60, width * 0.05));
-        this.player.height = Math.max(60, Math.min(100, height * 0.08));
+        // Make character size responsive to screen size (thinner and slightly taller)
+        this.player.width = Math.max(30, Math.min(45, width * 0.04)); // Reduced width: 0.05 -> 0.04, max 60 -> 45
+        this.player.height = Math.max(70, Math.min(110, height * 0.09)); // Increased height: 0.08 -> 0.09, min 60 -> 70, max 100 -> 110
         
         // Make wife size responsive (slightly smaller than player)
         this.wife.width = Math.max(35, Math.min(55, width * 0.045));
