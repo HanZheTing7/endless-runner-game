@@ -615,6 +615,11 @@ class SimpleGame {
         this.stop();
         console.log('Game Over triggered. Score:', this.score, 'Distance:', this.distance);
         
+        // Play lose sound
+        if (window.gameManager && window.gameManager.audioManager) {
+            window.gameManager.audioManager.playLoseSound();
+        }
+        
         // Check if elements exist before trying to access them
         const finalScoreElement = document.getElementById('finalScore');
         const finalDistanceElement = document.getElementById('finalDistance');
@@ -1811,19 +1816,24 @@ class AudioManager {
             jump: [],
             obstacle: [],
             gameOver: [],
-            powerUp: []
+            powerUp: [],
+            music: []
         };
     }
     
     async loadSounds() {
         try {
-            // Jump sounds with variations
-            await this.loadSound('jump_1', 'jump_1.mp3', 'jump');
+            // Jump sound (single file)
             await this.loadSound('jump_2', 'jump_2.mp3', 'jump');
+            
+            // Game over sound
+            await this.loadSound('lose', 'lose.mp3', 'gameOver');
+            
+            // Background music
+            await this.loadSound('main_menu', 'main_menu.mp3', 'music');
             
             // You can add more sounds later:
             // await this.loadSound('obstacle_hit', 'obstacle.mp3', 'obstacle');
-            // await this.loadSound('game_over', 'gameover.mp3', 'gameOver');
             
             this.isInitialized = true;
             console.log('Audio system initialized successfully');
@@ -1931,17 +1941,55 @@ class AudioManager {
     }
     
     playJumpSound() {
-        // Randomly choose between jump sound variations
-        const jumpSounds = ['jump_1', 'jump_2'];
-        const randomJump = jumpSounds[Math.floor(Math.random() * jumpSounds.length)];
-        
-        // Add slight pitch variation for more variety
+        // Use single jump sound with pitch variation for variety
         const pitchVariation = 0.9 + Math.random() * 0.2; // 0.9 to 1.1
         
-        this.playSound(randomJump, {
+        this.playSound('jump_2', {
             volume: this.sfxVolume,
             pitch: pitchVariation
         });
+    }
+    
+    playLoseSound() {
+        // Play game over sound with full volume
+        this.playSound('lose', {
+            volume: this.sfxVolume * 1.2, // Slightly louder for impact
+            pitch: 1.0 // No pitch variation for lose sound
+        });
+    }
+    
+    playMainMenuMusic() {
+        // Play background music on loop
+        this.playSound('main_menu', {
+            volume: this.musicVolume,
+            pitch: 1.0,
+            loop: true
+        });
+    }
+    
+    stopMainMenuMusic() {
+        // Stop all music sounds
+        if (this.soundPools.music) {
+            for (let audio of this.soundPools.music) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        }
+        
+        // Also stop the original sound if it's playing
+        const mainMenuSound = this.sounds['main_menu'];
+        if (mainMenuSound && mainMenuSound.audio) {
+            mainMenuSound.audio.pause();
+            mainMenuSound.audio.currentTime = 0;
+        }
+    }
+    
+    // Track current music state
+    isMainMenuMusicPlaying() {
+        if (this.soundPools.music && this.soundPools.music.length > 0) {
+            return !this.soundPools.music[0].paused;
+        }
+        return false;
     }
     
     setMasterVolume(volume) {
@@ -1963,7 +2011,11 @@ class AudioManager {
         // Update volumes for all pooled sounds
         for (let poolType in this.soundPools) {
             for (let audio of this.soundPools[poolType]) {
-                audio.volume = this.sfxVolume * this.masterVolume;
+                if (poolType === 'music') {
+                    audio.volume = this.musicVolume * this.masterVolume;
+                } else {
+                    audio.volume = this.sfxVolume * this.masterVolume;
+                }
             }
         }
     }
@@ -2077,6 +2129,13 @@ class GameManager {
         
         this.setupEventListeners();
         this.showScreen('start');
+        
+        // Start main menu music after a short delay to ensure audio is ready
+        setTimeout(() => {
+            if (this.currentScreen === 'start') {
+                this.audioManager.playMainMenuMusic();
+            }
+        }, 1000);
     }
     
     setupEventListeners() {
@@ -2265,6 +2324,21 @@ class GameManager {
         // Show target screen
         document.getElementById(screenName + 'Screen').classList.add('active');
         this.currentScreen = screenName;
+        
+        // Handle background music based on screen
+        this.handleBackgroundMusic(screenName);
+    }
+    
+    handleBackgroundMusic(screenName) {
+        // Play main menu music on start and leaderboard screens
+        if (screenName === 'start' || screenName === 'leaderboard') {
+            if (!this.audioManager.isMainMenuMusicPlaying()) {
+                this.audioManager.playMainMenuMusic();
+            }
+        } else {
+            // Stop music on other screens (game, gameOver)
+            this.audioManager.stopMainMenuMusic();
+        }
     }
 
     showLeaderboardScreen() {
