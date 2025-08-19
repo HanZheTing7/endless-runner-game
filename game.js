@@ -1801,6 +1801,9 @@ class AudioManager {
         this.isMuted = false;
         this.isInitialized = false;
         this.isPaused = false; // Track if music is paused due to tab visibility
+        this.currentMusicTime = 0; // Store current playback position
+        this.currentMusicAudio = null; // Reference to currently playing music
+        this.musicShouldBePlaying = false; // Track if music should be playing
         
         this.init();
         this.setupVisibilityHandling();
@@ -1961,20 +1964,58 @@ class AudioManager {
     }
     
     playMainMenuMusic() {
-        // Play background music on loop
-        this.playSound('main_menu', {
-            volume: this.musicVolume,
-            pitch: 1.0,
-            loop: true
-        });
+        if (this.isMuted || !this.isInitialized) return;
+        
+        // Don't start new music if already playing
+        if (this.currentMusicAudio && !this.currentMusicAudio.paused) {
+            return;
+        }
+        
+        const sound = this.sounds['main_menu'];
+        if (!sound || !sound.isLoaded) {
+            console.warn('Main menu music not found or not loaded');
+            return;
+        }
+        
+        try {
+            // Use pooled sound if available
+            if (sound.poolType && this.soundPools[sound.poolType]) {
+                const pooledSound = this.getAvailablePooledSound(sound.poolType);
+                if (pooledSound) {
+                    this.currentMusicAudio = pooledSound;
+                    pooledSound.volume = this.musicVolume * this.masterVolume;
+                    pooledSound.loop = true;
+                    pooledSound.currentTime = this.currentMusicTime;
+                    pooledSound.play().catch(e => console.warn('Music play failed:', e));
+                    this.musicShouldBePlaying = true;
+                    return;
+                }
+            }
+            
+            // Fallback to original sound
+            const audio = sound.audio.cloneNode();
+            this.currentMusicAudio = audio;
+            audio.volume = this.musicVolume * this.masterVolume;
+            audio.loop = true;
+            audio.currentTime = this.currentMusicTime;
+            audio.play().catch(e => console.warn('Music play failed:', e));
+            this.musicShouldBePlaying = true;
+            
+        } catch (error) {
+            console.warn('Error playing main menu music:', error);
+        }
     }
     
     stopMainMenuMusic() {
+        // Save current playback time if music is playing
+        if (this.currentMusicAudio && !this.currentMusicAudio.paused) {
+            this.currentMusicTime = this.currentMusicAudio.currentTime;
+        }
+        
         // Stop all music sounds
         if (this.soundPools.music) {
             for (let audio of this.soundPools.music) {
                 audio.pause();
-                audio.currentTime = 0;
             }
         }
         
@@ -1982,16 +2023,16 @@ class AudioManager {
         const mainMenuSound = this.sounds['main_menu'];
         if (mainMenuSound && mainMenuSound.audio) {
             mainMenuSound.audio.pause();
-            mainMenuSound.audio.currentTime = 0;
         }
+        
+        // Clear current music reference
+        this.currentMusicAudio = null;
+        this.musicShouldBePlaying = false;
     }
     
     // Track current music state
     isMainMenuMusicPlaying() {
-        if (this.soundPools.music && this.soundPools.music.length > 0) {
-            return !this.soundPools.music[0].paused;
-        }
-        return false;
+        return this.currentMusicAudio && !this.currentMusicAudio.paused;
     }
     
     setMasterVolume(volume) {
@@ -2073,18 +2114,22 @@ class AudioManager {
     }
     
     pauseMusic() {
-        if (this.isMainMenuMusicPlaying()) {
+        if (this.isMainMenuMusicPlaying() && this.musicShouldBePlaying) {
+            // Save current time before pausing
+            this.currentMusicTime = this.currentMusicAudio.currentTime;
+            this.currentMusicAudio.pause();
             this.isPaused = true;
-            this.stopMainMenuMusic();
+            console.log('Music paused at time:', this.currentMusicTime);
         }
     }
     
     resumeMusic() {
-        // Only resume if music was paused due to visibility and we're on appropriate screen
-        if (this.isPaused && window.gameManager) {
+        // Only resume if music was paused due to visibility and should be playing
+        if (this.isPaused && this.musicShouldBePlaying && window.gameManager) {
             const currentScreen = window.gameManager.currentScreen;
             if (currentScreen === 'start' || currentScreen === 'leaderboard') {
                 setTimeout(() => {
+                    console.log('Resuming music from time:', this.currentMusicTime);
                     this.playMainMenuMusic();
                     this.isPaused = false;
                 }, 100);
@@ -2106,6 +2151,16 @@ class AudioManager {
                 audio.play().then(() => {
                     audio.pause();
                     audio.volume = this.sfxVolume * this.masterVolume;
+                    
+                    // Start main menu music after enabling audio context
+                    if (window.gameManager && 
+                        (window.gameManager.currentScreen === 'start' || window.gameManager.currentScreen === 'leaderboard') &&
+                        !this.isMainMenuMusicPlaying() && 
+                        !this.isMuted) {
+                        setTimeout(() => {
+                            this.playMainMenuMusic();
+                        }, 100);
+                    }
                 }).catch(() => {});
                 break;
             }
@@ -2195,11 +2250,15 @@ class GameManager {
         
         // See leaderboard button (start screen)
         document.getElementById('seeLeaderboardButton').addEventListener('click', () => {
+            // Enable audio on first user interaction
+            this.audioManager.enableAudio();
             this.showLeaderboardScreen();
         });
         
         // Mute button
         document.getElementById('muteButton').addEventListener('click', () => {
+            // Enable audio on first user interaction
+            this.audioManager.enableAudio();
             const isMuted = this.audioManager.toggleMute();
             const muteButton = document.getElementById('muteButton');
             muteButton.textContent = isMuted ? '🔇 SOUND OFF' : '🔊 SOUND ON';
@@ -2236,15 +2295,21 @@ class GameManager {
         
         // Game over buttons
         document.getElementById('restartButton').addEventListener('click', () => {
+            // Enable audio on user interaction
+            this.audioManager.enableAudio();
             this.restartGame();
         });
         
         document.getElementById('mainMenuButton').addEventListener('click', () => {
+            // Enable audio on user interaction
+            this.audioManager.enableAudio();
             this.showMainMenu();
         });
         
         // Back to menu button (leaderboard screen)
         document.getElementById('backToMenuButton').addEventListener('click', () => {
+            // Enable audio on user interaction
+            this.audioManager.enableAudio();
             this.showScreen('start');
         });
     }
@@ -2389,6 +2454,10 @@ class GameManager {
             // Reset pause state when entering menu screens
             this.audioManager.isPaused = false;
             if (!this.audioManager.isMainMenuMusicPlaying() && !this.audioManager.isMuted) {
+                // Reset current time when starting fresh (not resuming)
+                if (!this.audioManager.musicShouldBePlaying) {
+                    this.audioManager.currentMusicTime = 0;
+                }
                 setTimeout(() => {
                     this.audioManager.playMainMenuMusic();
                 }, 100);
