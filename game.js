@@ -328,6 +328,14 @@ class SimpleGame {
         this.gameRunning = false; // Don't start game logic yet
         this.isTransitioning = false; // Make sure we're not transitioning
         
+        // Start game music during story mode for better atmosphere
+        if (window.gameManager && window.gameManager.audioManager) {
+            window.gameManager.audioManager.stopMainMenuMusic(); // Stop menu music
+            setTimeout(() => {
+                window.gameManager.audioManager.playGameMusic(); // Start game music
+            }, 200);
+        }
+        
         // Reset story properties
         this.currentLineIndex = 0;
         this.displayedText = "";
@@ -367,6 +375,7 @@ class SimpleGame {
         this.wife.isVisible = true;
         this.wife.x = Math.max(5, this.player.x - 160); // 130 pixels behind player, more gap
 
+        // Music is already playing from story mode, no need to start it here
     }
     
     completeTransition() {
@@ -621,8 +630,9 @@ class SimpleGame {
         this.stop();
         console.log('Game Over triggered. Score:', this.score, 'Distance:', this.distance);
         
-        // Play lose sound
+        // Stop game music and play lose sound
         if (window.gameManager && window.gameManager.audioManager) {
+            window.gameManager.audioManager.stopGameMusic(); // Stop game music
             window.gameManager.audioManager.playLoseSound();
         }
         
@@ -1818,6 +1828,9 @@ class AudioManager {
         this.currentMusicTime = 0; // Store current playback position
         this.currentMusicAudio = null; // Reference to currently playing music
         this.musicShouldBePlaying = false; // Track if music should be playing
+        this.currentGameMusicTime = 0; // Store current game music playback position
+        this.currentGameMusicAudio = null; // Reference to currently playing game music
+        this.gameMusicShouldBePlaying = false; // Track if game music should be playing
         
         this.init();
         this.setupVisibilityHandling();
@@ -1850,6 +1863,9 @@ class AudioManager {
             
             // Background music
             await this.loadSound('main_menu', 'main_menu.mp3', 'music');
+            
+            // Game music (plays during gameplay)
+            await this.loadSound('game_music', 'game_music.mp3', 'music');
             
             // You can add more sounds later:
             // await this.loadSound('obstacle_hit', 'obstacle.mp3', 'obstacle');
@@ -2020,6 +2036,51 @@ class AudioManager {
         }
     }
     
+    playGameMusic() {
+        if (this.isMuted || !this.isInitialized) return;
+        
+        // Don't start new music if already playing
+        if (this.currentGameMusicAudio && !this.currentGameMusicAudio.paused) {
+            return;
+        }
+        
+        const sound = this.sounds['game_music'];
+        if (!sound || !sound.isLoaded) {
+            console.warn('Game music not found or not loaded');
+            return;
+        }
+        
+        try {
+            // Use pooled sound if available
+            if (sound.poolType && this.soundPools[sound.poolType]) {
+                const pooledSound = this.getAvailablePooledSound(sound.poolType);
+                if (pooledSound) {
+                    this.currentGameMusicAudio = pooledSound;
+                    pooledSound.volume = this.musicVolume * this.masterVolume;
+                    pooledSound.loop = true;
+                    pooledSound.currentTime = this.currentGameMusicTime;
+                    pooledSound.play().catch(e => console.warn('Game music play failed:', e));
+                    this.gameMusicShouldBePlaying = true;
+                    console.log('Game music started');
+                    return;
+                }
+            }
+            
+            // Fallback to original sound
+            const audio = sound.audio.cloneNode();
+            this.currentGameMusicAudio = audio;
+            audio.volume = this.musicVolume * this.masterVolume;
+            audio.loop = true;
+            audio.currentTime = this.currentGameMusicTime;
+            audio.play().catch(e => console.warn('Game music play failed:', e));
+            this.gameMusicShouldBePlaying = true;
+            console.log('Game music started');
+            
+        } catch (error) {
+            console.warn('Error playing game music:', error);
+        }
+    }
+    
     stopMainMenuMusic() {
         // Save current playback time if music is playing
         if (this.currentMusicAudio && !this.currentMusicAudio.paused) {
@@ -2042,6 +2103,29 @@ class AudioManager {
         // Clear current music reference
         this.currentMusicAudio = null;
         this.musicShouldBePlaying = false;
+    }
+    
+    stopGameMusic() {
+        // Save current playback time if game music is playing
+        if (this.currentGameMusicAudio && !this.currentGameMusicAudio.paused) {
+            this.currentGameMusicTime = this.currentGameMusicAudio.currentTime;
+        }
+        
+        // Stop game music
+        if (this.currentGameMusicAudio) {
+            this.currentGameMusicAudio.pause();
+        }
+        
+        // Also stop the original sound if it's playing
+        const gameMusicSound = this.sounds['game_music'];
+        if (gameMusicSound && gameMusicSound.audio) {
+            gameMusicSound.audio.pause();
+        }
+        
+        // Clear current game music reference
+        this.currentGameMusicAudio = null;
+        this.gameMusicShouldBePlaying = false;
+        console.log('Game music stopped');
     }
     
     // Track current music state
@@ -2102,6 +2186,10 @@ class AudioManager {
                 audio.currentTime = 0;
             }
         }
+        
+        // Stop game music
+        this.stopGameMusic();
+        this.currentGameMusicTime = 0; // Reset game music time when muting
     }
     
     // Setup browser visibility handling
@@ -2135,6 +2223,13 @@ class AudioManager {
             this.isPaused = true;
             console.log('Music paused at time:', this.currentMusicTime);
         }
+        
+        // Also pause game music if playing
+        if (this.currentGameMusicAudio && !this.currentGameMusicAudio.paused && this.gameMusicShouldBePlaying) {
+            this.currentGameMusicTime = this.currentGameMusicAudio.currentTime;
+            this.currentGameMusicAudio.pause();
+            console.log('Game music paused at time:', this.currentGameMusicTime);
+        }
     }
     
     resumeMusic() {
@@ -2149,6 +2244,17 @@ class AudioManager {
                 }, 100);
             } else {
                 this.isPaused = false;
+            }
+        }
+        
+        // Also resume game music if it should be playing
+        if (this.gameMusicShouldBePlaying && window.gameManager) {
+            const currentScreen = window.gameManager.currentScreen;
+            if (currentScreen === 'game') {
+                setTimeout(() => {
+                    console.log('Resuming game music from time:', this.currentGameMusicTime);
+                    this.playGameMusic();
+                }, 100);
             }
         }
     }
@@ -2484,6 +2590,8 @@ class GameManager {
         if (screenName === 'start' || screenName === 'leaderboard') {
             // Reset pause state when entering menu screens
             this.audioManager.isPaused = false;
+            // Stop game music when returning to menu
+            this.audioManager.stopGameMusic();
             if (!this.audioManager.isMainMenuMusicPlaying() && !this.audioManager.isMuted) {
                 // Reset current time when starting fresh (not resuming)
                 if (!this.audioManager.musicShouldBePlaying) {
@@ -2493,9 +2601,13 @@ class GameManager {
                     this.audioManager.playMainMenuMusic();
                 }, 100);
             }
+        } else if (screenName === 'game') {
+            // Game music is now handled by story mode start, no need to change music here
+            this.audioManager.isPaused = false; // Reset pause state
         } else {
-            // Stop music on other screens (game, gameOver)
+            // Stop all music on other screens (gameOver, etc.)
             this.audioManager.stopMainMenuMusic();
+            this.audioManager.stopGameMusic();
             this.audioManager.isPaused = false; // Reset pause state
         }
     }
