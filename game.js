@@ -191,6 +191,7 @@ class SimpleGame {
             this.player.x = (width / 2) - (this.player.width / 2);
             // Hide wife during story mode
             this.wife.isVisible = false;
+            console.log('Positioning player in center for story mode, x:', this.player.x);
         } else {
             // Normal game position (moved a bit more to the right)
             this.player.x = Math.min(200, width * 0.15);
@@ -198,8 +199,8 @@ class SimpleGame {
             if (!this.wife.isVisible) {
                 this.wife.x = Math.max(5, this.player.x - 160);
                 this.wife.isVisible = true;
-
             }
+            console.log('Positioning player on left for gameplay, x:', this.player.x);
         }
     }
     
@@ -404,12 +405,12 @@ class SimpleGame {
         this.gameRunning = true;
         this.isTransitioning = false;
         
-        // Move player to left position immediately (moved a bit more to the right)
-        this.player.x = Math.min(200, this.canvas.width * 0.15);
+        console.log('Starting actual game - setting storyMode to false and positioning player on left');
         
-        // Make sure wife becomes visible and is positioned correctly
-        this.wife.isVisible = true;
-        this.wife.x = Math.max(5, this.player.x - 160); // 130 pixels behind player, more gap
+        // Update positions now that we're out of story mode
+        this.updateGameObjectPositions();
+        
+        console.log('Player positioned at x:', this.player.x, 'storyMode:', this.storyMode);
 
         // Music is already playing from story mode, no need to start it here
     }
