@@ -2327,27 +2327,31 @@ class AudioManager {
 
     // Preload audio on user interaction (required by browsers)
     enableAudio() {
-        if (!this.isInitialized) return;
+        if (!this.isInitialized) {
+            console.warn('Audio system not initialized yet');
+            return;
+        }
+        
+        console.log('Enabling audio context...');
         
         // Play and immediately pause a silent sound to enable audio context
         for (let poolType in this.soundPools) {
             if (this.soundPools[poolType].length > 0) {
                 const audio = this.soundPools[poolType][0];
+                const originalVolume = audio.volume;
                 audio.volume = 0;
+                
                 audio.play().then(() => {
                     audio.pause();
-                    audio.volume = this.sfxVolume * this.masterVolume;
+                    audio.volume = originalVolume;
+                    console.log('Audio context enabled successfully');
                     
-                    // Start main menu music after enabling audio context
-                    if (window.gameManager && 
-                        (window.gameManager.currentScreen === 'start' || window.gameManager.currentScreen === 'leaderboard') &&
-                        !this.isMainMenuMusicPlaying() && 
-                        !this.isMuted) {
-                        setTimeout(() => {
-                            this.playMainMenuMusic();
-                        }, 100);
-                    }
-                }).catch(() => {});
+                    // Don't auto-start music here - let the global handler do it
+                    // This prevents double music starting
+                }).catch((error) => {
+                    console.warn('Failed to enable audio context:', error);
+                    audio.volume = originalVolume;
+                });
                 break;
             }
         }
@@ -2425,22 +2429,62 @@ class GameManager {
                 this.audioManager.playMainMenuMusic();
             }
         }, 1000);
+        
+        // Set up periodic check to ensure music is playing when it should be
+        setInterval(() => {
+            this.ensureMainMenuMusicPlaying();
+        }, 3000); // Check every 3 seconds
     }
     
     setupGlobalAudioEnablement() {
+        // Track if audio has been successfully enabled
+        this.audioEnabled = false;
+        
         // Enable audio on any user interaction anywhere on the page
         const enableAudioOnInteraction = () => {
+            console.log('User interaction detected, attempting to enable audio...');
             this.audioManager.enableAudio();
-            // Remove listeners after first interaction to avoid multiple calls
-            document.removeEventListener('click', enableAudioOnInteraction);
-            document.removeEventListener('touchstart', enableAudioOnInteraction);
-            document.removeEventListener('keydown', enableAudioOnInteraction);
+            
+            // Check if music should be playing and start it if needed
+            if (this.currentScreen === 'start' || this.currentScreen === 'leaderboard') {
+                setTimeout(() => {
+                    if (!this.audioManager.isMainMenuMusicPlaying() && !this.audioManager.isMuted) {
+                        console.log('Starting main menu music after user interaction');
+                        this.audioManager.playMainMenuMusic();
+                    }
+                }, 200);
+            }
+            
+            // Only remove listeners after successful audio enablement
+            setTimeout(() => {
+                if (this.audioManager.isInitialized) {
+                    this.audioEnabled = true;
+                    document.removeEventListener('click', enableAudioOnInteraction);
+                    document.removeEventListener('touchstart', enableAudioOnInteraction);
+                    document.removeEventListener('keydown', enableAudioOnInteraction);
+                    console.log('Global audio listeners removed - audio enabled successfully');
+                }
+            }, 500);
         };
         
         // Add global event listeners for any user interaction
         document.addEventListener('click', enableAudioOnInteraction, { passive: true });
         document.addEventListener('touchstart', enableAudioOnInteraction, { passive: true });
         document.addEventListener('keydown', enableAudioOnInteraction, { passive: true });
+        
+        console.log('Global audio enablement listeners added');
+    }
+    
+    // Ensure music is playing when it should be
+    ensureMainMenuMusicPlaying() {
+        if ((this.currentScreen === 'start' || this.currentScreen === 'leaderboard') && 
+            !this.audioManager.isMainMenuMusicPlaying() && 
+            !this.audioManager.isMuted && 
+            this.audioManager.isInitialized) {
+            
+            console.log('Ensuring main menu music is playing...');
+            this.audioManager.playMainMenuMusic();
+        }
     }
     
     setupEventListeners() {
@@ -2471,6 +2515,9 @@ class GameManager {
         let usernameTimeout;
         document.getElementById('username').addEventListener('input', (e) => {
             this.username = e.target.value.trim();
+            
+            // Try to ensure music is playing on username input
+            setTimeout(() => this.ensureMainMenuMusicPlaying(), 100);
             
             // Clear previous timeout
             if (usernameTimeout) {
