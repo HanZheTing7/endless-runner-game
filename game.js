@@ -2334,10 +2334,10 @@ class GameManager {
             return false;
         }
         
-        // Check for special characters
-        const validPattern = /^[a-zA-Z0-9_-]+$/;
+        // Check for special characters and format
+        const validPattern = /^[a-zA-Z0-9_-]+( [a-zA-Z0-9_-]+)*$/;
         if (!validPattern.test(this.username)) {
-            errorElement.textContent = 'Username can only contain letters, numbers, underscore, and dash';
+            errorElement.textContent = 'Username can contain letters, numbers, underscore, dash, and single spaces between words';
             startButton.disabled = true;
             return false;
         }
