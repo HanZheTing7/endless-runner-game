@@ -963,7 +963,7 @@ class SimpleGame {
             ctx.drawImage(
                 this.characterHead,
                 centerX - headSize/2,
-                y + height * 0.27 - headSize,
+                y + height * 0.27 - headSize * 0.8, // Reduced gap by adjusting multiplier
                 headSize,
                 headSize
             );
@@ -1215,10 +1215,18 @@ class SimpleGame {
         // Draw head using image instead of circle
         if (this.characterHead.complete) {
             const headSize = height * 0.8; // Increased from 0.24 to 0.4 to make head bigger
+            
+            // Add cute head shake animation while running (not while jumping)
+            let headShakeX = 0;
+            if (!this.player.isJumping) {
+                const time = Date.now() * 0.008; // Fast shake timing
+                headShakeX = Math.sin(time * 3) * 3; // Small side-to-side shake
+            }
+            
             ctx.drawImage(
                 this.characterHead, 
-                centerX - headSize/2, 
-                y + height * 0.27 - headSize,  // Changed from 0.03 to align bottom of image with neck
+                centerX - headSize/2 + headShakeX, // Add shake offset
+                y + height * 0.27 - headSize * 0.8,  // Reduced gap by adjusting multiplier
                 headSize, 
                 headSize
             );
