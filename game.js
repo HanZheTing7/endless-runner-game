@@ -114,41 +114,70 @@ class SimpleGame {
     }
     
     setupCanvas() {
-        // Set canvas to fullscreen
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+        // Get device pixel ratio for crisp rendering
+        const dpr = window.devicePixelRatio || 1;
         
-        // Update canvas style to prevent blurriness
+        // Set actual canvas size (accounting for device pixel ratio)
+        this.canvas.width = window.innerWidth * dpr;
+        this.canvas.height = window.innerHeight * dpr;
+        
+        // Set display size (CSS pixels)
         this.canvas.style.width = window.innerWidth + 'px';
         this.canvas.style.height = window.innerHeight + 'px';
+        
+        // Scale the context to match device pixel ratio
+        this.ctx.scale(dpr, dpr);
+        
+        // Store scaling info for later use
+        this.canvasScale = dpr;
+        this.displayWidth = window.innerWidth;
+        this.displayHeight = window.innerHeight;
         
         // Update game objects positions based on screen size
         this.updateGameObjectPositions();
         
-        console.log('Canvas setup - Width:', this.canvas.width, 'Height:', this.canvas.height);
+        console.log('Canvas setup - Display:', this.displayWidth + 'x' + this.displayHeight, 'Actual:', this.canvas.width + 'x' + this.canvas.height, 'DPR:', dpr);
         
         // Add resize listener to maintain fullscreen
         window.addEventListener('resize', () => {
-            this.canvas.width = window.innerWidth;
-            this.canvas.height = window.innerHeight;
+            const newDpr = window.devicePixelRatio || 1;
+            
+            // Set actual canvas size (accounting for device pixel ratio)
+            this.canvas.width = window.innerWidth * newDpr;
+            this.canvas.height = window.innerHeight * newDpr;
+            
+            // Set display size (CSS pixels)
             this.canvas.style.width = window.innerWidth + 'px';
             this.canvas.style.height = window.innerHeight + 'px';
+            
+            // Scale the context to match device pixel ratio
+            this.ctx.scale(newDpr, newDpr);
+            
+            // Update scaling info
+            this.canvasScale = newDpr;
+            this.displayWidth = window.innerWidth;
+            this.displayHeight = window.innerHeight;
+            
             this.updateGameObjectPositions();
         });
     }
     
     updateGameObjectPositions() {
+        // Use display dimensions for positioning (not scaled canvas dimensions)
+        const width = this.displayWidth || window.innerWidth;
+        const height = this.displayHeight || window.innerHeight;
+        
         // Make character size responsive to screen size
-        this.player.width = Math.max(40, Math.min(60, this.canvas.width * 0.05));
-        this.player.height = Math.max(60, Math.min(100, this.canvas.height * 0.08));
+        this.player.width = Math.max(40, Math.min(60, width * 0.05));
+        this.player.height = Math.max(60, Math.min(100, height * 0.08));
         
         // Make wife size responsive (slightly smaller than player)
-        this.wife.width = Math.max(35, Math.min(55, this.canvas.width * 0.045));
-        this.wife.height = Math.max(55, Math.min(95, this.canvas.height * 0.075));
+        this.wife.width = Math.max(35, Math.min(55, width * 0.045));
+        this.wife.height = Math.max(55, Math.min(95, height * 0.075));
         
         // Position ground at bottom of screen (responsive height)
-        this.ground.height = Math.max(50, this.canvas.height * 0.08);
-        this.ground.y = this.canvas.height - this.ground.height;
+        this.ground.height = Math.max(50, height * 0.08);
+        this.ground.y = height - this.ground.height;
         
         // Position player on ground
         this.player.y = this.ground.y - this.player.height;
@@ -159,12 +188,12 @@ class SimpleGame {
         // Update player x position based on game state
         if (this.storyMode) {
             // Center the character during story mode
-            this.player.x = (this.canvas.width / 2) - (this.player.width / 2);
+            this.player.x = (width / 2) - (this.player.width / 2);
             // Hide wife during story mode
             this.wife.isVisible = false;
         } else {
             // Normal game position (moved a bit more to the right)
-            this.player.x = Math.min(200, this.canvas.width * 0.15);
+            this.player.x = Math.min(200, width * 0.15);
             // Position wife behind player and make her visible (only if not already set)
             if (!this.wife.isVisible) {
                 this.wife.x = Math.max(5, this.player.x - 160);
@@ -243,25 +272,30 @@ class SimpleGame {
     
     createInitialObstacles() {
         // Create only 1 initial obstacle with random height
-        const obstacle = this.createRandomObstacle(this.canvas.width + 200);
+        const width = this.displayWidth || window.innerWidth;
+        const obstacle = this.createRandomObstacle(width + 200);
         this.obstacles.push(obstacle);
         console.log('Initial obstacle created:', this.obstacles.length);
     }
     
     createRandomObstacle(x) {
+        // Use display dimensions for obstacle sizing
+        const screenWidth = this.displayWidth || window.innerWidth;
+        const screenHeight = this.displayHeight || window.innerHeight;
+        
         // Calculate maximum jump height (responsive to screen size)
-        const jumpHeightRatio = Math.min(220, this.canvas.height * 0.3);
+        const jumpHeightRatio = Math.min(220, screenHeight * 0.3);
         const maxJumpHeight = this.ground.y - jumpHeightRatio;
         
         // Responsive obstacle dimensions
-        const minHeight = Math.max(20, this.canvas.height * 0.03);
-        const maxHeight = Math.min(Math.max(50, this.canvas.height * 0.08), this.ground.y - maxJumpHeight - 20);
+        const minHeight = Math.max(20, screenHeight * 0.03);
+        const maxHeight = Math.min(Math.max(50, screenHeight * 0.08), this.ground.y - maxJumpHeight - 20);
         
         const height = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
         
         // Responsive width
-        const minWidth = Math.max(15, this.canvas.width * 0.015);
-        const maxWidth = Math.max(25, this.canvas.width * 0.025);
+        const minWidth = Math.max(15, screenWidth * 0.015);
+        const maxWidth = Math.max(25, screenWidth * 0.025);
         const width = Math.floor(Math.random() * (maxWidth - minWidth + 1)) + minWidth;
         
         // Position obstacle so it's always clearable
@@ -512,11 +546,17 @@ class SimpleGame {
         }
         
         // Clear canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        const width = this.displayWidth || window.innerWidth;
+        const height = this.displayHeight || window.innerHeight;
+        this.ctx.clearRect(0, 0, width, height);
+        
+        // Enable text antialiasing for crisp text
+        this.ctx.textRenderingOptimization = 'optimizeQuality';
+        this.ctx.imageSmoothingEnabled = true;
         
         // Draw sky
         this.ctx.fillStyle = '#87CEEB';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillRect(0, 0, width, height);
         
         // Draw clouds
         this.drawClouds();
@@ -526,7 +566,7 @@ class SimpleGame {
         
         // Draw ground
         this.ctx.fillStyle = '#8B4513';
-        this.ctx.fillRect(0, this.ground.y, this.canvas.width, this.ground.height);
+        this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
         
         // Draw character (now in running animation as it moves)
         this.drawStickman(this.player.x, this.player.y, this.player.width, this.player.height);
@@ -535,7 +575,7 @@ class SimpleGame {
         this.ctx.fillStyle = '#FFFFFF';
         this.ctx.font = '24px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('Get ready to run!', this.canvas.width / 2, this.canvas.height / 4);
+        this.ctx.fillText('Get ready to run!', width / 2, height / 4);
     }
     
     update() {
@@ -561,7 +601,8 @@ class SimpleGame {
         
         // Add new obstacles if needed
         if (this.obstacles.length < this.obstacleFrequency) {
-            const newObstacle = this.createRandomObstacle(this.canvas.width + 300);
+            const width = this.displayWidth || window.innerWidth;
+            const newObstacle = this.createRandomObstacle(width + 300);
             this.obstacles.push(newObstacle);
         }
         
@@ -826,15 +867,21 @@ class SimpleGame {
         }
         
         // Clear canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        const width = this.displayWidth || window.innerWidth;
+        const height = this.displayHeight || window.innerHeight;
+        this.ctx.clearRect(0, 0, width, height);
+        
+        // Enable text antialiasing for crisp text
+        this.ctx.textRenderingOptimization = 'optimizeQuality';
+        this.ctx.imageSmoothingEnabled = true;
         
         // Draw sky
         this.ctx.fillStyle = '#87CEEB';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillRect(0, 0, width, height);
         
         // Draw ground
         this.ctx.fillStyle = '#8B4513';
-        this.ctx.fillRect(0, this.ground.y, this.canvas.width, this.ground.height);
+        this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
         
         // Draw character (standing still)
         this.drawStickmanStanding(this.player.x + this.player.width / 2, this.player.y, this.player.height);
@@ -849,14 +896,17 @@ class SimpleGame {
         
         // Show instruction text only when all lines are complete
         if (this.currentLineIndex >= this.storyLines.length) {
+            const width = this.displayWidth || window.innerWidth;
+            const height = this.displayHeight || window.innerHeight;
+            
             this.ctx.fillStyle = '#FFFFFF';
-            const instructionFontSize = Math.max(14, Math.min(24, this.canvas.width * 0.03));
+            const instructionFontSize = Math.max(14, Math.min(24, width * 0.03));
             this.ctx.font = `${instructionFontSize}px Arial`;
             this.ctx.textAlign = 'center';
             
             // Position instruction text with better spacing from bottom
-            const bottomMargin = Math.max(30, this.canvas.height * 0.08);
-            this.ctx.fillText('Touch anywhere to start the game!', this.canvas.width / 2, this.canvas.height - bottomMargin);
+            const bottomMargin = Math.max(30, height * 0.08);
+            this.ctx.fillText('Touch anywhere to start the game!', width / 2, height - bottomMargin);
         }
     }
     
@@ -1102,13 +1152,15 @@ class SimpleGame {
     
     drawSpeechBubble() {
         const ctx = this.ctx;
+        const width = this.displayWidth || window.innerWidth;
+        const height = this.displayHeight || window.innerHeight;
         
         // Make bubble responsive to screen size
-        const bubbleWidth = Math.min(300, this.canvas.width * 0.8); // Max 300px or 80% of screen width
-        const bubbleHeight = Math.max(60, this.canvas.height * 0.08); // Min 60px or 8% of screen height
+        const bubbleWidth = Math.min(300, width * 0.8); // Max 300px or 80% of screen width
+        const bubbleHeight = Math.max(60, height * 0.08); // Min 60px or 8% of screen height
         
         // Center the bubble horizontally on screen, not relative to character
-        const bubbleX = (this.canvas.width - bubbleWidth) / 2;
+        const bubbleX = (width - bubbleWidth) / 2;
         const bubbleY = Math.max(20, this.player.y - 150); // At least 20px from top
         
         const cornerRadius = 10;
@@ -1136,7 +1188,7 @@ class SimpleGame {
         
         // Draw text inside bubble with responsive font size
         ctx.fillStyle = '#000000';
-        const fontSize = Math.max(12, Math.min(20, this.canvas.width * 0.025)); // Responsive font size
+        const fontSize = Math.max(12, Math.min(20, width * 0.025)); // Responsive font size
         ctx.font = `${fontSize}px Arial`;
         ctx.textAlign = 'center';
         
@@ -1181,11 +1233,17 @@ class SimpleGame {
         }
         
         // Clear canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        const width = this.displayWidth || window.innerWidth;
+        const height = this.displayHeight || window.innerHeight;
+        this.ctx.clearRect(0, 0, width, height);
+        
+        // Enable text antialiasing for crisp text
+        this.ctx.textRenderingOptimization = 'optimizeQuality';
+        this.ctx.imageSmoothingEnabled = true;
         
         // Draw sky
         this.ctx.fillStyle = '#87CEEB';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillRect(0, 0, width, height);
         
         // Draw clouds
         this.drawClouds();
@@ -1198,7 +1256,7 @@ class SimpleGame {
         
         // Draw ground
         this.ctx.fillStyle = '#8B4513';
-        this.ctx.fillRect(0, this.ground.y, this.canvas.width, this.ground.height);
+        this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
         
         // Draw obstacles
         this.ctx.fillStyle = '#FF4444';
