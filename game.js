@@ -1893,20 +1893,9 @@ class GameManager {
             this.showMainMenu();
         });
         
-        // Clear leaderboard button
-        document.getElementById('clearLeaderboardButton').addEventListener('click', () => {
-            this.clearLeaderboard();
-        });
-
         // Back to menu button (leaderboard screen)
         document.getElementById('backToMenuButton').addEventListener('click', () => {
             this.showScreen('start');
-        });
-
-        // Clear leaderboard button (leaderboard screen)
-        document.getElementById('clearLeaderboardFromViewButton').addEventListener('click', () => {
-            this.clearLeaderboard();
-            this.showLeaderboardScreen(); // Refresh the leaderboard display
         });
     }
     
