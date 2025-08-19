@@ -1886,6 +1886,7 @@ class AudioManager {
         this.isMuted = false;
         this.isInitialized = false;
         this.isPaused = false; // Track if music is paused due to tab visibility
+        this.isPausedDueToVisibility = false; // Track if music is intentionally paused due to tab being hidden
         this.currentMusicTime = 0; // Store current playback position
         this.currentMusicAudio = null; // Reference to currently playing music
         this.musicShouldBePlaying = false; // Track if music should be playing
@@ -2283,6 +2284,9 @@ class AudioManager {
     }
     
     pauseMusic() {
+        // Set flag to indicate music is intentionally paused due to tab visibility
+        this.isPausedDueToVisibility = true;
+        
         if (this.isMainMenuMusicPlaying() && this.musicShouldBePlaying) {
             // Save current time before pausing
             this.currentMusicTime = this.currentMusicAudio.currentTime;
@@ -2300,15 +2304,17 @@ class AudioManager {
     }
     
     resumeMusic() {
+        // Clear the visibility pause flag
+        this.isPausedDueToVisibility = false;
+        
         // Only resume if music was paused due to visibility and should be playing
         if (this.isPaused && this.musicShouldBePlaying && window.gameManager) {
             const currentScreen = window.gameManager.currentScreen;
             if (currentScreen === 'start' || currentScreen === 'leaderboard') {
-                setTimeout(() => {
-                    console.log('Resuming music from time:', this.currentMusicTime);
-                    this.playMainMenuMusic();
-                    this.isPaused = false;
-                }, 100);
+                // Resume immediately without delay for smoother experience
+                console.log('Resuming music from time:', this.currentMusicTime);
+                this.playMainMenuMusic();
+                this.isPaused = false;
             } else {
                 this.isPaused = false;
             }
@@ -2318,10 +2324,9 @@ class AudioManager {
         if (this.gameMusicShouldBePlaying && window.gameManager) {
             const currentScreen = window.gameManager.currentScreen;
             if (currentScreen === 'game') {
-                setTimeout(() => {
-                    console.log('Resuming game music from time:', this.currentGameMusicTime);
-                    this.playGameMusic();
-                }, 100);
+                // Resume immediately without delay for smoother experience
+                console.log('Resuming game music from time:', this.currentGameMusicTime);
+                this.playGameMusic();
             }
         }
     }
@@ -2478,6 +2483,11 @@ class GameManager {
     
     // Ensure music is playing when it should be
     ensureMainMenuMusicPlaying() {
+        // Don't restart music if tab is hidden or music is intentionally paused due to visibility
+        if (document.hidden || this.audioManager.isPausedDueToVisibility) {
+            return;
+        }
+        
         if ((this.currentScreen === 'start' || this.currentScreen === 'leaderboard') && 
             !this.audioManager.isMainMenuMusicPlaying() && 
             !this.audioManager.isMuted && 
