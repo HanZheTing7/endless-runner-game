@@ -896,8 +896,8 @@ class SimpleGame {
         this.ctx.fillStyle = '#8B4513';
         this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
         
-        // Draw character (standing still)
-        this.drawStickmanStanding(this.player.x + this.player.width / 2, this.player.y, this.player.height);
+        // Draw character (standing still) - use same width/height as gameplay for consistency
+        this.drawStickmanStanding(this.player.x + this.player.width / 2, this.player.y, this.player.width, this.player.height);
         
         // Draw speech bubble with typing text
         if (this.displayedText.length > 0) {
@@ -1028,9 +1028,9 @@ class SimpleGame {
         ctx.shadowBlur = 0;
     }
     
-    drawStickmanStanding(centerX, y, height) {
+    drawStickmanStanding(centerX, y, width, height) {
         const ctx = this.ctx;
-        const width = height * 0.6; // Approximate width for proportions
+        // Use provided width to match gameplay proportions
         
         // Draw head using image
         if (this.characterHead.complete) {
@@ -1109,6 +1109,43 @@ class SimpleGame {
         ctx.lineTo(centerX + suitWidth/8, y + height * 0.35);
         ctx.closePath();
         ctx.fill();
+
+        // Bow tie (wedding vibe)
+        const tieY = y + height * 0.36;
+        const tieHalf = Math.max(4, width * 0.06);
+        // Left wing
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.moveTo(centerX - tieHalf, tieY);
+        ctx.lineTo(centerX - tieHalf*2, tieY - tieHalf*0.8);
+        ctx.lineTo(centerX - tieHalf*2, tieY + tieHalf*0.8);
+        ctx.closePath();
+        ctx.fill();
+        // Right wing
+        ctx.beginPath();
+        ctx.moveTo(centerX + tieHalf, tieY);
+        ctx.lineTo(centerX + tieHalf*2, tieY - tieHalf*0.8);
+        ctx.lineTo(centerX + tieHalf*2, tieY + tieHalf*0.8);
+        ctx.closePath();
+        ctx.fill();
+        // Center knot (gold)
+        ctx.fillStyle = '#F1C40F';
+        ctx.beginPath();
+        ctx.arc(centerX, tieY, Math.max(2, tieHalf*0.5), 0, Math.PI*2);
+        ctx.fill();
+
+        // Boutonniere (rose) on left lapel
+        ctx.fillStyle = '#E74C3C';
+        ctx.beginPath();
+        ctx.arc(centerX - suitWidth/4.5, y + height * 0.48, Math.max(3, width*0.02), 0, Math.PI*2);
+        ctx.fill();
+        // Stem
+        ctx.strokeStyle = '#27AE60';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(centerX - suitWidth/4.5 + 2, y + height * 0.49);
+        ctx.lineTo(centerX - suitWidth/4.5 + 2, y + height * 0.56);
+        ctx.stroke();
         
         // Suit pants legs (standing position) - Draw legs FIRST (behind body)
         ctx.fillStyle = '#2C3E50'; // Same suit color
@@ -1379,6 +1416,26 @@ class SimpleGame {
         ctx.lineTo(centerX, y + height * 0.43);
         ctx.lineTo(centerX + suitWidth/8, y + height * 0.35);
         ctx.closePath();
+        ctx.fill();
+        // Bow tie (running)
+        const runTieY = y + height * 0.36;
+        const runTieHalf = Math.max(4, width * 0.06);
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.moveTo(centerX - runTieHalf, runTieY);
+        ctx.lineTo(centerX - runTieHalf*2, runTieY - runTieHalf*0.8);
+        ctx.lineTo(centerX - runTieHalf*2, runTieY + runTieHalf*0.8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(centerX + runTieHalf, runTieY);
+        ctx.lineTo(centerX + runTieHalf*2, runTieY - runTieHalf*0.8);
+        ctx.lineTo(centerX + runTieHalf*2, runTieY + runTieHalf*0.8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#F1C40F';
+        ctx.beginPath();
+        ctx.arc(centerX, runTieY, Math.max(2, runTieHalf*0.5), 0, Math.PI*2);
         ctx.fill();
         
         // Jumping animation with suit
