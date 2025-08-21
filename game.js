@@ -9,7 +9,7 @@ class SimpleGame {
         // Game state
         this.score = 0;
         this.distance = 0;
-        this.gameSpeed = 2.5; // Increased from 2 to 2.5 for better pacing
+        this.gameSpeed = 3.2; // Increased base speed for faster gameplay
         this.obstacleFrequency = 1; // Start with 1 obstacle, increases with difficulty
         
         // Game objects (positions will be updated in setupCanvas)
@@ -29,8 +29,8 @@ class SimpleGame {
 
         
         // Game physics
-        this.gravity = 0.6; // Reduced from 0.8 to make jump last longer
-        this.jumpPower = -20; // Increased from -16 to make jump higher
+        this.gravity = 0.7; // Slightly stronger gravity to shorten airtime
+        this.jumpPower = -16; // Lower jump height (less negative means lower)
         
         // Character image
         this.characterHead = new Image();
@@ -41,6 +41,18 @@ class SimpleGame {
             console.error('Failed to load character head image: sk-head.png');
         };
         this.characterHead.src = 'sk-head.png'; // You can change this to your image file
+        
+        // Obstacle image (dog)
+        this.dogImage = new Image();
+        this.dogImageLoaded = false;
+        this.dogImage.onload = () => {
+            this.dogImageLoaded = true;
+            console.log('Dog obstacle image loaded successfully');
+        };
+        this.dogImage.onerror = () => {
+            console.error('Failed to load dog image: sk_dog.png');
+        };
+        this.dogImage.src = 'sk_dog.png';
         
         // Story mode properties
         this.gameState = 'start'; // 'start', 'story', 'playing', 'gameOver'
@@ -311,12 +323,12 @@ class SimpleGame {
     }
     
     updateDifficulty() {
-        // Increase game speed every 500 distance units
-        const speedIncrease = Math.floor(this.distance / 500);
-        this.gameSpeed = 2.5 + (speedIncrease * 0.5);
+        // Increase game speed every 400 distance units (faster ramp)
+        const speedIncrease = Math.floor(this.distance / 400);
+        this.gameSpeed = 3.2 + (speedIncrease * 0.6);
         
-        // Cap maximum speed at 6.0
-        this.gameSpeed = Math.min(this.gameSpeed, 6.0);
+        // Cap maximum speed higher for more challenge
+        this.gameSpeed = Math.min(this.gameSpeed, 7.5);
         
         // Increase obstacle frequency every 1000 distance units
         const frequencyIncrease = Math.floor(this.distance / 1000);
@@ -1259,14 +1271,14 @@ class SimpleGame {
         this.ctx.fillStyle = '#8B4513';
         this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
         
-        // Draw obstacles
-        this.ctx.fillStyle = '#FF4444';
-        this.obstacles.forEach((obstacle, index) => {
-            this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-            
-
-            
-            this.ctx.fillStyle = '#FF4444';
+        // Draw obstacles as dog images (fallback to red rectangles if not loaded)
+        this.obstacles.forEach((obstacle) => {
+            if (this.dogImageLoaded) {
+                this.ctx.drawImage(this.dogImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            } else {
+                this.ctx.fillStyle = '#FF4444';
+                this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            }
         });
         
         // Draw player
