@@ -76,28 +76,42 @@ try {
             }
         },
 
-        // Check if username already exists (considering browser ID)
+        // Check if username already exists (considering browser ID and case-insensitive)
         async checkUsernameExists(username, browserId) {
             try {
-                const snapshot = await database.ref('scores')
-                    .orderByChild('username')
-                    .equalTo(username)
-                    .once('value');
+                // Get all scores to check for case-insensitive username matches
+                const snapshot = await database.ref('scores').once('value');
                 
                 if (!snapshot.exists()) {
-                    return false; // Username doesn't exist at all
+                    return false; // No scores exist at all
                 }
                 
-                // Check if any of the existing usernames have the same browser ID
+                // Check for case-insensitive username matches
+                let caseInsensitiveMatch = false;
                 let sameUserExists = false;
+                
                 snapshot.forEach((childSnapshot) => {
                     const data = childSnapshot.val();
-                    if (data.browserId === browserId) {
-                        sameUserExists = true;
+                    const existingUsername = data.username;
+                    
+                    // Case-insensitive comparison
+                    if (existingUsername.toLowerCase() === username.toLowerCase()) {
+                        caseInsensitiveMatch = true;
+                        
+                        // Check if it's the same user (browser ID)
+                        if (data.browserId === browserId) {
+                            sameUserExists = true;
+                        }
                     }
                 });
                 
-                // If same user (browser ID) exists, allow it. If different user, block it.
+                // If no case-insensitive match found, username is available
+                if (!caseInsensitiveMatch) {
+                    return false;
+                }
+                
+                // If case-insensitive match found but it's the same user, allow it
+                // If it's a different user, block it
                 return !sameUserExists;
             } catch (error) {
                 console.error('Error checking username:', error);
@@ -197,8 +211,10 @@ try {
             try {
                 const scores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
                 
-                // Find all scores with this username
-                const userScores = scores.filter(score => score.username === username);
+                // Find all scores with case-insensitive username matches
+                const userScores = scores.filter(score => 
+                    score.username.toLowerCase() === username.toLowerCase()
+                );
                 
                 if (userScores.length === 0) {
                     return false; // Username doesn't exist at all

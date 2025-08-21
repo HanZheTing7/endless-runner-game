@@ -2611,7 +2611,7 @@ class GameManager {
             const exists = await window.FirebaseHelper.checkUsernameExists(this.username, this.browserId);
             
             if (exists) {
-                errorElement.textContent = 'Username already taken. Please choose a different one.';
+                errorElement.textContent = 'Username already taken (case-insensitive). Please choose a different one.';
                 startButton.disabled = true;
                 return false;
             }
@@ -2640,7 +2640,7 @@ class GameManager {
         try {
             const exists = await window.FirebaseHelper.checkUsernameExists(this.username, this.browserId);
             if (exists) {
-                alert('Username is already taken. Please choose a different username.');
+                alert('Username is already taken (case-insensitive). Please choose a different username.');
                 return;
             }
         } catch (error) {
