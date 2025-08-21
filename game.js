@@ -328,7 +328,11 @@ class SimpleGame {
             x: x,
             y: y,
             width: width,
-            height: height
+            height: height,
+            // Cute shake parameters for dog obstacle
+            shakePhase: Math.random() * Math.PI * 2,
+            shakeAmplitude: Math.max(2, Math.min(6, width * 0.4)),
+            shakeSpeed: 0.006 // radians per ms
         };
     }
     
@@ -1321,13 +1325,16 @@ class SimpleGame {
         this.ctx.fillStyle = '#8B4513';
         this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
         
-        // Draw obstacles as dog images (fallback to red rectangles if not loaded)
+        // Draw obstacles as dog images (with cute left-right shake)
+        const now = Date.now();
         this.obstacles.forEach((obstacle) => {
+            const shakeX = Math.sin(obstacle.shakePhase + now * obstacle.shakeSpeed) * obstacle.shakeAmplitude;
+            const drawX = obstacle.x + shakeX;
             if (this.dogImageLoaded) {
-                this.ctx.drawImage(this.dogImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                this.ctx.drawImage(this.dogImage, drawX, obstacle.y, obstacle.width, obstacle.height);
             } else {
                 this.ctx.fillStyle = '#FF4444';
-                this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                this.ctx.fillRect(drawX, obstacle.y, obstacle.width, obstacle.height);
             }
         });
         
