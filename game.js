@@ -1,4 +1,4 @@
-// Simple Endless Runner Game
+// KeatingJaneForever - Endless Runner Game
 class SimpleGame {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
