@@ -42,6 +42,16 @@ class SimpleGame {
         };
         this.characterHead.src = 'sk-head.png'; // You can change this to your image file
         
+        // Jumping head image
+        this.characterHeadJump = new Image();
+        this.characterHeadJump.onload = () => {
+            console.log('Jump head image loaded successfully');
+        };
+        this.characterHeadJump.onerror = () => {
+            console.error('Failed to load jump head image: sk_jump.png');
+        };
+        this.characterHeadJump.src = 'sk_jump.png';
+        
         // Obstacle image (dog)
         this.dogImage = new Image();
         this.dogImageLoaded = false;
@@ -1032,11 +1042,14 @@ class SimpleGame {
         const ctx = this.ctx;
         // Use provided width to match gameplay proportions
         
-        // Draw head using image
-        if (this.characterHead.complete) {
+        // Draw head using image (use jump head if currently jumping)
+        const standingHeadImage = this.player && this.player.isJumping && this.characterHeadJump.complete
+            ? this.characterHeadJump
+            : this.characterHead;
+        if (standingHeadImage && standingHeadImage.complete) {
             const headSize = height * 0.8;
             ctx.drawImage(
-                this.characterHead,
+                standingHeadImage,
                 centerX - headSize/2,
                 y + height * 0.27 - headSize * 0.8, // Reduced gap by adjusting multiplier
                 headSize,
@@ -1333,7 +1346,10 @@ class SimpleGame {
         const centerX = x + width / 2;
         
         // Draw head using image instead of circle
-        if (this.characterHead.complete) {
+        const headImage = this.player.isJumping && this.characterHeadJump.complete
+            ? this.characterHeadJump
+            : this.characterHead;
+        if (headImage && headImage.complete) {
             const headSize = height * 0.8; // Increased from 0.24 to 0.4 to make head bigger
             
             // Add cute head shake animation while running (not while jumping)
@@ -1344,7 +1360,7 @@ class SimpleGame {
             }
             
             ctx.drawImage(
-                this.characterHead, 
+                headImage, 
                 centerX - headSize/2 + headShakeX, // Add shake offset
                 y + height * 0.27 - headSize * 0.8,  // Reduced gap by adjusting multiplier
                 headSize, 
