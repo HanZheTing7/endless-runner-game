@@ -42,6 +42,18 @@ class SimpleGame {
         };
         this.characterHead.src = 'sk-head.png'; // You can change this to your image file
         
+        // Story mode full character image
+        this.storyCharacterImage = new Image();
+        this.storyCharacterLoaded = false;
+        this.storyCharacterImage.onload = () => {
+            this.storyCharacterLoaded = true;
+            console.log('Story character image loaded successfully');
+        };
+        this.storyCharacterImage.onerror = () => {
+            console.error('Failed to load story character image: sk-story.png');
+        };
+        this.storyCharacterImage.src = 'sk-story.png';
+
         // Jumping head image
         this.characterHeadJump = new Image();
         this.characterHeadJump.onload = () => {
@@ -910,8 +922,18 @@ class SimpleGame {
         this.ctx.fillStyle = '#8B4513';
         this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
         
-        // Draw character (standing still) - use same width/height as gameplay for consistency
-        this.drawStickmanStanding(this.player.x + this.player.width / 2, this.player.y, this.player.width, this.player.height);
+        // Draw story character: use full-image sprite if available, else fallback to suit standing
+        if (this.storyCharacterLoaded) {
+            const spriteWidth = this.player.width;
+            const spriteHeight = this.player.height;
+            // Align image so feet rest on ground similar to stickman
+            const drawX = this.player.x;
+            const drawY = this.player.y;
+            this.ctx.drawImage(this.storyCharacterImage, drawX, drawY, spriteWidth, spriteHeight);
+        } else {
+            // Fallback to vector suit
+            this.drawStickmanStanding(this.player.x + this.player.width / 2, this.player.y, this.player.width, this.player.height);
+        }
         
         // Draw speech bubble with typing text
         if (this.displayedText.length > 0) {
