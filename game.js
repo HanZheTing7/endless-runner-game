@@ -333,11 +333,7 @@ class SimpleGame {
             x: x,
             y: y,
             width: width,
-            height: height,
-            // Cute shake parameters for dog obstacle
-            shakePhase: Math.random() * Math.PI * 2,
-            shakeAmplitude: Math.max(2, Math.min(6, width * 0.4)),
-            shakeSpeed: 0.006 // radians per ms
+            height: height
         };
     }
     
@@ -1348,16 +1344,13 @@ class SimpleGame {
         this.ctx.fillStyle = '#F2DDA0';
         this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
         
-        // Draw obstacles as dog images (with cute left-right shake)
-        const now = Date.now();
+        // Draw obstacles as dog images (no shake)
         this.obstacles.forEach((obstacle) => {
-            const shakeX = Math.sin(obstacle.shakePhase + now * obstacle.shakeSpeed) * obstacle.shakeAmplitude;
-            const drawX = obstacle.x + shakeX;
             if (this.dogImageLoaded) {
-                this.ctx.drawImage(this.dogImage, drawX, obstacle.y, obstacle.width, obstacle.height);
+                this.ctx.drawImage(this.dogImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             } else {
                 this.ctx.fillStyle = '#FF4444';
-                this.ctx.fillRect(drawX, obstacle.y, obstacle.width, obstacle.height);
+                this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             }
         });
         
@@ -1825,10 +1818,11 @@ class SimpleGame {
         
         // Initialize cloud positions if not already done
         if (!this.cloudPositions) {
+            const screenWidth = this.displayWidth || window.innerWidth;
             this.cloudPositions = [
-                { x: 1300, y: 80, size: 80, currentX: 1300 },   // Cloud 1
-                { x: 1700, y: 120, size: 100, currentX: 1700 }, // Cloud 2
-                { x: 2100, y: 60, size: 90, currentX: 2100 }    // Cloud 3
+                { x: screenWidth * 0.2,  y: 80,  size: 80,  currentX: screenWidth * 0.2  }, // Visible on screen
+                { x: screenWidth * 0.6,  y: 120, size: 100, currentX: screenWidth * 0.6  }, // Visible on screen
+                { x: screenWidth * 1.1,  y: 60,  size: 90,  currentX: screenWidth * 1.1  }  // Just off-screen right
             ];
         }
         
@@ -1838,11 +1832,13 @@ class SimpleGame {
             
             // If cloud goes off the left side, wrap it to the right side
             if (cloud.currentX < -cloud.size) {
-                cloud.currentX = this.canvas.width + cloud.size + Math.random() * 200; // Add some randomness
+                const screenWidth = this.displayWidth || window.innerWidth;
+                cloud.currentX = screenWidth + cloud.size + Math.random() * 200; // Add some randomness
             }
             
             // Only draw if cloud is visible on screen
-            if (cloud.currentX > -cloud.size && cloud.currentX < this.canvas.width + cloud.size) {
+            const screenWidth = this.displayWidth || window.innerWidth;
+            if (cloud.currentX > -cloud.size && cloud.currentX < screenWidth + cloud.size) {
                 ctx.fillStyle = '#FFFFFF';
                 ctx.globalAlpha = 0.85; // Slightly transparent for natural look
                 
@@ -1927,11 +1923,12 @@ class SimpleGame {
         
         // Initialize tree positions if not already done
         if (!this.treePositions) {
-            // Use palm positions for beach vibe
+            // Use palm positions based on screen width so at least some are visible immediately
+            const screenWidth = this.displayWidth || window.innerWidth;
             this.treePositions = [
-                { x: 1400, y: this.ground.y - 20, size: 110, currentX: 1400 },  // Palm 1
-                { x: 2000, y: this.ground.y - 30, size: 130, currentX: 2000 },  // Palm 2
-                { x: 2600, y: this.ground.y - 25, size: 120, currentX: 2600 }   // Palm 3
+                { x: screenWidth * 0.25, y: this.ground.y - 20, size: 110, currentX: screenWidth * 0.25 },  // Visible
+                { x: screenWidth * 0.75, y: this.ground.y - 30, size: 130, currentX: screenWidth * 0.75 },  // Visible
+                { x: screenWidth * 1.2,  y: this.ground.y - 25, size: 120, currentX: screenWidth * 1.2 }    // Just off-screen
             ];
         }
         
@@ -1941,11 +1938,13 @@ class SimpleGame {
             
             // If tree goes off the left side, wrap it to the right side
             if (tree.currentX < -tree.size) {
-                tree.currentX = this.canvas.width + tree.size + Math.random() * 300; // Add some randomness
+                const screenWidth = this.displayWidth || window.innerWidth;
+                tree.currentX = screenWidth + tree.size + Math.random() * 300; // Add some randomness
             }
             
             // Only draw if palm is visible on screen
-            if (tree.currentX > -tree.size && tree.currentX < this.canvas.width + tree.size) {
+            const screenWidth = this.displayWidth || window.innerWidth;
+            if (tree.currentX > -tree.size && tree.currentX < screenWidth + tree.size) {
                 // Palm trunk (curved)
                 ctx.strokeStyle = '#A0522D';
                 ctx.lineWidth = 6;
