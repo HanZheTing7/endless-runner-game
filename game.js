@@ -17,6 +17,14 @@ class SimpleGame {
         this.ground = { y: 530, height: 70 };
         this.obstacles = [];
         
+        // Ocean life (jumping fish)
+        this.fish = [];
+        this.lastFishUpdate = Date.now();
+        this.initFish();
+        
+        // Water splashes for fish jumps
+        this.splashes = [];
+        
         // Track level-up milestones (every 1000 distance)
         this.lastLevelUpMilestone = 0;
 
@@ -593,8 +601,7 @@ class SimpleGame {
         // Draw ocean before sand
         this.drawOcean();
         
-        // Draw trees
-        this.drawTrees();
+        // Trees removed for cleaner beach look
         
         // Draw sand ground
         this.ctx.fillStyle = '#F2DDA0';
@@ -920,8 +927,14 @@ class SimpleGame {
         this.ctx.fillStyle = '#87CEEB';
         this.ctx.fillRect(0, 0, width, height);
         
-        // Draw ground
-        this.ctx.fillStyle = '#8B4513';
+        // Beach vibe elements in story mode
+        this.drawSun();
+        this.drawClouds();
+        this.drawOcean();
+        // Trees removed for cleaner beach look
+        
+        // Draw sand ground
+        this.ctx.fillStyle = '#F2DDA0';
         this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
         
         // Draw vector suit character in story mode, slightly slimmer than gameplay
@@ -1915,6 +1928,177 @@ class SimpleGame {
             }
             ctx.stroke();
         }
+        
+        // Draw jumping fish
+        this.updateFish(oceanTop, oceanHeight, width);
+        this.drawFish(oceanTop, oceanHeight);
+        // Draw splashes
+        this.updateAndDrawSplashes(oceanTop, oceanHeight);
+    }
+    
+    spawnSplash(x, y) {
+        // Create multiple droplets per splash
+        const count = 6 + Math.floor(Math.random() * 4);
+        for (let i = 0; i < count; i++) {
+            this.splashes.push({
+                x: x + (Math.random() - 0.5) * 8,
+                y: y,
+                vx: (Math.random() - 0.5) * 1.2,
+                vy: - (0.8 + Math.random() * 0.8),
+                life: 600 + Math.random() * 300,
+                born: Date.now(),
+                size: 1 + Math.random() * 2
+            });
+        }
+    }
+    
+    updateAndDrawSplashes(oceanTop, oceanHeight) {
+        const ctx = this.ctx;
+        const now = Date.now();
+        // Gravity for droplets
+        const g = 0.0025;
+        this.splashes = this.splashes.filter(sp => now - sp.born < sp.life);
+        this.splashes.forEach(sp => {
+            const dt = now - sp.born;
+            // Update position
+            sp.x += sp.vx * (dt * 0.6);
+            sp.y += sp.vy * (dt * 0.6) + 0.5 * g * dt * dt;
+            
+            // Stop at water surface
+            const waterY = oceanTop + oceanHeight - 1;
+            if (sp.y > waterY) sp.y = waterY;
+            
+            // Fade out near end of life
+            const lifeRatio = 1 - (dt / sp.life);
+            ctx.globalAlpha = Math.max(0, Math.min(1, lifeRatio));
+            ctx.fillStyle = '#E1F5FE';
+            ctx.beginPath();
+            ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+        });
+    }
+    
+    initFish() {
+        const width = this.displayWidth || window.innerWidth;
+        const speciesOptions = [
+            { name: 'clown',   bodyColor: '#FF7043', stripe: true,  stripeColor: '#FFFFFF', stripeCount: 2, rx: 10, ry: 6, tailLen: 6, tailH: 5 },
+            { name: 'blueTang',bodyColor: '#29B6F6', stripe: false, rx: 11, ry: 7, tailLen: 7, tailH: 5 },
+            { name: 'yellow',  bodyColor: '#FFD54F', stripe: false, rx: 9,  ry: 6, tailLen: 6, tailH: 5 },
+            { name: 'pink',    bodyColor: '#EC407A', stripe: false, rx: 8,  ry: 5, tailLen: 5, tailH: 4 }
+        ];
+        // Create 4 fish with staggered positions and timings
+        this.fish = Array.from({ length: 4 }).map((_, i) => {
+            const sp = speciesOptions[Math.floor(Math.random() * speciesOptions.length)];
+            return {
+                baseX: width * (0.18 + i * 0.22),
+                x: width * (0.18 + i * 0.22),
+                phase: Math.random() * Math.PI * 2,
+                jumpIntervalMs: 2800 + i * 900 + Math.random() * 1500,
+                jumpStart: Date.now() - Math.random() * 3000,
+                jumping: false,
+                direction: Math.random() < 0.5 ? 1 : -1,
+                // species properties
+                bodyColor: sp.bodyColor,
+                stripe: sp.stripe,
+                stripeColor: sp.stripeColor || '#FFFFFF',
+                stripeCount: sp.stripeCount || 0,
+                rx: sp.rx,
+                ry: sp.ry,
+                tailLen: sp.tailLen,
+                tailH: sp.tailH
+            };
+        });
+    }
+    
+    updateFish(oceanTop, oceanHeight, screenWidth) {
+        const now = Date.now();
+        this.fish.forEach(f => {
+            // Start jump if interval elapsed
+            if (!f.jumping && now - f.jumpStart > f.jumpIntervalMs) {
+                f.jumping = true;
+                f.jumpStart = now;
+                // Create splash at start of jump
+                this.spawnSplash(f.x, oceanTop + oceanHeight - 2);
+            }
+            
+            if (f.jumping) {
+                const t = Math.min(1, (now - f.jumpStart) / 1200); // 1.2s jump
+                // Parabolic arc
+                const arc = Math.sin(t * Math.PI);
+                const jumpHeight = oceanHeight * 1.2; // jump slightly above ocean
+                f.y = oceanTop + oceanHeight - arc * jumpHeight;
+                // Horizontal drift during jump
+                f.x = f.baseX + f.direction * arc * 40;
+                // End jump
+                if (t >= 1) {
+                    f.jumping = false;
+                    f.jumpStart = now;
+                    f.baseX += f.direction * 20; // slight progression across the water
+                    // Keep within screen
+                    if (f.baseX < 40) f.baseX = 40;
+                    if (f.baseX > screenWidth - 40) f.baseX = screenWidth - 40;
+                    // Splash on re-entry
+                    this.spawnSplash(f.x, oceanTop + oceanHeight - 2);
+                }
+            } else {
+                // Idle under water (minor species variance)
+                const idle = Math.sin((now + f.phase * 1000) * 0.003) * 6;
+                f.y = oceanTop + oceanHeight - 10 + idle; // stay inside water
+                const mag = 8 + (f.rx - 8) * 1.5; // larger fish sway a bit more
+                f.x = f.baseX + Math.sin((now + f.phase * 1000) * 0.002) * mag;
+            }
+        });
+    }
+    
+    drawFish(oceanTop, oceanHeight) {
+        const ctx = this.ctx;
+        this.fish.forEach(f => {
+            // Body (species-based)
+            ctx.fillStyle = f.bodyColor;
+            ctx.beginPath();
+            ctx.ellipse(f.x, f.y, f.rx, f.ry, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Optional stripes (clownfish look)
+            if (f.stripe && f.stripeCount > 0) {
+                ctx.fillStyle = f.stripeColor;
+                for (let s = 1; s <= f.stripeCount; s++) {
+                    const sx = f.x - f.rx * (0.2 + 0.25 * (s - 1));
+                    ctx.beginPath();
+                    ctx.ellipse(sx, f.y, Math.max(1.5, f.rx * 0.18), f.ry * 0.9, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            
+            // Tail (species-based)
+            ctx.beginPath();
+            ctx.moveTo(f.x - f.rx, f.y);
+            ctx.lineTo(f.x - f.rx - f.tailLen, f.y - f.tailH);
+            ctx.lineTo(f.x - f.rx - f.tailLen, f.y + f.tailH);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Dorsal fin (small triangle on top)
+            ctx.beginPath();
+            ctx.moveTo(f.x - f.rx * 0.2, f.y - f.ry);
+            ctx.lineTo(f.x, f.y - f.ry - 4);
+            ctx.lineTo(f.x + 3, f.y - f.ry + 1);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Eye when above water
+            if (f.y < oceanTop + oceanHeight - 4) {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(f.x + 4, f.y - 2, 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.arc(f.x + 4, f.y - 2, 1, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
     }
     
     drawTrees() {
