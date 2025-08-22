@@ -16,6 +16,9 @@ class SimpleGame {
         this.player = { x: 150, y: 450, width: 50, height: 80, velocityY: 0, isJumping: false };
         this.ground = { y: 530, height: 70 };
         this.obstacles = [];
+        
+        // Track level-up milestones (every 1000 distance)
+        this.lastLevelUpMilestone = 0;
 
         // Wife character (chasing from left)
         this.wife = {
@@ -587,14 +590,18 @@ class SimpleGame {
         this.ctx.fillStyle = '#87CEEB';
         this.ctx.fillRect(0, 0, width, height);
         
+        // Beach vibe elements
+        this.drawSun();
         // Draw clouds
         this.drawClouds();
+        // Draw ocean before sand
+        this.drawOcean();
         
         // Draw trees
         this.drawTrees();
         
-        // Draw ground
-        this.ctx.fillStyle = '#8B4513';
+        // Draw sand ground
+        this.ctx.fillStyle = '#F2DDA0';
         this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
         
         // Draw character (now in running animation as it moves)
@@ -667,6 +674,15 @@ class SimpleGame {
         // Update game stats
         this.distance += this.gameSpeed * 0.1;
         this.score = Math.floor(this.distance);
+        
+        // Play level-up tone every 1000 distance (once per milestone)
+        const currentMilestone = Math.floor(this.distance / 1000);
+        if (currentMilestone > this.lastLevelUpMilestone && currentMilestone >= 1) {
+            this.lastLevelUpMilestone = currentMilestone;
+            if (window.gameManager && window.gameManager.audioManager) {
+                window.gameManager.audioManager.playLevelUpTone();
+            }
+        }
         
         // Progressive difficulty based on distance
         this.updateDifficulty();
@@ -912,8 +928,9 @@ class SimpleGame {
         this.ctx.fillStyle = '#8B4513';
         this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
         
-        // Draw vector suit character in story mode (reverted)
-        this.drawStickmanStanding(this.player.x + this.player.width / 2, this.player.y, this.player.width, this.player.height);
+        // Draw vector suit character in story mode, slightly slimmer than gameplay
+        const storyWidth = Math.max(30, this.player.width * 0.85); // 15% slimmer
+        this.drawStickmanStanding(this.player.x + this.player.width / 2, this.player.y, storyWidth, this.player.height);
         
         // Draw speech bubble with typing text
         if (this.displayedText.length > 0) {
@@ -1314,8 +1331,12 @@ class SimpleGame {
         this.ctx.fillStyle = '#87CEEB';
         this.ctx.fillRect(0, 0, width, height);
         
+        // Beach vibe elements
+        this.drawSun();
         // Draw clouds
         this.drawClouds();
+        // Draw ocean before sand
+        this.drawOcean();
         
         // Draw trees
         this.drawTrees();
@@ -1323,8 +1344,8 @@ class SimpleGame {
         // Draw a test cloud and tree in top-left corner to verify drawing works
         // this.drawTestElements(); // Commented out to avoid confusion
         
-        // Draw ground
-        this.ctx.fillStyle = '#8B4513';
+        // Draw sand ground
+        this.ctx.fillStyle = '#F2DDA0';
         this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
         
         // Draw obstacles as dog images (with cute left-right shake)
@@ -1856,16 +1877,61 @@ class SimpleGame {
         ctx.globalAlpha = 1.0; // Reset transparency
     }
     
+    drawSun() {
+        const ctx = this.ctx;
+        // Sun in the top-right
+        const width = this.displayWidth || window.innerWidth;
+        ctx.save();
+        ctx.fillStyle = '#FFD54F';
+        ctx.beginPath();
+        ctx.arc(width - 100, 100, 40, 0, Math.PI * 2);
+        ctx.fill();
+        // Sun glow
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = '#FFE082';
+        ctx.beginPath();
+        ctx.arc(width - 100, 100, 70, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+    
+    drawOcean() {
+        const ctx = this.ctx;
+        const width = this.displayWidth || window.innerWidth;
+        // Ocean strip above the sand
+        const oceanTop = this.ground.y - 60;
+        const oceanHeight = 50;
+        
+        // Base ocean color
+        ctx.fillStyle = '#4FC3F7';
+        ctx.fillRect(0, oceanTop, width, oceanHeight);
+        
+        // Gentle wave lines
+        ctx.strokeStyle = '#E1F5FE';
+        ctx.lineWidth = 2;
+        for (let y = 0; y < 3; y++) {
+            const waveY = oceanTop + 10 + y * 12;
+            ctx.beginPath();
+            for (let x = 0; x <= width; x += 20) {
+                const offset = Math.sin((Date.now() * 0.002) + x * 0.05 + y) * 3;
+                if (x === 0) ctx.moveTo(x, waveY + offset);
+                else ctx.lineTo(x, waveY + offset);
+            }
+            ctx.stroke();
+        }
+    }
+    
     drawTrees() {
         const ctx = this.ctx;
         const time = Date.now() * 0.002; // Very slow tree movement for parallax effect
         
         // Initialize tree positions if not already done
         if (!this.treePositions) {
+            // Use palm positions for beach vibe
             this.treePositions = [
-                { x: 1400, y: this.ground.y - 80, size: 120, currentX: 1400 },  // Tree 1
-                { x: 2000, y: this.ground.y - 100, size: 140, currentX: 2000 }, // Tree 2
-                { x: 2600, y: this.ground.y - 90, size: 130, currentX: 2600 }   // Tree 3
+                { x: 1400, y: this.ground.y - 20, size: 110, currentX: 1400 },  // Palm 1
+                { x: 2000, y: this.ground.y - 30, size: 130, currentX: 2000 },  // Palm 2
+                { x: 2600, y: this.ground.y - 25, size: 120, currentX: 2600 }   // Palm 3
             ];
         }
         
@@ -1878,39 +1944,30 @@ class SimpleGame {
                 tree.currentX = this.canvas.width + tree.size + Math.random() * 300; // Add some randomness
             }
             
-            // Only draw if tree is visible on screen
+            // Only draw if palm is visible on screen
             if (tree.currentX > -tree.size && tree.currentX < this.canvas.width + tree.size) {
-                // Draw tree trunk - positioned on the ground
-                ctx.fillStyle = '#8B4513';
-                ctx.fillRect(tree.currentX - 12, this.ground.y - 60, 24, 60); // Trunk starts from ground, shorter height
-                
-                // Add trunk outline
-                ctx.strokeStyle = '#654321';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(tree.currentX - 12, this.ground.y - 60, 24, 60);
-                
-                // Draw tree leaves (multiple circles for foliage) - positioned above trunk
-                ctx.fillStyle = '#228B22';
+                // Palm trunk (curved)
+                ctx.strokeStyle = '#A0522D';
+                ctx.lineWidth = 6;
                 ctx.beginPath();
-                ctx.arc(tree.currentX, this.ground.y - 85, tree.size * 0.4, 0, Math.PI * 2);
-                ctx.arc(tree.currentX - tree.size * 0.3, this.ground.y - 110, tree.size * 0.35, 0, Math.PI * 2);
-                ctx.arc(tree.currentX + tree.size * 0.3, this.ground.y - 105, tree.size * 0.3, 0, Math.PI * 2);
-                ctx.arc(tree.currentX, this.ground.y - 135, tree.size * 0.25, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.closePath();
-                
-                // Add some darker green for depth
-                ctx.fillStyle = '#006400';
-                ctx.beginPath();
-                ctx.arc(tree.currentX - tree.size * 0.2, this.ground.y - 100, tree.size * 0.2, 0, Math.PI * 2);
-                ctx.arc(tree.currentX + tree.size * 0.2, this.ground.y - 120, tree.size * 0.2, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.closePath();
-                
-                // Add tree outline for better visibility
-                ctx.strokeStyle = '#0B4F0B';
-                ctx.lineWidth = 2;
+                ctx.moveTo(tree.currentX, this.ground.y);
+                ctx.quadraticCurveTo(tree.currentX + 20, this.ground.y - tree.size * 0.6, tree.currentX + 5, tree.y);
                 ctx.stroke();
+                
+                // Palm leaves
+                ctx.strokeStyle = '#2E8B57';
+                ctx.lineWidth = 4;
+                for (let a = -Math.PI / 2; a <= Math.PI / 2; a += Math.PI / 6) {
+                    ctx.beginPath();
+                    ctx.moveTo(tree.currentX + 5, tree.y);
+                    ctx.quadraticCurveTo(
+                        tree.currentX + 5 + Math.cos(a) * 40,
+                        tree.y + Math.sin(a) * 20,
+                        tree.currentX + 5 + Math.cos(a) * 90,
+                        tree.y + Math.sin(a) * 50
+                    );
+                    ctx.stroke();
+                }
             }
         });
     }
@@ -2023,6 +2080,9 @@ class AudioManager {
             
             // Game music (plays during gameplay)
             await this.loadSound('game_music', 'game_music.mp3', 'gameMusic');
+            
+            // Level up tone
+            await this.loadSound('level_up', 'arcade_game_level_up_tone.mp3', 'powerUp');
             
             // You can add more sounds later:
             // await this.loadSound('obstacle_hit', 'obstacle.mp3', 'obstacle');
@@ -2147,6 +2207,14 @@ class AudioManager {
         this.playSound('lose', {
             volume: this.sfxVolume * 1.2, // Slightly louder for impact
             pitch: 1.0 // No pitch variation for lose sound
+        });
+    }
+    
+    playLevelUpTone() {
+        // Short celebratory tone for milestones
+        this.playSound('level_up', {
+            volume: this.sfxVolume * 1.0,
+            pitch: 1.0
         });
     }
     
