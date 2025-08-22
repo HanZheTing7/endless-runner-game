@@ -1347,9 +1347,6 @@ class SimpleGame {
         // Draw ocean before sand
         this.drawOcean();
         
-        // Draw trees
-        this.drawTrees();
-        
         // Draw a test cloud and tree in top-left corner to verify drawing works
         // this.drawTestElements(); // Commented out to avoid confusion
         
@@ -2045,6 +2042,9 @@ class SimpleGame {
                 // Idle under water (minor species variance)
                 const idle = Math.sin((now + f.phase * 1000) * 0.003) * 6;
                 f.y = oceanTop + oceanHeight - 10 + idle; // stay inside water
+                // Ensure fish stays below surface when not jumping
+                const surfaceY = oceanTop + oceanHeight - 2;
+                if (f.y < surfaceY) f.y = surfaceY;
                 const mag = 8 + (f.rx - 8) * 1.5; // larger fish sway a bit more
                 f.x = f.baseX + Math.sin((now + f.phase * 1000) * 0.002) * mag;
             }
@@ -2054,6 +2054,11 @@ class SimpleGame {
     drawFish(oceanTop, oceanHeight) {
         const ctx = this.ctx;
         this.fish.forEach(f => {
+            const surfaceY = oceanTop + oceanHeight - 4;
+            // Only render fish when above the water surface (jumping)
+            if (f.y >= surfaceY) {
+                return;
+            }
             // Body (species-based)
             ctx.fillStyle = f.bodyColor;
             ctx.beginPath();
