@@ -1954,20 +1954,29 @@ class SimpleGame {
                 ctx.quadraticCurveTo(tree.currentX + 20, this.ground.y - tree.size * 0.6, tree.currentX + 5, tree.y);
                 ctx.stroke();
                 
-                // Palm leaves
+                // Palm leaves (coconut palm)
                 ctx.strokeStyle = '#2E8B57';
                 ctx.lineWidth = 4;
-                for (let a = -Math.PI / 2; a <= Math.PI / 2; a += Math.PI / 6) {
+                for (let a = -Math.PI / 2; a <= Math.PI / 2; a += Math.PI / 8) {
                     ctx.beginPath();
                     ctx.moveTo(tree.currentX + 5, tree.y);
                     ctx.quadraticCurveTo(
-                        tree.currentX + 5 + Math.cos(a) * 40,
-                        tree.y + Math.sin(a) * 20,
-                        tree.currentX + 5 + Math.cos(a) * 90,
-                        tree.y + Math.sin(a) * 50
+                        tree.currentX + 5 + Math.cos(a) * 35,
+                        tree.y + Math.sin(a) * 18,
+                        tree.currentX + 5 + Math.cos(a) * 80,
+                        tree.y + Math.sin(a) * 45
                     );
                     ctx.stroke();
                 }
+                // Coconuts cluster under leaves
+                ctx.fillStyle = '#6D4C41';
+                const cx = tree.currentX + 2;
+                const cy = tree.y + 8;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+                ctx.arc(cx + 8, cy + 4, 5, 0, Math.PI * 2);
+                ctx.arc(cx - 8, cy + 4, 5, 0, Math.PI * 2);
+                ctx.fill();
             }
         });
     }
@@ -2081,8 +2090,8 @@ class AudioManager {
             // Game music (plays during gameplay)
             await this.loadSound('game_music', 'game_music.mp3', 'gameMusic');
             
-            // Level up tone
-            await this.loadSound('level_up', 'arcade_game_level_up_tone.mp3', 'powerUp');
+            // Level up tone (every 1000 distance)
+            await this.loadSound('level_up', '1000_distance.mp3', 'powerUp');
             
             // You can add more sounds later:
             // await this.loadSound('obstacle_hit', 'obstacle.mp3', 'obstacle');
