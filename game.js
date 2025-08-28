@@ -504,10 +504,7 @@ class SimpleGame {
             this.player.isJumping = true;
             this.player.velocityY = this.jumpPower;
             
-            // Play jump sound with variation
-            if (window.gameManager && window.gameManager.audioManager) {
-                window.gameManager.audioManager.playJumpSound();
-            }
+            // Jump sound removed
         }
     }
     
@@ -2384,8 +2381,7 @@ class AudioManager {
     
     async loadSounds() {
         try {
-            // Jump sound (single file)
-            await this.loadSound('jump_2', 'jump_2.mp3', 'jump');
+            // Jump sound removed
             
             // Game over sound
             await this.loadSound('lose', 'lose.mp3', 'gameOver');
@@ -2508,13 +2504,7 @@ class AudioManager {
     }
     
     playJumpSound() {
-        // Use single jump sound with pitch variation for variety
-        const pitchVariation = 0.9 + Math.random() * 0.2; // 0.9 to 1.1
-        
-        this.playSound('jump_2', {
-            volume: this.sfxVolume,
-            pitch: pitchVariation
-        });
+        // Removed: no audio for jump
     }
     
     playLoseSound() {
