@@ -2865,12 +2865,15 @@ class GameManager {
             this.startGame();
         });
         
-        // See leaderboard button (start screen)
-        document.getElementById('seeLeaderboardButton').addEventListener('click', () => {
-            // Enable audio on first user interaction
-            this.audioManager.enableAudio();
-            this.showLeaderboardScreen();
-        });
+        // See leaderboard button (start screen) - guard if not present
+        const seeLeaderboardButton = document.getElementById('seeLeaderboardButton');
+        if (seeLeaderboardButton) {
+            seeLeaderboardButton.addEventListener('click', () => {
+                // Enable audio on first user interaction
+                this.audioManager.enableAudio();
+                this.showLeaderboardScreen();
+            });
+        }
         
         // Mute button
         document.getElementById('muteButton').addEventListener('click', () => {
@@ -3064,6 +3067,14 @@ class GameManager {
         document.getElementById(screenName + 'Screen').classList.add('active');
         this.currentScreen = screenName;
         
+        // When entering start screen, display Top 5 leaderboard if container exists
+        if (screenName === 'start') {
+            const startLb = document.getElementById('startLeaderboard');
+            if (startLb) {
+                this.displayLeaderboard('startLeaderboard', 5);
+            }
+        }
+        
         // Handle background music based on screen
         this.handleBackgroundMusic(screenName);
     }
@@ -3103,7 +3114,7 @@ class GameManager {
         this.displayLeaderboard('leaderboardDisplay');
     }
 
-    async displayLeaderboard(elementId) {
+    async displayLeaderboard(elementId, limit = 10) {
         const leaderboardElement = document.getElementById(elementId);
         
         if (!leaderboardElement) {
@@ -3115,8 +3126,8 @@ class GameManager {
             // Show loading state
             leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>Loading leaderboard...</span></div>';
             
-            // Get top 10 scores from Firebase
-            const scores = await window.FirebaseHelper.getTopScores(10);
+            // Get top N scores from Firebase
+            const scores = await window.FirebaseHelper.getTopScores(limit);
             console.log('Displaying leaderboard from Firebase:', scores);
             
             // Display leaderboard
@@ -3161,6 +3172,12 @@ class GameManager {
                 const leaderboardDisplayElement = document.getElementById('leaderboardDisplay');
                 if (leaderboardDisplayElement) {
                     leaderboardDisplayElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+                }
+
+                // Also update start screen leaderboard if present
+                const startLeaderboardElement = document.getElementById('startLeaderboard');
+                if (startLeaderboardElement) {
+                    startLeaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
                 }
                 
             } else {
