@@ -34,11 +34,12 @@ body {
 /* Starfield for Start Screen */
 #startScreen {
     background: #000;
-    overflow: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 #startScreen #starfield {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -71,6 +72,8 @@ body {
 #startScreen .container {
     position: relative;
     z-index: 1;
+    padding-top: 24px;
+    padding-bottom: 24px;
 }
 
 /* Container Styles */
