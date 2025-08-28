@@ -2272,8 +2272,8 @@ class AudioManager {
             // Game over sound
             await this.loadSound('lose', 'lose.mp3', 'gameOver');
             
-            // Background music
-            await this.loadSound('main_menu', 'main_menu.mp3', 'music');
+            // Background music (main menu)
+            await this.loadSound('main_menu', 'maplestory.mp3', 'music');
             
             // Game music (plays during gameplay)
             await this.loadSound('game_music', 'game_music.mp3', 'gameMusic');
@@ -3158,7 +3158,7 @@ class GameManager {
         try {
             const width = container.clientWidth || window.innerWidth;
             const height = container.clientHeight || window.innerHeight;
-            const starCount = Math.floor((width * height) / 8000); // density-based
+            const starCount = Math.floor((width * height) / 6000); // slightly denser for visibility
             const sizes = ['small', 'medium', 'large'];
             for (let i = 0; i < starCount; i++) {
                 const star = document.createElement('div');

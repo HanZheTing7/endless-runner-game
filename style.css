@@ -33,7 +33,9 @@ body {
 
 /* Starfield for Start Screen */
 #startScreen {
-    background: #000;
+    background: radial-gradient(1000px 600px at 20% 10%, rgba(70, 30, 120, 0.25), transparent 60%),
+                radial-gradient(800px 500px at 80% 30%, rgba(0, 150, 255, 0.2), transparent 60%),
+                #000;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
