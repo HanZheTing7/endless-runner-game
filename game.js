@@ -81,6 +81,7 @@ class SimpleGame {
         this.smallDogImage.onload = () => {
             this.smallDogLoaded = true;
             console.log('Small dog obstacle image loaded successfully');
+            this.smallDogAspect = (this.smallDogImage.naturalWidth || 60) / (this.smallDogImage.naturalHeight || 50);
         };
         this.smallDogImage.onerror = () => {
             console.error('Failed to load small dog image: sk_dog.png');
@@ -92,11 +93,15 @@ class SimpleGame {
         this.bigDogImage.onload = () => {
             this.bigDogLoaded = true;
             console.log('Big dog obstacle image loaded successfully');
+            this.bigDogAspect = (this.bigDogImage.naturalWidth || 90) / (this.bigDogImage.naturalHeight || 70);
         };
         this.bigDogImage.onerror = () => {
             console.error('Failed to load big dog image: bigdog.jpg');
         };
         this.bigDogImage.src = 'bigdog.jpg';
+        // Default aspects in case images not yet loaded
+        this.smallDogAspect = 1.2;
+        this.bigDogAspect = 1.3;
         
         // Story mode properties
         this.gameState = 'start'; // 'start', 'story', 'playing', 'gameOver'
@@ -458,13 +463,17 @@ class SimpleGame {
         
         if (typeRand < 0.65) {
             // Single ground obstacle with passable height
-            const minHeight = Math.max(18, screenHeight * 0.028);
-            const maxHeight = Math.min(Math.max(60, screenHeight * 0.12), this.ground.y - maxJumpHeight - 16);
-            height = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
-            const minWidth = Math.max(16, screenWidth * 0.018);
-            const maxWidth = Math.max(36, screenWidth * 0.038);
-            width = Math.floor(Math.random() * (maxWidth - minWidth + 1)) + minWidth;
+            // Use fixed heights to preserve sprite quality
+            const smallH = Math.max(40, screenHeight * 0.07);
+            const bigH = Math.max(60, screenHeight * 0.1);
+            const isBig = Math.random() < 0.45;
+            height = isBig ? bigH : smallH;
+            // Compute width from aspect ratio
+            const aspect = isBig ? (this.bigDogAspect || 1.3) : (this.smallDogAspect || 1.2);
+            width = height * aspect;
             y = this.ground.y - height;
+            // Store type for renderer sizing
+            return { x, y, width, height, sprite: isBig ? 'bigDog' : 'smallDog' };
         } else if (typeRand < 0.88) {
             // Small double-stack with a safe gap height
             const baseHeight = Math.max(16, screenHeight * 0.025);
@@ -472,19 +481,21 @@ class SimpleGame {
             height = Math.min(baseHeight * stackCount, this.ground.y - maxJumpHeight - 18);
             width = Math.max(18, screenWidth * 0.02);
             y = this.ground.y - height;
+            return { x, y, width, height, sprite: 'smallDog' };
         } else {
             // Low wide obstacle to vary timing
             height = Math.max(12, screenHeight * 0.02);
             width = Math.max(40, screenWidth * 0.06);
             y = this.ground.y - height;
+            return { x, y, width, height, sprite: 'smallDog' };
         }
         
+        // Fallback (should not reach)
         // Ensure always passable
         height = Math.min(height, this.ground.y - maxJumpHeight - 12);
         if (height < 8) height = 8;
         y = this.ground.y - height;
-        
-        return { x, y, width, height };
+        return { x, y, width, height, sprite: 'smallDog' };
     }
     
     updateDifficulty() {
@@ -1080,9 +1091,40 @@ class SimpleGame {
         const storyWidth = Math.max(30, this.player.width * 0.85); // 15% slimmer
         this.drawStickmanStanding(this.player.x + this.player.width / 2, this.player.y, storyWidth, this.player.height);
         
-        // Draw speech bubble with typing text
+        // Centered white dialogue text (no bubble)
         if (this.displayedText.length > 0) {
-            this.drawSpeechBubble();
+            const ctx = this.ctx;
+            const maxTextWidth = Math.floor((this.displayWidth || window.innerWidth) * 0.8);
+            const fontSize = Math.max(16, Math.min(28, maxTextWidth * 0.05));
+            ctx.fillStyle = '#FFFFFF';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `${fontSize}px Arial`;
+            
+            // Wrap text to multiple lines to fit width
+            const words = this.displayedText.split(' ');
+            const lines = [];
+            let line = '';
+            for (let i = 0; i < words.length; i++) {
+                const testLine = line + (line ? ' ' : '') + words[i];
+                if (ctx.measureText(testLine).width > maxTextWidth && line) {
+                    lines.push(line);
+                    line = words[i];
+                } else {
+                    line = testLine;
+                }
+            }
+            if (line) lines.push(line);
+            
+            const lineHeight = fontSize * 1.4;
+            const totalHeight = lines.length * lineHeight;
+            const centerX = (this.displayWidth || window.innerWidth) / 2;
+            const centerY = (this.displayHeight || window.innerHeight) / 2;
+            const startY = centerY - totalHeight / 2 + lineHeight / 2;
+            
+            for (let i = 0; i < lines.length; i++) {
+                ctx.fillText(lines[i], centerX, startY + i * lineHeight);
+            }
         }
         
         // Add skip button (always visible) and instruction text
@@ -1100,7 +1142,7 @@ class SimpleGame {
             
             // Position instruction text with better spacing from bottom
             const bottomMargin = Math.max(30, height * 0.08);
-            this.ctx.fillText('Touch anywhere to start the game!', width / 2, height - bottomMargin);
+            this.ctx.fillText('Touch anywhere to continue', width / 2, height - bottomMargin);
         }
     }
     
@@ -1476,10 +1518,7 @@ class SimpleGame {
         this.ctx.imageSmoothingEnabled = true;
         
         // Outer space background and moon surface for gameplay
-        this.drawSpaceBackground(width, height);
-        this.drawMoonSurface(width);
-        
-        // Draw moon surface ground (ultra slow drift)
+        this.drawSpaceBackground(width, height, 0.05);
         this.drawMoonSurface(width, 0.01);
 
         // Draw obstacles selecting image by type/size (ground dogs or flying bird)
@@ -1506,23 +1545,16 @@ class SimpleGame {
                 this.ctx.quadraticCurveTo(obstacle.x + obstacle.width * 0.3, birdY + obstacle.height * 0.9, obstacle.x + obstacle.width * 0.1, birdY + obstacle.height * 0.8);
                 this.ctx.stroke();
             } else {
-                // Keep big dog at its natural aspect; draw at a fixed scale for consistency
-                const isBig = obstacle.height >= (this.ground.height * 0.9) || obstacle.height >= 60;
-                const img = isBig ? this.bigDogImage : this.smallDogImage;
-                const loaded = isBig ? this.bigDogLoaded : this.smallDogLoaded;
+                // Fixed-size sprite rendering preserving aspect
+                const useBig = obstacle.sprite === 'bigDog' || (obstacle.height >= 60);
+                const img = useBig ? this.bigDogImage : this.smallDogImage;
+                const loaded = useBig ? this.bigDogLoaded : this.smallDogLoaded;
                 if (loaded && img) {
-                    if (isBig) {
-                        const naturalW = img.naturalWidth || obstacle.width;
-                        const naturalH = img.naturalHeight || obstacle.height;
-                        const scale = Math.max(0.6, Math.min(1.0, (obstacle.height / naturalH)));
-                        const drawW = naturalW * scale;
-                        const drawH = naturalH * scale;
-                        const drawX = obstacle.x + (obstacle.width - drawW) * 0.5;
-                        const drawY = obstacle.y + (obstacle.height - drawH);
-                        this.ctx.drawImage(img, drawX, drawY, drawW, drawH);
-                    } else {
-                        this.ctx.drawImage(img, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-                    }
+                    const drawW = obstacle.width;
+                    const drawH = obstacle.height;
+                    const drawX = obstacle.x;
+                    const drawY = obstacle.y;
+                    this.ctx.drawImage(img, drawX, drawY, drawW, drawH);
                 } else {
                     this.ctx.fillStyle = '#FF4444';
                     this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
