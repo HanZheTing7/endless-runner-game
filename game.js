@@ -3073,6 +3073,12 @@ class GameManager {
             if (startLb) {
                 this.displayLeaderboard('startLeaderboard', 5);
             }
+
+            // Generate starfield lazily if not present
+            const starfield = document.getElementById('starfield');
+            if (starfield && starfield.childElementCount === 0) {
+                this.generateStarfield(starfield);
+            }
         }
         
         // Handle background music based on screen
@@ -3145,6 +3151,30 @@ class GameManager {
         } catch (error) {
             console.error('Error displaying leaderboard from Firebase:', error);
             leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>Error loading leaderboard</span></div>';
+        }
+    }
+
+    generateStarfield(container) {
+        try {
+            const width = container.clientWidth || window.innerWidth;
+            const height = container.clientHeight || window.innerHeight;
+            const starCount = Math.floor((width * height) / 8000); // density-based
+            const sizes = ['small', 'medium', 'large'];
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star ' + sizes[Math.floor(Math.random() * sizes.length)];
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const delay = (Math.random() * 2).toFixed(2);
+                const duration = (1.8 + Math.random() * 2.2).toFixed(2);
+                star.style.left = x + '%';
+                star.style.top = y + '%';
+                star.style.animationDelay = delay + 's';
+                star.style.animationDuration = duration + 's';
+                container.appendChild(star);
+            }
+        } catch (e) {
+            console.warn('Failed generating starfield:', e);
         }
     }
 
