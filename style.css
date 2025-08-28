@@ -426,12 +426,13 @@ body {
 }
 
 .leaderboard-line {
-    margin: 8px 0;
+    margin: 6px 0;
     color: #e6e6e6;
     font-weight: 600;
     letter-spacing: 0.5px;
     display: grid;
-    grid-template-columns: 28px 1fr 64px;
+    grid-template-columns: 22px 1fr 52px;
+    column-gap: 4px;
     align-items: baseline;
 }
 
@@ -441,7 +442,7 @@ body {
 }
 
 .leaderboard-line .name-col {
-    padding: 0 8px;
+    padding: 0 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

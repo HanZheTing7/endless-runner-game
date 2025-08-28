@@ -184,7 +184,7 @@ class SimpleGame {
         ctx.globalAlpha = 1;
     }
 
-    drawMoonSurface(width) {
+    drawMoonSurface(width, scrollSpeed = 0.01) {
         const ctx = this.ctx;
         // Ground base
         const groundTop = this.ground.y;
@@ -194,17 +194,32 @@ class SimpleGame {
         ctx.fillStyle = grad;
         ctx.fillRect(0, groundTop, width, this.ground.height);
         
-        // Subtle craters
+        // Subtle craters with slow horizontal drift to imply movement
+        if (!this.moonCraters || this.moonCratersWidth !== width || this.moonCratersGroundTop !== groundTop) {
+            this.moonCratersWidth = width;
+            this.moonCratersGroundTop = groundTop;
+            const craterCount = Math.max(8, Math.floor(width / 120));
+            this.moonCraters = Array.from({ length: craterCount }).map((_, i) => {
+                return {
+                    x: (i + 0.5) * (width / craterCount) + (Math.random() - 0.5) * 40,
+                    y: groundTop + this.ground.height * (0.35 + Math.random() * 0.4),
+                    rx: 12 + Math.random() * 20,
+                    ry: 5 + Math.random() * 10,
+                    layer: 0.6 + Math.random() * 0.8
+                };
+            });
+            this.moonScrollX = 0;
+        }
+        this.moonScrollX = (this.moonScrollX || 0) + scrollSpeed; // very slow
         ctx.save();
-        ctx.globalAlpha = 0.25;
-        const craterCount = Math.max(6, Math.floor(width / 140));
-        for (let i = 0; i < craterCount; i++) {
-            const cx = (i + 0.5) * (width / craterCount) + (Math.random() - 0.5) * 30;
-            const cy = groundTop + this.ground.height * (0.35 + Math.random() * 0.4);
-            const rx = 14 + Math.random() * 22;
-            const ry = 6 + Math.random() * 10;
+        ctx.globalAlpha = 0.28;
+        for (let c of this.moonCraters) {
+            let cx = c.x - this.moonScrollX * (20 * c.layer);
+            // Wrap around
+            while (cx < -c.rx) cx += width + c.rx * 2;
+            while (cx > width + c.rx) cx -= width + c.rx * 2;
             ctx.beginPath();
-            ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+            ctx.ellipse(cx, c.y, c.rx, c.ry, 0, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(0,0,0,0.35)';
             ctx.fill();
         }
@@ -688,8 +703,8 @@ class SimpleGame {
         this.ctx.textRenderingOptimization = 'optimizeQuality';
         this.ctx.imageSmoothingEnabled = true;
         
-        // Draw space background (slow scroll in gameplay)
-        this.drawSpaceBackground(width, height, 0.06);
+        // Draw space background (slow, visible parallax)
+        this.drawSpaceBackground(width, height, 0.05);
         
         // Beach vibe elements
         this.drawSun();
@@ -1021,7 +1036,7 @@ class SimpleGame {
         this.ctx.imageSmoothingEnabled = true;
         
         // Outer space background (story mode) and moon surface (slower)
-        this.drawSpaceBackground(width, height, 0.02);
+        this.drawSpaceBackground(width, height, 0.03);
         this.drawMoonSurface(width);
         
         // Draw vector suit character in story mode, slightly slimmer than gameplay
@@ -1427,8 +1442,8 @@ class SimpleGame {
         this.drawSpaceBackground(width, height);
         this.drawMoonSurface(width);
         
-        // Draw moon surface ground
-        this.drawMoonSurface(width);
+        // Draw moon surface ground (ultra slow drift)
+        this.drawMoonSurface(width, 0.01);
 
         // Draw obstacles selecting image by size
         this.obstacles.forEach((obstacle) => {
@@ -1750,8 +1765,9 @@ class SimpleGame {
         
         // Draw wife's head using image (Jane)
         if (this.wifeHead && this.wifeHead.complete) {
-            const headSize = height * 0.9;
-            ctx.drawImage(this.wifeHead, centerX - headSize / 2, y + height * 0.1 - headSize * 0.8, headSize, headSize);
+            const headSize = height * 0.8;
+            // Lower the head so it aligns similar to player's head y
+            ctx.drawImage(this.wifeHead, centerX - headSize / 2, y + height * 0.25 - headSize * 0.75, headSize, headSize);
         } else {
             // Fallback: simple head circle
             ctx.fillStyle = '#FFD1DC';
