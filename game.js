@@ -133,6 +133,22 @@ class SimpleGame {
         this.init();
     }
 
+    createBirdObstacle(x) {
+        // Flying bird at a safe height with slight vertical bob
+        const screenHeight = this.displayHeight || window.innerHeight;
+        const birdHeight = Math.max(20, screenHeight * 0.05);
+        const birdWidth = Math.max(28, birdHeight * 1.2);
+        const flightY = this.ground.y - (this.player.height * 1.2 + birdHeight * 1.2); // above jump arc
+        return {
+            x: x,
+            y: flightY,
+            width: birdWidth,
+            height: birdHeight,
+            type: 'bird',
+            bobPhase: Math.random() * Math.PI * 2
+        };
+    }
+
     drawSpaceBackground(width, height, baseSpeed = 0.05) {
         const ctx = this.ctx;
         // Base deep space
@@ -436,42 +452,51 @@ class SimpleGame {
         const jumpHeightRatio = Math.min(220, screenHeight * 0.3);
         const maxJumpHeight = this.ground.y - jumpHeightRatio;
         
-        // Responsive obstacle dimensions
-        const minHeight = Math.max(20, screenHeight * 0.03);
-        const maxHeight = Math.min(Math.max(50, screenHeight * 0.08), this.ground.y - maxJumpHeight - 20);
+        // Randomly choose obstacle type: ground, double-stack, or gap pair
+        const typeRand = Math.random();
+        let height, width, y;
         
-        const height = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
+        if (typeRand < 0.65) {
+            // Single ground obstacle with passable height
+            const minHeight = Math.max(18, screenHeight * 0.028);
+            const maxHeight = Math.min(Math.max(60, screenHeight * 0.12), this.ground.y - maxJumpHeight - 16);
+            height = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
+            const minWidth = Math.max(16, screenWidth * 0.018);
+            const maxWidth = Math.max(36, screenWidth * 0.038);
+            width = Math.floor(Math.random() * (maxWidth - minWidth + 1)) + minWidth;
+            y = this.ground.y - height;
+        } else if (typeRand < 0.88) {
+            // Small double-stack with a safe gap height
+            const baseHeight = Math.max(16, screenHeight * 0.025);
+            const stackCount = 2 + Math.floor(Math.random() * 2); // 2 or 3
+            height = Math.min(baseHeight * stackCount, this.ground.y - maxJumpHeight - 18);
+            width = Math.max(18, screenWidth * 0.02);
+            y = this.ground.y - height;
+        } else {
+            // Low wide obstacle to vary timing
+            height = Math.max(12, screenHeight * 0.02);
+            width = Math.max(40, screenWidth * 0.06);
+            y = this.ground.y - height;
+        }
         
-        // Responsive width
-        const minWidth = Math.max(15, screenWidth * 0.015);
-        const maxWidth = Math.max(25, screenWidth * 0.025);
-        const width = Math.floor(Math.random() * (maxWidth - minWidth + 1)) + minWidth;
+        // Ensure always passable
+        height = Math.min(height, this.ground.y - maxJumpHeight - 12);
+        if (height < 8) height = 8;
+        y = this.ground.y - height;
         
-        // Position obstacle so it's always clearable
-        const y = this.ground.y - height;
-        
-        return {
-            x: x,
-            y: y,
-            width: width,
-            height: height
-        };
+        return { x, y, width, height };
     }
     
     updateDifficulty() {
-        // Increase game speed every 400 distance units (faster ramp)
-        const speedIncrease = Math.floor(this.distance / 400);
-        this.gameSpeed = 3.2 + (speedIncrease * 0.6);
+        // Increase game difficulty from the start, ramp every 500 distance
+        const tiers = Math.floor(this.distance / 500);
+        this.gameSpeed = 4.2 + (tiers * 0.5);
+        // Cap max speed
+        this.gameSpeed = Math.min(this.gameSpeed, 9.0);
         
-        // Cap maximum speed higher for more challenge
-        this.gameSpeed = Math.min(this.gameSpeed, 7.5);
-        
-        // Increase obstacle frequency every 1000 distance units
-        const frequencyIncrease = Math.floor(this.distance / 1000);
-        this.obstacleFrequency = 1 + frequencyIncrease;
-        
-        // Cap maximum obstacle frequency at 3
-        this.obstacleFrequency = Math.min(this.obstacleFrequency, 3);
+        // Increase number of concurrent obstacles every 500 distance
+        this.obstacleFrequency = 1 + tiers;
+        this.obstacleFrequency = Math.min(this.obstacleFrequency, 4);
     }
     
     jump() {
@@ -744,7 +769,8 @@ class SimpleGame {
         
         // Update obstacles
         this.obstacles.forEach(obstacle => {
-            obstacle.x -= this.gameSpeed;
+            const speedFactor = obstacle.type === 'bird' ? 1.2 : 1.0;
+            obstacle.x -= this.gameSpeed * speedFactor;
         });
         
         // Remove obstacles that are off screen
@@ -753,8 +779,15 @@ class SimpleGame {
         // Add new obstacles if needed
         if (this.obstacles.length < this.obstacleFrequency) {
             const width = this.displayWidth || window.innerWidth;
-            const newObstacle = this.createRandomObstacle(width + 300);
-            this.obstacles.push(newObstacle);
+            const offset = 250 + Math.random() * 250;
+            // From distance 2000+, sometimes spawn a flying bird instead
+            if (this.distance >= 2000 && Math.random() < 0.3) {
+                const bird = this.createBirdObstacle(width + offset);
+                this.obstacles.push(bird);
+            } else {
+                const newObstacle = this.createRandomObstacle(width + offset);
+                this.obstacles.push(newObstacle);
+            }
         }
         
         // Update wife position (chasing behavior)
@@ -814,7 +847,7 @@ class SimpleGame {
             currentDistanceElement.textContent = Math.floor(this.distance);
         }
         
-        // Check collisions
+        // Check collisions (including birds)
         this.checkCollisions();
     }
     
@@ -1445,16 +1478,42 @@ class SimpleGame {
         // Draw moon surface ground (ultra slow drift)
         this.drawMoonSurface(width, 0.01);
 
-        // Draw obstacles selecting image by size
+        // Draw obstacles selecting image by type/size (ground dogs or flying bird)
         this.obstacles.forEach((obstacle) => {
-            const isBig = obstacle.height >= (this.ground.height * 0.9) || obstacle.height >= 60;
-            const img = isBig ? this.bigDogImage : this.smallDogImage;
-            const loaded = isBig ? this.bigDogLoaded : this.smallDogLoaded;
-            if (loaded && img) {
-                this.ctx.drawImage(img, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            if (obstacle.type === 'bird') {
+                // Bobbing motion
+                const t = Date.now() * 0.004 + (obstacle.bobPhase || 0);
+                const bobY = Math.sin(t) * 6;
+                const birdY = obstacle.y + bobY;
+                // Simple bird: triangle + wings; could be replaced with image later
+                this.ctx.fillStyle = '#CCCCCC';
+                this.ctx.beginPath();
+                this.ctx.moveTo(obstacle.x, birdY + obstacle.height * 0.5);
+                this.ctx.lineTo(obstacle.x + obstacle.width, birdY + obstacle.height * 0.5 - obstacle.height * 0.3);
+                this.ctx.lineTo(obstacle.x + obstacle.width * 0.6, birdY + obstacle.height);
+                this.ctx.closePath();
+                this.ctx.fill();
+                // Wings
+                this.ctx.strokeStyle = '#EEEEEE';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.moveTo(obstacle.x + obstacle.width * 0.4, birdY + obstacle.height * 0.4);
+                this.ctx.quadraticCurveTo(obstacle.x + obstacle.width * 0.2, birdY, obstacle.x, birdY + obstacle.height * 0.2);
+                this.ctx.stroke();
+                this.ctx.beginPath();
+                this.ctx.moveTo(obstacle.x + obstacle.width * 0.5, birdY + obstacle.height * 0.6);
+                this.ctx.quadraticCurveTo(obstacle.x + obstacle.width * 0.3, birdY + obstacle.height * 0.9, obstacle.x + obstacle.width * 0.1, birdY + obstacle.height * 0.8);
+                this.ctx.stroke();
             } else {
-                this.ctx.fillStyle = '#FF4444';
-                this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                const isBig = obstacle.height >= (this.ground.height * 0.9) || obstacle.height >= 60;
+                const img = isBig ? this.bigDogImage : this.smallDogImage;
+                const loaded = isBig ? this.bigDogLoaded : this.smallDogLoaded;
+                if (loaded && img) {
+                    this.ctx.drawImage(img, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                } else {
+                    this.ctx.fillStyle = '#FF4444';
+                    this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                }
             }
         });
         
