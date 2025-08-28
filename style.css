@@ -415,6 +415,21 @@ body {
     text-align: right;
 }
 
+/* Text-only variant for start screen */
+.leaderboard.text-only {
+    background: transparent;
+    border-radius: 0;
+    padding: 0 6px;
+    backdrop-filter: none;
+}
+
+.leaderboard-line {
+    margin: 8px 0;
+    color: #e6e6e6;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
 .game-over-buttons {
     margin-top: 2rem;
 }

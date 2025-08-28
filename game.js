@@ -3160,19 +3160,34 @@ class GameManager {
             
             // Display leaderboard
             if (scores.length === 0) {
-                leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+                const emptyText = elementId === 'startLeaderboard'
+                    ? '<div class="leaderboard-line">No scores yet</div>'
+                    : '<div class="leaderboard-item"><span>No scores yet</span></div>';
+                leaderboardElement.innerHTML = emptyText;
             } else {
-                leaderboardElement.innerHTML = scores.map((score, index) => `
-                    <div class="leaderboard-item">
-                        <span class="rank">${index + 1}</span>
-                        <span class="username">${score.username}</span>
-                        <span class="score">${score.score}</span>
-                    </div>
-                `).join('');
+                if (elementId === 'startLeaderboard') {
+                    // Text-only list for start screen
+                    leaderboardElement.classList.add('text-only');
+                    leaderboardElement.innerHTML = scores.map((score, index) => `
+                        <div class="leaderboard-line">${index + 1}. ${score.username} \u00A0\u00A0 ${score.score}</div>
+                    `).join('');
+                } else {
+                    // Default boxed rows for other screens
+                    leaderboardElement.innerHTML = scores.map((score, index) => `
+                        <div class="leaderboard-item">
+                            <span class="rank">${index + 1}</span>
+                            <span class="username">${score.username}</span>
+                            <span class="score">${score.score}</span>
+                        </div>
+                    `).join('');
+                }
             }
         } catch (error) {
             console.error('Error displaying leaderboard from Firebase:', error);
-            leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>Error loading leaderboard</span></div>';
+            const errorHtml = elementId === 'startLeaderboard'
+                ? '<div class="leaderboard-line">Error loading leaderboard</div>'
+                : '<div class="leaderboard-item"><span>Error loading leaderboard</span></div>';
+            leaderboardElement.innerHTML = errorHtml;
         }
     }
 
