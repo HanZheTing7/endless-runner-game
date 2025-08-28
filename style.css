@@ -345,6 +345,7 @@ body {
     font-size: clamp(2rem, 6vw, 3rem);
     margin-bottom: 2rem;
     color: #ff6b6b;
+    font-family: 'Segoe Script', 'Brush Script MT', cursive;
 }
 
 .final-score {
@@ -356,8 +357,8 @@ body {
 }
 
 .final-score p {
-    margin: 10px 0;
-    font-size: 1.2rem;
+    margin: 8px 0;
+    font-size: 1rem;
     font-weight: 700;
 }
 
@@ -456,6 +457,10 @@ body {
 
 .game-over-buttons {
     margin-top: 2rem;
+}
+
+#mainMenuButton.btn.btn-secondary {
+    font-family: 'Gochi Hand', cursive;
 }
 
 /* Loading Screen */
