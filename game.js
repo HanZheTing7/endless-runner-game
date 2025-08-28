@@ -65,17 +65,38 @@ class SimpleGame {
         };
         this.characterHeadJump.src = 'sk_jump.png';
         
-        // Obstacle image (dog)
-        this.dogImage = new Image();
-        this.dogImageLoaded = false;
-        this.dogImage.onload = () => {
-            this.dogImageLoaded = true;
-            console.log('Dog obstacle image loaded successfully');
+        // Wife head image (Jane)
+        this.wifeHead = new Image();
+        this.wifeHead.onload = () => {
+            console.log('Wife head image (jane.png) loaded successfully');
         };
-        this.dogImage.onerror = () => {
-            console.error('Failed to load dog image: sk_dog.png');
+        this.wifeHead.onerror = () => {
+            console.error('Failed to load wife head image: jane.png');
         };
-        this.dogImage.src = 'sk_dog.png';
+        this.wifeHead.src = 'jane.png';
+        
+        // Obstacle images
+        this.smallDogImage = new Image();
+        this.smallDogLoaded = false;
+        this.smallDogImage.onload = () => {
+            this.smallDogLoaded = true;
+            console.log('Small dog obstacle image loaded successfully');
+        };
+        this.smallDogImage.onerror = () => {
+            console.error('Failed to load small dog image: sk_dog.png');
+        };
+        this.smallDogImage.src = 'sk_dog.png';
+        
+        this.bigDogImage = new Image();
+        this.bigDogLoaded = false;
+        this.bigDogImage.onload = () => {
+            this.bigDogLoaded = true;
+            console.log('Big dog obstacle image loaded successfully');
+        };
+        this.bigDogImage.onerror = () => {
+            console.error('Failed to load big dog image: bigdog.jpg');
+        };
+        this.bigDogImage.src = 'bigdog.jpg';
         
         // Story mode properties
         this.gameState = 'start'; // 'start', 'story', 'playing', 'gameOver'
@@ -112,7 +133,7 @@ class SimpleGame {
         this.init();
     }
 
-    drawSpaceBackground(width, height) {
+    drawSpaceBackground(width, height, baseSpeed = 0.05) {
         const ctx = this.ctx;
         // Base deep space
         const grad = ctx.createLinearGradient(0, 0, 0, height);
@@ -136,15 +157,29 @@ class SimpleGame {
         ctx.fillRect(0, 0, width, height);
         ctx.restore();
         
-        // Procedural tiny stars
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        const starCount = Math.floor((width * height) / 28000);
-        for (let i = 0; i < starCount; i++) {
-            const x = Math.random() * width;
-            const y = Math.random() * height;
-            const size = Math.random() * 1.5 + 0.3;
-            ctx.globalAlpha = 0.6 + Math.random() * 0.4;
-            ctx.fillRect(x, y, size, size);
+        // Initialize starfield once and scroll slowly
+        if (!this.spaceStars || !this.spaceStarsInitialized || this.spaceStarsWidth !== width || this.spaceStarsHeight !== height) {
+            this.spaceStarsWidth = width;
+            this.spaceStarsHeight = height;
+            const count = Math.floor((width * height) / 35000);
+            this.spaceStars = Array.from({ length: count }).map(() => ({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                size: Math.random() * 1.5 + 0.4,
+                layer: Math.random() < 0.5 ? 0.4 : (Math.random() < 0.75 ? 0.7 : 1.0)
+            }));
+            this.spaceStarsInitialized = true;
+        }
+        
+        // Scroll and draw precomputed stars (very slow parallax)
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = '#FFFFFF';
+        for (let s of this.spaceStars) {
+            // Move left slowly; parallax via layer
+            s.x -= baseSpeed * s.layer;
+            if (s.x < -2) s.x = this.spaceStarsWidth + 2;
+            ctx.globalAlpha = 0.45 + 0.4 * s.layer;
+            ctx.fillRect(s.x, s.y, s.size, s.size);
         }
         ctx.globalAlpha = 1;
     }
@@ -653,8 +688,8 @@ class SimpleGame {
         this.ctx.textRenderingOptimization = 'optimizeQuality';
         this.ctx.imageSmoothingEnabled = true;
         
-        // Draw space background
-        this.drawSpaceBackground(width, height);
+        // Draw space background (slow scroll in gameplay)
+        this.drawSpaceBackground(width, height, 0.06);
         
         // Beach vibe elements
         this.drawSun();
@@ -985,8 +1020,8 @@ class SimpleGame {
         this.ctx.textRenderingOptimization = 'optimizeQuality';
         this.ctx.imageSmoothingEnabled = true;
         
-        // Outer space background (story mode) and moon surface
-        this.drawSpaceBackground(width, height);
+        // Outer space background (story mode) and moon surface (slower)
+        this.drawSpaceBackground(width, height, 0.02);
         this.drawMoonSurface(width);
         
         // Draw vector suit character in story mode, slightly slimmer than gameplay
@@ -1395,10 +1430,13 @@ class SimpleGame {
         // Draw moon surface ground
         this.drawMoonSurface(width);
 
-        // Draw obstacles as dog images (no shake)
+        // Draw obstacles selecting image by size
         this.obstacles.forEach((obstacle) => {
-            if (this.dogImageLoaded) {
-                this.ctx.drawImage(this.dogImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            const isBig = obstacle.height >= (this.ground.height * 0.9) || obstacle.height >= 60;
+            const img = isBig ? this.bigDogImage : this.smallDogImage;
+            const loaded = isBig ? this.bigDogLoaded : this.smallDogLoaded;
+            if (loaded && img) {
+                this.ctx.drawImage(img, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             } else {
                 this.ctx.fillStyle = '#FF4444';
                 this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
@@ -1710,33 +1748,17 @@ class SimpleGame {
         const ctx = this.ctx;
         const centerX = x + width / 2;
         
-        // Draw wife's head (circular with hair)
-        ctx.fillStyle = '#8B4513'; // Brown hair
-        ctx.beginPath();
-        ctx.arc(centerX, y + height * 0.15, height * 0.14, 0, Math.PI * 2); // Hair (slightly bigger)
-        ctx.fill();
-        
-        // Face
-        ctx.fillStyle = '#FDBCB4'; // Light skin tone
-        ctx.beginPath();
-        ctx.arc(centerX, y + height * 0.15, height * 0.11, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Hair style (ponytail)
-        ctx.fillStyle = '#8B4513';
-        ctx.beginPath();
-        ctx.ellipse(centerX + width * 0.2, y + height * 0.15, width * 0.1, height * 0.08, 0, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Simple facial features
-        ctx.fillStyle = '#000000';
-        // Eyes
-        ctx.beginPath();
-        ctx.arc(centerX - width * 0.05, y + height * 0.12, 1, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(centerX + width * 0.05, y + height * 0.12, 1, 0, Math.PI * 2);
-        ctx.fill();
+        // Draw wife's head using image (Jane)
+        if (this.wifeHead && this.wifeHead.complete) {
+            const headSize = height * 0.9;
+            ctx.drawImage(this.wifeHead, centerX - headSize / 2, y + height * 0.1 - headSize * 0.8, headSize, headSize);
+        } else {
+            // Fallback: simple head circle
+            ctx.fillStyle = '#FFD1DC';
+            ctx.beginPath();
+            ctx.arc(centerX, y + height * 0.15, height * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+        }
         
         // Draw dress/blouse body
         const dressWidth = width * 0.9;
@@ -3166,10 +3188,14 @@ class GameManager {
                 leaderboardElement.innerHTML = emptyText;
             } else {
                 if (elementId === 'startLeaderboard') {
-                    // Text-only list for start screen
+                    // Text-only list for start screen with aligned columns
                     leaderboardElement.classList.add('text-only');
                     leaderboardElement.innerHTML = scores.map((score, index) => `
-                        <div class="leaderboard-line">${index + 1}. ${score.username} \u00A0\u00A0 ${score.score}</div>
+                        <div class="leaderboard-line">
+                            <span class="rank-col">${index + 1}.</span>
+                            <span class="name-col">${score.username}</span>
+                            <span class="score-col">${score.score}</span>
+                        </div>
                     `).join('');
                 } else {
                     // Default boxed rows for other screens

@@ -430,6 +430,27 @@ body {
     color: #e6e6e6;
     font-weight: 600;
     letter-spacing: 0.5px;
+    display: grid;
+    grid-template-columns: 28px 1fr 64px;
+    align-items: baseline;
+}
+
+.leaderboard-line .rank-col {
+    text-align: left;
+    opacity: 0.9;
+}
+
+.leaderboard-line .name-col {
+    padding: 0 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.leaderboard-line .score-col {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
 }
 
 .game-over-buttons {
