@@ -2875,14 +2875,15 @@ class GameManager {
             });
         }
         
-        // Mute button
-        document.getElementById('muteButton').addEventListener('click', () => {
-            // Enable audio on first user interaction
-            this.audioManager.enableAudio();
-            const isMuted = this.audioManager.toggleMute();
-            const muteButton = document.getElementById('muteButton');
-            muteButton.textContent = isMuted ? '🔇 SOUND OFF' : '🔊 SOUND ON';
-        });
+        // Mute icon (top-left)
+        const muteToggle = document.getElementById('muteToggle');
+        if (muteToggle) {
+            muteToggle.addEventListener('click', () => {
+                this.audioManager.enableAudio();
+                const isMuted = this.audioManager.toggleMute();
+                muteToggle.textContent = isMuted ? '🔇' : '🔊';
+            });
+        }
         
         // Username input with debouncing
         let usernameTimeout;
