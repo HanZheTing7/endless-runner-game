@@ -494,9 +494,9 @@ class SimpleGame {
         // Cap max speed
         this.gameSpeed = Math.min(this.gameSpeed, 9.0);
         
-        // Increase number of concurrent obstacles every 500 distance
+        // Increase number of concurrent obstacles every 500 distance (cap for performance)
         this.obstacleFrequency = 1 + tiers;
-        this.obstacleFrequency = Math.min(this.obstacleFrequency, 4);
+        this.obstacleFrequency = Math.min(this.obstacleFrequency, 3);
     }
     
     jump() {
@@ -764,11 +764,18 @@ class SimpleGame {
             }
         }
         
-        // Update obstacles
-        this.obstacles.forEach(obstacle => {
+        // Update obstacles (reduce per-frame work)
+        const speed = this.gameSpeed;
+        const now = Date.now() * 0.004;
+        for (let i = 0; i < this.obstacles.length; i++) {
+            const obstacle = this.obstacles[i];
             const speedFactor = obstacle.type === 'bird' ? 1.2 : 1.0;
-            obstacle.x -= this.gameSpeed * speedFactor;
-        });
+            obstacle.x -= speed * speedFactor;
+            if (obstacle.type === 'bird') {
+                const bobPhase = obstacle.bobPhase || 0;
+                obstacle.bobY = Math.sin(now + bobPhase) * 6;
+            }
+        }
         
         // Remove obstacles that are off screen
         this.obstacles = this.obstacles.filter(obstacle => obstacle.x + obstacle.width > -50);
@@ -1478,10 +1485,7 @@ class SimpleGame {
         // Draw obstacles selecting image by type/size (ground dogs or flying bird)
         this.obstacles.forEach((obstacle) => {
             if (obstacle.type === 'bird') {
-                // Bobbing motion
-                const t = Date.now() * 0.004 + (obstacle.bobPhase || 0);
-                const bobY = Math.sin(t) * 6;
-                const birdY = obstacle.y + bobY;
+                const birdY = obstacle.y + (obstacle.bobY || 0);
                 // Simple bird: triangle + wings; could be replaced with image later
                 this.ctx.fillStyle = '#CCCCCC';
                 this.ctx.beginPath();
@@ -1502,11 +1506,23 @@ class SimpleGame {
                 this.ctx.quadraticCurveTo(obstacle.x + obstacle.width * 0.3, birdY + obstacle.height * 0.9, obstacle.x + obstacle.width * 0.1, birdY + obstacle.height * 0.8);
                 this.ctx.stroke();
             } else {
+                // Keep big dog at its natural aspect; draw at a fixed scale for consistency
                 const isBig = obstacle.height >= (this.ground.height * 0.9) || obstacle.height >= 60;
                 const img = isBig ? this.bigDogImage : this.smallDogImage;
                 const loaded = isBig ? this.bigDogLoaded : this.smallDogLoaded;
                 if (loaded && img) {
-                    this.ctx.drawImage(img, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                    if (isBig) {
+                        const naturalW = img.naturalWidth || obstacle.width;
+                        const naturalH = img.naturalHeight || obstacle.height;
+                        const scale = Math.max(0.6, Math.min(1.0, (obstacle.height / naturalH)));
+                        const drawW = naturalW * scale;
+                        const drawH = naturalH * scale;
+                        const drawX = obstacle.x + (obstacle.width - drawW) * 0.5;
+                        const drawY = obstacle.y + (obstacle.height - drawH);
+                        this.ctx.drawImage(img, drawX, drawY, drawW, drawH);
+                    } else {
+                        this.ctx.drawImage(img, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                    }
                 } else {
                     this.ctx.fillStyle = '#FF4444';
                     this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
