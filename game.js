@@ -112,6 +112,69 @@ class SimpleGame {
         this.init();
     }
 
+    drawSpaceBackground(width, height) {
+        const ctx = this.ctx;
+        // Base deep space
+        const grad = ctx.createLinearGradient(0, 0, 0, height);
+        grad.addColorStop(0, '#000010');
+        grad.addColorStop(1, '#000000');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
+        
+        // Nebula glows similar to menu
+        ctx.save();
+        ctx.globalAlpha = 0.25;
+        const glow = ctx.createRadialGradient(width * 0.2, height * 0.15, 0, width * 0.2, height * 0.15, Math.max(width, height) * 0.6);
+        glow.addColorStop(0, 'rgba(70,30,120,0.8)');
+        glow.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, width, height);
+        const glow2 = ctx.createRadialGradient(width * 0.8, height * 0.3, 0, width * 0.8, height * 0.3, Math.max(width, height) * 0.5);
+        glow2.addColorStop(0, 'rgba(0,150,255,0.5)');
+        glow2.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = glow2;
+        ctx.fillRect(0, 0, width, height);
+        ctx.restore();
+        
+        // Procedural tiny stars
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        const starCount = Math.floor((width * height) / 28000);
+        for (let i = 0; i < starCount; i++) {
+            const x = Math.random() * width;
+            const y = Math.random() * height;
+            const size = Math.random() * 1.5 + 0.3;
+            ctx.globalAlpha = 0.6 + Math.random() * 0.4;
+            ctx.fillRect(x, y, size, size);
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    drawMoonSurface(width) {
+        const ctx = this.ctx;
+        // Ground base
+        const groundTop = this.ground.y;
+        const grad = ctx.createLinearGradient(0, groundTop, 0, groundTop + this.ground.height);
+        grad.addColorStop(0, '#bdbec4');
+        grad.addColorStop(1, '#8e8f94');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, groundTop, width, this.ground.height);
+        
+        // Subtle craters
+        ctx.save();
+        ctx.globalAlpha = 0.25;
+        const craterCount = Math.max(6, Math.floor(width / 140));
+        for (let i = 0; i < craterCount; i++) {
+            const cx = (i + 0.5) * (width / craterCount) + (Math.random() - 0.5) * 30;
+            const cy = groundTop + this.ground.height * (0.35 + Math.random() * 0.4);
+            const rx = 14 + Math.random() * 22;
+            const ry = 6 + Math.random() * 10;
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+            ctx.fill();
+        }
+        ctx.restore();
+    }
     init() {
         console.log('Initializing SimpleGame');
         
@@ -590,9 +653,8 @@ class SimpleGame {
         this.ctx.textRenderingOptimization = 'optimizeQuality';
         this.ctx.imageSmoothingEnabled = true;
         
-        // Draw sky
-        this.ctx.fillStyle = '#87CEEB';
-        this.ctx.fillRect(0, 0, width, height);
+        // Draw space background
+        this.drawSpaceBackground(width, height);
         
         // Beach vibe elements
         this.drawSun();
@@ -923,19 +985,9 @@ class SimpleGame {
         this.ctx.textRenderingOptimization = 'optimizeQuality';
         this.ctx.imageSmoothingEnabled = true;
         
-        // Draw sky
-        this.ctx.fillStyle = '#87CEEB';
-        this.ctx.fillRect(0, 0, width, height);
-        
-        // Beach vibe elements in story mode
-        this.drawSun();
-        this.drawClouds();
-        this.drawOcean();
-        // Trees removed for cleaner beach look
-        
-        // Draw sand ground
-        this.ctx.fillStyle = '#F2DDA0';
-        this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
+        // Outer space background (story mode) and moon surface
+        this.drawSpaceBackground(width, height);
+        this.drawMoonSurface(width);
         
         // Draw vector suit character in story mode, slightly slimmer than gameplay
         const storyWidth = Math.max(30, this.player.width * 0.85); // 15% slimmer
@@ -1336,24 +1388,13 @@ class SimpleGame {
         this.ctx.textRenderingOptimization = 'optimizeQuality';
         this.ctx.imageSmoothingEnabled = true;
         
-        // Draw sky
-        this.ctx.fillStyle = '#87CEEB';
-        this.ctx.fillRect(0, 0, width, height);
+        // Outer space background and moon surface for gameplay
+        this.drawSpaceBackground(width, height);
+        this.drawMoonSurface(width);
         
-        // Beach vibe elements
-        this.drawSun();
-        // Draw clouds
-        this.drawClouds();
-        // Draw ocean before sand
-        this.drawOcean();
-        
-        // Draw a test cloud and tree in top-left corner to verify drawing works
-        // this.drawTestElements(); // Commented out to avoid confusion
-        
-        // Draw sand ground
-        this.ctx.fillStyle = '#F2DDA0';
-        this.ctx.fillRect(0, this.ground.y, width, this.ground.height);
-        
+        // Draw moon surface ground
+        this.drawMoonSurface(width);
+
         // Draw obstacles as dog images (no shake)
         this.obstacles.forEach((obstacle) => {
             if (this.dogImageLoaded) {
@@ -1903,34 +1944,7 @@ class SimpleGame {
     
     drawOcean() {
         const ctx = this.ctx;
-        const width = this.displayWidth || window.innerWidth;
-        // Ocean strip above the sand
-        const oceanTop = this.ground.y - 60;
-        const oceanHeight = 50;
-        
-        // Base ocean color
-        ctx.fillStyle = '#4FC3F7';
-        ctx.fillRect(0, oceanTop, width, oceanHeight);
-        
-        // Gentle wave lines
-        ctx.strokeStyle = '#E1F5FE';
-        ctx.lineWidth = 2;
-        for (let y = 0; y < 3; y++) {
-            const waveY = oceanTop + 10 + y * 12;
-            ctx.beginPath();
-            for (let x = 0; x <= width; x += 20) {
-                const offset = Math.sin((Date.now() * 0.002) + x * 0.05 + y) * 3;
-                if (x === 0) ctx.moveTo(x, waveY + offset);
-                else ctx.lineTo(x, waveY + offset);
-            }
-            ctx.stroke();
-        }
-        
-        // Draw jumping fish
-        this.updateFish(oceanTop, oceanHeight, width);
-        this.drawFish(oceanTop, oceanHeight);
-        // Draw splashes
-        this.updateAndDrawSplashes(oceanTop, oceanHeight);
+        // Ocean removed in space theme
     }
     
     spawnSplash(x, y) {
@@ -1977,6 +1991,9 @@ class SimpleGame {
     }
     
     initFish() {
+        // Disable fish in space theme
+        this.fish = [];
+        return;
         const width = this.displayWidth || window.innerWidth;
         const speciesOptions = [
             { name: 'clown',   bodyColor: '#FF7043', stripe: true,  stripeColor: '#FFFFFF', stripeCount: 2, rx: 10, ry: 6, tailLen: 6, tailH: 5 },
@@ -2009,6 +2026,8 @@ class SimpleGame {
     }
     
     updateFish(oceanTop, oceanHeight, screenWidth) {
+        // Disabled in space theme
+        return;
         const now = Date.now();
         this.fish.forEach(f => {
             // Start jump if interval elapsed
@@ -2052,6 +2071,8 @@ class SimpleGame {
     }
     
     drawFish(oceanTop, oceanHeight) {
+        // Disabled in space theme
+        return;
         const ctx = this.ctx;
         this.fish.forEach(f => {
             const surfaceY = oceanTop + oceanHeight - 4;
