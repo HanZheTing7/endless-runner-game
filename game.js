@@ -9,7 +9,7 @@ class SimpleGame {
         // Game state
         this.score = 0;
         this.distance = 0;
-        this.gameSpeed = 3.2; // Increased base speed for faster gameplay
+        this.gameSpeed = 5.6; // Higher base speed for a snappier start
         this.obstacleFrequency = 1; // Start with 1 obstacle, increases with difficulty
         
         // Game objects (positions will be updated in setupCanvas)
@@ -501,9 +501,9 @@ class SimpleGame {
     updateDifficulty() {
         // Increase game difficulty from the start, ramp every 500 distance
         const tiers = Math.floor(this.distance / 500);
-        this.gameSpeed = 4.2 + (tiers * 0.5);
+        this.gameSpeed = 5.6 + (tiers * 0.6);
         // Cap max speed
-        this.gameSpeed = Math.min(this.gameSpeed, 9.0);
+        this.gameSpeed = Math.min(this.gameSpeed, 10.0);
         
         // Increase number of concurrent obstacles every 500 distance (cap for performance)
         this.obstacleFrequency = 1 + tiers;
