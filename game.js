@@ -203,6 +203,50 @@ class SimpleGame {
             ctx.fillRect(s.x, s.y, s.size, s.size);
         }
         ctx.globalAlpha = 1;
+
+        // Comets (occasional background streaks)
+        if (!this.comets) this.comets = [];
+        // Spawn with small probability, limit count
+        if (Math.random() < 0.01 && this.comets.length < 2) {
+            const startY = Math.random() * height * 0.6;
+            this.comets.push({
+                x: width + 50,
+                y: startY,
+                vx: - (2 + Math.random() * 2),
+                vy: 0.4 + Math.random() * 0.6,
+                len: 80 + Math.random() * 60,
+                life: 2000 + Math.random() * 1500,
+                born: performance.now()
+            });
+        }
+        // Update and draw comets behind obstacles
+        const nowTs = performance.now();
+        this.comets = this.comets.filter(c => (nowTs - c.born) < c.life && c.x > -100 && c.y < height + 100);
+        ctx.save();
+        ctx.globalAlpha = 0.8;
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        ctx.lineWidth = 2;
+        for (const c of this.comets) {
+            c.x += c.vx * (1 + baseSpeed * 4);
+            c.y += c.vy * (1 + baseSpeed * 2);
+            // Draw comet head
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, 2.2, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            // Tail
+            const tailX = c.x + c.len * 0.7;
+            const tailY = c.y - c.len * 0.3;
+            const gradTail = ctx.createLinearGradient(c.x, c.y, tailX, tailY);
+            gradTail.addColorStop(0, 'rgba(255,255,255,0.9)');
+            gradTail.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.strokeStyle = gradTail;
+            ctx.beginPath();
+            ctx.moveTo(c.x, c.y);
+            ctx.lineTo(tailX, tailY);
+            ctx.stroke();
+        }
+        ctx.restore();
     }
 
     drawMoonSurface(width, scrollSpeed = 0.01) {
@@ -850,14 +894,8 @@ class SimpleGame {
         // Progressive difficulty based on distance
         this.updateDifficulty();
         
-        // Update UI
-        const currentScoreElement = document.getElementById('currentScore');
+        // Update UI (score removed from header)
         const currentDistanceElement = document.getElementById('currentDistance');
-        
-        if (currentScoreElement) {
-            currentScoreElement.textContent = this.score;
-        }
-        
         if (currentDistanceElement) {
             currentDistanceElement.textContent = Math.floor(this.distance);
         }
@@ -1896,41 +1934,112 @@ class SimpleGame {
             ctx.fill();
         }
         
-        // Draw wedding dress body (white A-line with subtle shading)
-        const dressWidth = width * 0.95;
-        const bodiceTopY = y + height * 0.28;
-        const hemY = y + height * 0.72;
+        // Pearl necklace (pure white, subtle shine)
+        {
+            const pearls = 11;
+            const radius = Math.max(10, width * 0.22);
+            const baseY = y + height * 0.28;
+            const pearlR = Math.max(1.6, height * 0.013);
+            ctx.save();
+            for (let i = 0; i < pearls; i++) {
+                const t = i / (pearls - 1);
+                const px = centerX - radius + t * (radius * 2);
+                const py = baseY + Math.sin((t - 0.5) * Math.PI) * (pearlR * 1.2);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(px, py, pearlR, 0, Math.PI * 2);
+                ctx.fill();
+                // Tiny highlight
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.beginPath();
+                ctx.arc(px - pearlR * 0.35, py - pearlR * 0.35, pearlR * 0.35, 0, Math.PI * 2);
+                ctx.fill();
+                // Thin outline for definition
+                ctx.strokeStyle = 'rgba(220,220,220,0.8)';
+                ctx.lineWidth = 0.7;
+                ctx.beginPath();
+                ctx.arc(px, py, pearlR, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
         
-        // Skirt
-        const skirtGradient = ctx.createLinearGradient(0, bodiceTopY, 0, hemY);
-        skirtGradient.addColorStop(0, '#FFFFFF');
-        skirtGradient.addColorStop(1, '#EDEDED');
-        ctx.fillStyle = skirtGradient;
-        ctx.strokeStyle = '#DDDDDD';
-        ctx.lineWidth = 1.5;
+        // Draw wedding dress body (white A-line with subtle shading)
+        const screenW = this.displayWidth || window.innerWidth;
+        const dressWidth = Math.min(width * 1.7, screenW * 0.55);
+        const bodiceTopY = y + height * 0.26;
+        const waistY = y + height * 0.34;
+        const hemY = y + height * 0.9;
+        
+        // Ball gown skirt with gentle curvature
+        const skirtGrad = ctx.createLinearGradient(0, waistY, 0, hemY);
+        skirtGrad.addColorStop(0, '#FFFFFF');
+        skirtGrad.addColorStop(1, '#F5F5F5');
+        ctx.fillStyle = skirtGrad;
+        ctx.strokeStyle = '#E6E6E6';
+        ctx.lineWidth = 1.2;
         ctx.beginPath();
-        ctx.moveTo(centerX - dressWidth * 0.28, bodiceTopY);
-        ctx.lineTo(centerX + dressWidth * 0.28, bodiceTopY);
-        ctx.lineTo(centerX + dressWidth * 0.46, hemY);
-        ctx.lineTo(centerX - dressWidth * 0.46, hemY);
+        ctx.moveTo(centerX - dressWidth * 0.22, waistY);
+        ctx.quadraticCurveTo(centerX, waistY - height * 0.06, centerX + dressWidth * 0.22, waistY);
+        ctx.quadraticCurveTo(centerX + dressWidth * 0.52, y + height * 0.65, centerX + dressWidth * 0.48, hemY);
+        ctx.lineTo(centerX - dressWidth * 0.48, hemY);
+        ctx.quadraticCurveTo(centerX - dressWidth * 0.52, y + height * 0.65, centerX - dressWidth * 0.22, waistY);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
         
-        // Bodice (strapless)
+        // Layered tulle overlay (subtle)
+        ctx.save();
+        ctx.globalAlpha = 0.35;
         ctx.fillStyle = '#FFFFFF';
-        ctx.strokeStyle = '#DDDDDD';
         ctx.beginPath();
-        ctx.roundRect(centerX - dressWidth * 0.28, bodiceTopY - height * 0.06, dressWidth * 0.56, height * 0.12, 6);
+        ctx.moveTo(centerX - dressWidth * 0.2, waistY + height * 0.02);
+        ctx.quadraticCurveTo(centerX, waistY + height * 0.06, centerX + dressWidth * 0.2, waistY + height * 0.02);
+        ctx.quadraticCurveTo(centerX + dressWidth * 0.46, y + height * 0.66, centerX + dressWidth * 0.42, hemY - 6);
+        ctx.lineTo(centerX - dressWidth * 0.42, hemY - 6);
+        ctx.quadraticCurveTo(centerX - dressWidth * 0.46, y + height * 0.66, centerX - dressWidth * 0.2, waistY + height * 0.02);
+        ctx.closePath();
         ctx.fill();
+        ctx.restore();
+        
+        // Lace hem (scalloped)
+        ctx.save();
+        ctx.strokeStyle = 'rgba(230,230,230,0.9)';
+        ctx.lineWidth = 1;
+        for (let i = -dressWidth * 0.48; i <= dressWidth * 0.48; i += 14) {
+            ctx.beginPath();
+            ctx.arc(centerX + i, hemY + 1, 6, 0, Math.PI);
+            ctx.stroke();
+        }
+        ctx.restore();
+        
+        // Bodice (sweetheart neckline)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#E6E6E6';
+        ctx.beginPath();
+        const bodiceW = dressWidth * 0.5;
+        ctx.moveTo(centerX - bodiceW * 0.5, bodiceTopY);
+        ctx.quadraticCurveTo(centerX - bodiceW * 0.25, bodiceTopY - height * 0.06, centerX, bodiceTopY);
+        ctx.quadraticCurveTo(centerX + bodiceW * 0.25, bodiceTopY - height * 0.06, centerX + bodiceW * 0.5, bodiceTopY);
+        ctx.lineTo(centerX + bodiceW * 0.5, waistY);
+        ctx.lineTo(centerX - bodiceW * 0.5, waistY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Waist ribbon
+        ctx.strokeStyle = 'rgba(210,210,210,0.9)';
+        ctx.beginPath();
+        ctx.moveTo(centerX - bodiceW * 0.5, waistY);
+        ctx.lineTo(centerX + bodiceW * 0.5, waistY);
         ctx.stroke();
         
         // Simple belt detail
         ctx.strokeStyle = 'rgba(200,200,200,0.7)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(centerX - dressWidth * 0.28, bodiceTopY + height * 0.02);
-        ctx.lineTo(centerX + dressWidth * 0.28, bodiceTopY + height * 0.02);
+        ctx.moveTo(centerX - bodiceW * 0.28, bodiceTopY + height * 0.02);
+        ctx.lineTo(centerX + bodiceW * 0.28, bodiceTopY + height * 0.02);
         ctx.stroke();
         
         // Running animation for wife
