@@ -1867,6 +1867,22 @@ class SimpleGame {
         const ctx = this.ctx;
         const centerX = x + width / 2;
         
+        // Veil (draw behind head)
+        (function drawVeil() {
+            const ctx = self.ctx || this.ctx;
+            ctx.save();
+            ctx.globalAlpha = 0.45;
+            ctx.globalCompositeOperation = 'destination-over';
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.moveTo(centerX, y + height * 0.05);
+            ctx.quadraticCurveTo(centerX + width * 0.6, y + height * 0.42, centerX, y + height * 0.86);
+            ctx.quadraticCurveTo(centerX - width * 0.6, y + height * 0.42, centerX, y + height * 0.05);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }).call(this);
+
         // Draw wife's head using image (Jane)
         if (this.wifeHead && this.wifeHead.complete) {
             const headSize = height * 0.8;
@@ -1880,22 +1896,41 @@ class SimpleGame {
             ctx.fill();
         }
         
-        // Draw dress/blouse body
-        const dressWidth = width * 0.9;
+        // Draw wedding dress body (white A-line with subtle shading)
+        const dressWidth = width * 0.95;
+        const bodiceTopY = y + height * 0.28;
+        const hemY = y + height * 0.72;
         
-        // Main dress body (A-line shape)
-        ctx.fillStyle = '#FF69B4'; // Pink dress
-        ctx.strokeStyle = '#E91E63'; // Darker pink outline
-        ctx.lineWidth = 2;
-        
+        // Skirt
+        const skirtGradient = ctx.createLinearGradient(0, bodiceTopY, 0, hemY);
+        skirtGradient.addColorStop(0, '#FFFFFF');
+        skirtGradient.addColorStop(1, '#EDEDED');
+        ctx.fillStyle = skirtGradient;
+        ctx.strokeStyle = '#DDDDDD';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        // Create A-line dress shape
-        ctx.moveTo(centerX - dressWidth * 0.3, y + height * 0.27); // Top left
-        ctx.lineTo(centerX + dressWidth * 0.3, y + height * 0.27); // Top right
-        ctx.lineTo(centerX + dressWidth * 0.45, y + height * 0.7); // Bottom right (wider)
-        ctx.lineTo(centerX - dressWidth * 0.45, y + height * 0.7); // Bottom left (wider)
+        ctx.moveTo(centerX - dressWidth * 0.28, bodiceTopY);
+        ctx.lineTo(centerX + dressWidth * 0.28, bodiceTopY);
+        ctx.lineTo(centerX + dressWidth * 0.46, hemY);
+        ctx.lineTo(centerX - dressWidth * 0.46, hemY);
         ctx.closePath();
         ctx.fill();
+        ctx.stroke();
+        
+        // Bodice (strapless)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#DDDDDD';
+        ctx.beginPath();
+        ctx.roundRect(centerX - dressWidth * 0.28, bodiceTopY - height * 0.06, dressWidth * 0.56, height * 0.12, 6);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Simple belt detail
+        ctx.strokeStyle = 'rgba(200,200,200,0.7)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(centerX - dressWidth * 0.28, bodiceTopY + height * 0.02);
+        ctx.lineTo(centerX + dressWidth * 0.28, bodiceTopY + height * 0.02);
         ctx.stroke();
         
         // Running animation for wife
@@ -1906,10 +1941,10 @@ class SimpleGame {
         const bodyBounce = Math.sin(cycle * 2) * 0.015;
         const bounceOffset = height * bodyBounce;
         
-        // Improved chasing arm animation - more natural reaching motion
-        const leftArmSwing = Math.sin(cycle * 2) * 0.3; // Left arm swings
-        const rightArmSwing = Math.sin(cycle * 2 + Math.PI) * 0.3; // Right arm opposite
-        const baseReach = 0.6; // Base forward reach
+        // Arm animation (subtle while running in dress)
+        const leftArmSwing = Math.sin(cycle * 2) * 0.2;
+        const rightArmSwing = Math.sin(cycle * 2 + Math.PI) * 0.2;
+        const baseReach = 0.55;
         
         // Leg movement (under dress)
         const leftLegAngle = Math.sin(cycle * 2 + Math.PI) * 0.4;
