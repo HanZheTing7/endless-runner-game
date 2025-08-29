@@ -3315,7 +3315,6 @@ class GameManager {
         // Check if all required game elements exist
         const requiredGameElements = [
             'gameCanvas',
-            'currentScore',
             'currentDistance'
         ];
         
