@@ -493,53 +493,22 @@ class SimpleGame {
     }
     
     createRandomObstacle(x) {
-        // Use display dimensions for obstacle sizing
-        const screenWidth = this.displayWidth || window.innerWidth;
+        // Two fixed-size obstacles: small dog and big dog
         const screenHeight = this.displayHeight || window.innerHeight;
-        
-        // Calculate maximum jump height (responsive to screen size)
-        const jumpHeightRatio = Math.min(220, screenHeight * 0.3);
-        const maxJumpHeight = this.ground.y - jumpHeightRatio;
-        
-        // Randomly choose obstacle type: ground, double-stack, or gap pair
-        const typeRand = Math.random();
-        let height, width, y;
-        
-        if (typeRand < 0.65) {
-            // Single ground obstacle with passable height
-            // Use fixed heights to preserve sprite quality
-            const smallH = Math.max(40, screenHeight * 0.07);
-            const bigH = Math.max(60, screenHeight * 0.1);
-            const isBig = Math.random() < 0.45;
-            height = isBig ? bigH : smallH;
-            // Compute width from aspect ratio
-            const aspect = isBig ? (this.bigDogAspect || 1.3) : (this.smallDogAspect || 1.2);
-            width = height * aspect;
-            y = this.ground.y - height;
-            // Store type for renderer sizing
-            return { x, y, width, height, sprite: isBig ? 'bigDog' : 'smallDog' };
-        } else if (typeRand < 0.88) {
-            // Small double-stack with a safe gap height
-            const baseHeight = Math.max(16, screenHeight * 0.025);
-            const stackCount = 2 + Math.floor(Math.random() * 2); // 2 or 3
-            height = Math.min(baseHeight * stackCount, this.ground.y - maxJumpHeight - 18);
-            width = Math.max(18, screenWidth * 0.02);
-            y = this.ground.y - height;
-            return { x, y, width, height, sprite: 'smallDog' };
-        } else {
-            // Low wide obstacle to vary timing
-            height = Math.max(12, screenHeight * 0.02);
-            width = Math.max(40, screenWidth * 0.06);
-            y = this.ground.y - height;
-            return { x, y, width, height, sprite: 'smallDog' };
-        }
-        
-        // Fallback (should not reach)
-        // Ensure always passable
-        height = Math.min(height, this.ground.y - maxJumpHeight - 12);
-        if (height < 8) height = 8;
-        y = this.ground.y - height;
-        return { x, y, width, height, sprite: 'smallDog' };
+
+        // Fixed heights relative to screen for consistent look
+        const smallHeight = Math.max(50, Math.round(screenHeight * 0.10));
+        const bigHeight = Math.max(70, Math.round(screenHeight * 0.15));
+
+        const isBig = Math.random() < 0.5;
+        const height = isBig ? bigHeight : smallHeight;
+
+        // Preserve image aspect ratio for width
+        const aspect = isBig ? (this.bigDogAspect || 1.3) : (this.smallDogAspect || 1.2);
+        const width = Math.round(height * aspect);
+        const y = this.ground.y - height;
+
+        return { x, y, width, height, sprite: isBig ? 'bigDog' : 'smallDog' };
     }
     
     updateDifficulty() {
@@ -656,18 +625,31 @@ class SimpleGame {
         }
     }
     
-    gameLoop() {
+    gameLoop(timestamp) {
+        if (this._lastFrameTime === undefined) {
+            this._lastFrameTime = timestamp || performance.now();
+        }
+        const now = timestamp || performance.now();
+        let deltaSeconds = (now - this._lastFrameTime) / 1000;
+        this._lastFrameTime = now;
+
+        if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) {
+            deltaSeconds = 0.016;
+        } else if (deltaSeconds > 0.05) {
+            deltaSeconds = 0.05;
+        }
+
         if (this.storyMode) {
             this.updateStory();
             this.renderStory();
         } else if (this.gameRunning) {
-            this.update();
+            this.update(deltaSeconds);
             this.render();
         } else {
             return;
         }
 
-        this.animationId = requestAnimationFrame(() => this.gameLoop());
+        this.animationId = requestAnimationFrame((t) => this.gameLoop(t));
     }
     
     updateStory() {
@@ -819,17 +801,11 @@ class SimpleGame {
             }
         }
         
-        // Update obstacles (reduce per-frame work)
+        // Update obstacles
         const speed = this.gameSpeed * deltaSeconds * 60;
-        const now = Date.now() * 0.004;
         for (let i = 0; i < this.obstacles.length; i++) {
             const obstacle = this.obstacles[i];
-            const speedFactor = obstacle.type === 'bird' ? 1.2 : 1.0;
-            obstacle.x -= speed * speedFactor;
-            if (obstacle.type === 'bird') {
-                const bobPhase = obstacle.bobPhase || 0;
-                obstacle.bobY = Math.sin(now + bobPhase) * 6;
-            }
+            obstacle.x -= speed;
         }
         
         // Remove obstacles that are off screen
@@ -839,14 +815,8 @@ class SimpleGame {
         if (this.obstacles.length < this.obstacleFrequency) {
             const width = this.displayWidth || window.innerWidth;
             const offset = 250 + Math.random() * 250;
-            // From distance 2000+, sometimes spawn a flying bird instead
-            if (this.distance >= 2000 && Math.random() < 0.3) {
-                const bird = this.createBirdObstacle(width + offset);
-                this.obstacles.push(bird);
-            } else {
-                const newObstacle = this.createRandomObstacle(width + offset);
-                this.obstacles.push(newObstacle);
-            }
+            const newObstacle = this.createRandomObstacle(width + offset);
+            this.obstacles.push(newObstacle);
         }
         
         // Update wife position (chasing behavior)
