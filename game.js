@@ -3559,7 +3559,6 @@ document.addEventListener('DOMContentLoaded', () => {
             'gameOverScreen',
             'finalScore',
             'finalDistance',
-            'leaderboard',
             'playerRank'
         ];
         
