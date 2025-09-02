@@ -979,8 +979,8 @@ class SimpleGame {
         const leaderboardElement = document.getElementById('leaderboard');
         const playerRankElement = document.getElementById('playerRank');
         
-        if (!leaderboardElement || !playerRankElement) {
-            console.error('Leaderboard elements not found');
+        if (!playerRankElement) {
+            console.error('Player rank element not found');
             return;
         }
         
@@ -991,7 +991,9 @@ class SimpleGame {
         
         try {
             // Show loading state
-            leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>Loading leaderboard...</span></div>';
+            if (leaderboardElement) {
+                leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>Loading leaderboard...</span></div>';
+            }
             playerRankElement.textContent = '-';
             
             // Get all scores from Firebase to check user's existing scores
@@ -1017,23 +1019,47 @@ class SimpleGame {
             console.log('Loaded top scores from Firebase:', topScores);
             
             // Get player rank
-            const playerRank = await window.FirebaseHelper.getPlayerRank(this.score);
-            console.log('Player rank:', playerRank);
-            
+            let playerRank = await window.FirebaseHelper.getPlayerRank(this.score);
+            console.log('Player rank (primary):', playerRank);
+
+            // Fallback: if primary rank retrieval failed or returned invalid value, compute locally
+            if (!(typeof playerRank === 'number' && playerRank > 0)) {
+                let fallbackScores = Array.isArray(allScores) ? allScores : [];
+
+                // If no scores available from service, try localStorage
+                if (fallbackScores.length === 0) {
+                    try {
+                        const localScores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
+                        if (Array.isArray(localScores)) {
+                            fallbackScores = localScores;
+                        }
+                    } catch (e) {
+                        console.warn('Could not read local scores for rank fallback:', e);
+                    }
+                }
+
+                const higherCount = fallbackScores.reduce((count, s) => count + ((s && typeof s.score === 'number' && s.score > this.score) ? 1 : 0), 0);
+                const computedFallbackRank = higherCount + 1;
+                console.log('Computed fallback rank:', computedFallbackRank);
+                playerRank = computedFallbackRank;
+            }
+
             // Update UI
             playerRankElement.textContent = playerRank > 0 ? playerRank : '-';
             
-            // Display leaderboard
-            if (topScores.length === 0) {
-                leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
-            } else {
-                leaderboardElement.innerHTML = topScores.map((score, index) => `
-                    <div class="leaderboard-item ${score.username === username ? 'current-player' : ''}">
-                        <span class="rank">${index + 1}</span>
-                        <span class="username">${score.username}</span>
-                        <span class="score">${score.score}</span>
-                    </div>
-                `).join('');
+            // Display leaderboard if element exists (game over page may not show it)
+            if (leaderboardElement) {
+                if (topScores.length === 0) {
+                    leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>No scores yet</span></div>';
+                } else {
+                    leaderboardElement.innerHTML = topScores.map((score, index) => `
+                        <div class="leaderboard-item ${score.username === username ? 'current-player' : ''}">
+                            <span class="rank">${index + 1}</span>
+                            <span class="username">${score.username}</span>
+                            <span class="score">${score.score}</span>
+                        </div>
+                    `).join('');
+                }
             }
             
             console.log('Leaderboard updated from Firebase');
@@ -1042,8 +1068,20 @@ class SimpleGame {
             console.error('Error loading leaderboard from Firebase:', error);
             
             // Show error message
-            leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>Error loading leaderboard</span></div>';
-            playerRankElement.textContent = '-';
+            if (leaderboardElement) {
+                leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>Error loading leaderboard</span></div>';
+            }
+
+            // Fallback rank computation on error
+            try {
+                const localScores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
+                const higherCount = Array.isArray(localScores)
+                    ? localScores.reduce((count, s) => count + ((s && typeof s.score === 'number' && s.score > this.score) ? 1 : 0), 0)
+                    : 0;
+                playerRankElement.textContent = String(higherCount + 1);
+            } catch (e) {
+                playerRankElement.textContent = '-';
+            }
         }
     }
     
