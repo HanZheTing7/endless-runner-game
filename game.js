@@ -806,11 +806,11 @@ class SimpleGame {
         this.ctx.fillText('Get ready to run!', width / 2, height / 4);
     }
     
-    update() {
+    update(deltaSeconds = 1/60) {
         // Update player
         if (this.player.isJumping) {
-            this.player.velocityY += this.gravity;
-            this.player.y += this.player.velocityY;
+            this.player.velocityY += this.gravity * deltaSeconds * 60;
+            this.player.y += this.player.velocityY * deltaSeconds * 60;
             
             if (this.player.y >= this.ground.y - this.player.height) {
                 this.player.y = this.ground.y - this.player.height;
@@ -820,7 +820,7 @@ class SimpleGame {
         }
         
         // Update obstacles (reduce per-frame work)
-        const speed = this.gameSpeed;
+        const speed = this.gameSpeed * deltaSeconds * 60;
         const now = Date.now() * 0.004;
         for (let i = 0; i < this.obstacles.length; i++) {
             const obstacle = this.obstacles[i];
@@ -857,13 +857,13 @@ class SimpleGame {
             
             if (currentDistance > targetDistance + 30) {
                 // Wife is too far behind, speed up (but not too much)
-                this.wife.x += this.gameSpeed * 0.95;
+                this.wife.x += this.gameSpeed * 0.95 * deltaSeconds * 60;
             } else if (currentDistance < targetDistance - 15) {
                 // Wife is too close, slow down significantly
-                this.wife.x += this.gameSpeed * 0.3;
+                this.wife.x += this.gameSpeed * 0.3 * deltaSeconds * 60;
             } else {
                 // Maintain steady chase at slightly slower speed
-                this.wife.x += this.gameSpeed * 0.8;
+                this.wife.x += this.gameSpeed * 0.8 * deltaSeconds * 60;
             }
             
             // CRITICAL: Ensure wife never gets ahead of player
@@ -879,7 +879,7 @@ class SimpleGame {
         }
 
         // Update game stats
-        this.distance += this.gameSpeed * 0.1;
+        this.distance += this.gameSpeed * 0.1 * deltaSeconds * 60;
         this.score = Math.floor(this.distance);
         
         // Play level-up tone every 1000 distance (once per milestone)
