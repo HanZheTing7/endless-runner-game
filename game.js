@@ -1966,7 +1966,7 @@ class SimpleGame {
         
         // Draw wedding dress body (white A-line with subtle shading)
         const screenW = this.displayWidth || window.innerWidth;
-        const dressWidth = Math.min(width * 1.7, screenW * 0.55);
+        const dressWidth = Math.min(width * 1.2, screenW * 0.42); // thinner ball gown silhouette
         const bodiceTopY = y + height * 0.26;
         const waistY = y + height * 0.34;
         const hemY = y + height * 0.9;
@@ -1979,11 +1979,11 @@ class SimpleGame {
         ctx.strokeStyle = '#E6E6E6';
         ctx.lineWidth = 1.2;
         ctx.beginPath();
-        ctx.moveTo(centerX - dressWidth * 0.22, waistY);
-        ctx.quadraticCurveTo(centerX, waistY - height * 0.06, centerX + dressWidth * 0.22, waistY);
-        ctx.quadraticCurveTo(centerX + dressWidth * 0.52, y + height * 0.65, centerX + dressWidth * 0.48, hemY);
-        ctx.lineTo(centerX - dressWidth * 0.48, hemY);
-        ctx.quadraticCurveTo(centerX - dressWidth * 0.52, y + height * 0.65, centerX - dressWidth * 0.22, waistY);
+        ctx.moveTo(centerX - dressWidth * 0.18, waistY);
+        ctx.quadraticCurveTo(centerX, waistY - height * 0.06, centerX + dressWidth * 0.18, waistY);
+        ctx.quadraticCurveTo(centerX + dressWidth * 0.42, y + height * 0.65, centerX + dressWidth * 0.38, hemY);
+        ctx.lineTo(centerX - dressWidth * 0.38, hemY);
+        ctx.quadraticCurveTo(centerX - dressWidth * 0.42, y + height * 0.65, centerX - dressWidth * 0.18, waistY);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
@@ -1993,11 +1993,11 @@ class SimpleGame {
         ctx.globalAlpha = 0.35;
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
-        ctx.moveTo(centerX - dressWidth * 0.2, waistY + height * 0.02);
-        ctx.quadraticCurveTo(centerX, waistY + height * 0.06, centerX + dressWidth * 0.2, waistY + height * 0.02);
-        ctx.quadraticCurveTo(centerX + dressWidth * 0.46, y + height * 0.66, centerX + dressWidth * 0.42, hemY - 6);
-        ctx.lineTo(centerX - dressWidth * 0.42, hemY - 6);
-        ctx.quadraticCurveTo(centerX - dressWidth * 0.46, y + height * 0.66, centerX - dressWidth * 0.2, waistY + height * 0.02);
+        ctx.moveTo(centerX - dressWidth * 0.16, waistY + height * 0.02);
+        ctx.quadraticCurveTo(centerX, waistY + height * 0.06, centerX + dressWidth * 0.16, waistY + height * 0.02);
+        ctx.quadraticCurveTo(centerX + dressWidth * 0.36, y + height * 0.66, centerX + dressWidth * 0.33, hemY - 6);
+        ctx.lineTo(centerX - dressWidth * 0.33, hemY - 6);
+        ctx.quadraticCurveTo(centerX - dressWidth * 0.36, y + height * 0.66, centerX - dressWidth * 0.16, waistY + height * 0.02);
         ctx.closePath();
         ctx.fill();
         ctx.restore();
