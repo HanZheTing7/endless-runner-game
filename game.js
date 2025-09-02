@@ -338,8 +338,8 @@ class SimpleGame {
         this.canvas.style.width = window.innerWidth + 'px';
         this.canvas.style.height = window.innerHeight + 'px';
         
-        // Scale the context to match device pixel ratio
-        this.ctx.scale(dpr, dpr);
+        // Set absolute transform to match device pixel ratio
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         
         // Store scaling info for later use
         this.canvasScale = dpr;
@@ -363,8 +363,8 @@ class SimpleGame {
             this.canvas.style.width = window.innerWidth + 'px';
             this.canvas.style.height = window.innerHeight + 'px';
             
-            // Scale the context to match device pixel ratio
-            this.ctx.scale(newDpr, newDpr);
+            // Set absolute transform to match new device pixel ratio
+            this.ctx.setTransform(newDpr, 0, 0, newDpr, 0, 0);
             
             // Update scaling info
             this.canvasScale = newDpr;
@@ -493,12 +493,23 @@ class SimpleGame {
     }
     
     createRandomObstacle(x) {
-        // Two fixed-size obstacles: small dog and big dog
+        // Two fixed-size obstacles with jump-clearance safeguard
         const screenHeight = this.displayHeight || window.innerHeight;
 
-        // Fixed heights relative to screen for consistent look
-        const smallHeight = Math.max(50, Math.round(screenHeight * 0.10));
-        const bigHeight = Math.max(70, Math.round(screenHeight * 0.15));
+        // Player jump arc reference
+        const jumpHeightRatio = Math.min(220, screenHeight * 0.3);
+        const maxObstacleHeight = Math.max(40, Math.floor(jumpHeightRatio - 12)); // keep some clearance
+
+        // Base sizes
+        let smallHeight = Math.round(screenHeight * 0.09);
+        let bigHeight = Math.round(screenHeight * 0.12); // reduced from 0.15
+
+        // Clamp to be passable and maintain separation
+        smallHeight = Math.max(45, Math.min(smallHeight, maxObstacleHeight - 10));
+        bigHeight = Math.max(60, Math.min(bigHeight, maxObstacleHeight - 4));
+        if (bigHeight <= smallHeight) {
+            bigHeight = smallHeight + 8;
+        }
 
         const isBig = Math.random() < 0.5;
         const height = isBig ? bigHeight : smallHeight;
