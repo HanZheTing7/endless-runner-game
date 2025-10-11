@@ -380,13 +380,13 @@ class SimpleGame {
         const width = this.displayWidth || window.innerWidth;
         const height = this.displayHeight || window.innerHeight;
         
-        // Make character size responsive to screen size (thinner and slightly taller)
-        this.player.width = Math.max(30, Math.min(45, width * 0.04)); // Reduced width: 0.05 -> 0.04, max 60 -> 45
-        this.player.height = Math.max(70, Math.min(110, height * 0.09)); // Increased height: 0.08 -> 0.09, min 60 -> 70, max 100 -> 110
+        // Make character size responsive to screen size (much thinner and slightly taller)
+        this.player.width = Math.max(25, Math.min(35, width * 0.03)); // Much thinner: 0.04 -> 0.03, max 45 -> 35
+        this.player.height = Math.max(70, Math.min(110, height * 0.09)); // Keep height the same
         
-        // Make wife size responsive (slightly smaller than player)
-        this.wife.width = Math.max(35, Math.min(55, width * 0.045));
-        this.wife.height = Math.max(55, Math.min(95, height * 0.075));
+        // Make wife size responsive (slightly smaller than player, also thinner)
+        this.wife.width = Math.max(28, Math.min(40, width * 0.032)); // Much thinner: 0.045 -> 0.032, max 55 -> 40
+        this.wife.height = Math.max(55, Math.min(95, height * 0.075)); // Keep height the same
         
         // Position ground at bottom of screen (responsive height)
         this.ground.height = Math.max(50, height * 0.08);
@@ -493,44 +493,36 @@ class SimpleGame {
     }
     
     createRandomObstacle(x) {
-        // Two fixed-size obstacles with jump-clearance safeguard
+        // Only create small obstacles (no tall obstacles)
         const screenHeight = this.displayHeight || window.innerHeight;
 
         // Player jump arc reference
         const jumpHeightRatio = Math.min(220, screenHeight * 0.3);
         const maxObstacleHeight = Math.max(40, Math.floor(jumpHeightRatio - 12)); // keep some clearance
 
-        // Base sizes
+        // Only use small height - no big obstacles
         let smallHeight = Math.round(screenHeight * 0.09);
-        let bigHeight = Math.round(screenHeight * 0.12); // reduced from 0.15
-
-        // Clamp to be passable and maintain separation
         smallHeight = Math.max(45, Math.min(smallHeight, maxObstacleHeight - 10));
-        bigHeight = Math.max(60, Math.min(bigHeight, maxObstacleHeight - 4));
-        if (bigHeight <= smallHeight) {
-            bigHeight = smallHeight + 8;
-        }
 
-        const isBig = Math.random() < 0.5;
-        const height = isBig ? bigHeight : smallHeight;
+        const height = smallHeight;
 
         // Preserve image aspect ratio for width
-        const aspect = isBig ? (this.bigDogAspect || 1.3) : (this.smallDogAspect || 1.2);
+        const aspect = this.smallDogAspect || 1.2;
         const width = Math.round(height * aspect);
         const y = this.ground.y - height;
 
-        return { x, y, width, height, sprite: isBig ? 'bigDog' : 'smallDog' };
+        return { x, y, width, height, sprite: 'smallDog' };
     }
     
     updateDifficulty() {
-        // Increase game difficulty from the start, ramp every 500 distance
-        const tiers = Math.floor(this.distance / 500);
-        this.gameSpeed = 5.6 + (tiers * 0.6);
-        // Cap max speed
-        this.gameSpeed = Math.min(this.gameSpeed, 10.0);
+        // Increase game difficulty from the start, ramp every 300 distance (faster progression)
+        const tiers = Math.floor(this.distance / 300);
+        this.gameSpeed = 5.6 + (tiers * 1.0); // Increased from 0.6 to 1.0
+        // Cap max speed higher
+        this.gameSpeed = Math.min(this.gameSpeed, 15.0); // Increased from 10.0 to 15.0
         
         // Increase number of concurrent obstacles every 500 distance (cap for performance)
-        this.obstacleFrequency = 1 + tiers;
+        this.obstacleFrequency = 1 + Math.floor(tiers * 0.5);
         this.obstacleFrequency = Math.min(this.obstacleFrequency, 3);
     }
     
@@ -663,6 +655,14 @@ class SimpleGame {
         this.animationId = requestAnimationFrame((t) => this.gameLoop(t));
     }
     
+    getCurrentStoryLine() {
+        if (window.languageManager) {
+            const storyKeys = ['storyline.part1', 'storyline.part2', 'storyline.part3', 'storyline.part4'];
+            return window.languageManager.getTranslation(storyKeys[this.currentLineIndex]);
+        }
+        return this.storyLines[this.currentLineIndex];
+    }
+
     updateStory() {
         const currentTime = Date.now();
         
@@ -671,7 +671,7 @@ class SimpleGame {
             return; // All lines complete
         }
         
-        const currentLine = this.storyLines[this.currentLineIndex];
+        const currentLine = this.getCurrentStoryLine();
         
         // If waiting for user tap, don't continue typing
         if (this.waitingForUserTap) {
@@ -704,7 +704,7 @@ class SimpleGame {
             return;
         }
         
-        const currentLine = this.storyLines[this.currentLineIndex];
+        const currentLine = this.getCurrentStoryLine();
         
         if (!this.currentLineComplete) {
             // Line is still typing, show full line instantly
@@ -825,9 +825,24 @@ class SimpleGame {
         // Add new obstacles if needed
         if (this.obstacles.length < this.obstacleFrequency) {
             const width = this.displayWidth || window.innerWidth;
-            const offset = 250 + Math.random() * 250;
-            const newObstacle = this.createRandomObstacle(width + offset);
-            this.obstacles.push(newObstacle);
+            const minDistance = 400; // Minimum distance between obstacles
+            const maxDistance = 600; // Maximum distance between obstacles
+            
+            // Check if there's enough space for a new obstacle
+            let canSpawn = true;
+            if (this.obstacles.length > 0) {
+                const lastObstacle = this.obstacles[this.obstacles.length - 1];
+                const distanceFromLast = width - lastObstacle.x;
+                if (distanceFromLast < minDistance) {
+                    canSpawn = false;
+                }
+            }
+            
+            if (canSpawn) {
+                const offset = minDistance + Math.random() * (maxDistance - minDistance);
+                const newObstacle = this.createRandomObstacle(width + offset);
+                this.obstacles.push(newObstacle);
+            }
         }
         
         // Update wife position (chasing behavior)
@@ -1302,7 +1317,8 @@ class SimpleGame {
         ctx.textBaseline = 'middle';
         
         // Draw main text
-        ctx.fillText('SKIP', buttonX + buttonWidth / 2, buttonY + buttonHeight / 2);
+        const skipText = window.languageManager ? window.languageManager.getTranslation('storyline.skip') : 'SKIP';
+        ctx.fillText(skipText, buttonX + buttonWidth / 2, buttonY + buttonHeight / 2);
         
         // Reset shadow
         ctx.shadowBlur = 0;
@@ -1663,8 +1679,8 @@ class SimpleGame {
             ctx.closePath();
         }
         
-        // Draw suit jacket/coat body
-        const suitWidth = width * 0.8;
+        // Draw suit jacket/coat body (skinnier)
+        const suitWidth = width * 0.6; // Reduced from 0.8 to 0.6 for skinnier look
         
         // Main suit body (rounded rectangle)
         ctx.fillStyle = '#2C3E50'; // Dark blue-gray suit
@@ -1985,7 +2001,7 @@ class SimpleGame {
         
         // Draw wedding dress body (white A-line with subtle shading)
         const screenW = this.displayWidth || window.innerWidth;
-        const dressWidth = Math.min(width * 1.2, screenW * 0.42); // thinner ball gown silhouette
+        const dressWidth = Math.min(width * 0.9, screenW * 0.32); // much thinner silhouette: 1.2 -> 0.9, 0.42 -> 0.32
         const bodiceTopY = y + height * 0.26;
         const waistY = y + height * 0.34;
         const hemY = y + height * 0.9;

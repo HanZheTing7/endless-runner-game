@@ -31,6 +31,36 @@ body {
     display: flex;
 }
 
+/* Language Selection Screen */
+#languageScreen {
+    background: radial-gradient(1000px 600px at 20% 10%, rgba(70, 30, 120, 0.25), transparent 60%),
+                radial-gradient(800px 500px at 80% 30%, rgba(0, 150, 255, 0.2), transparent 60%),
+                #000;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.language-title {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    margin-bottom: 3rem;
+    color: #fff;
+    font-family: 'Segoe Script', 'Brush Script MT', cursive;
+    text-shadow: 0 0 10px rgba(255,255,255,0.6);
+}
+
+.language-buttons {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.language-buttons .btn {
+    min-width: 150px;
+    font-size: 1.2rem;
+    padding: 18px 36px;
+}
+
 /* Starfield for Start Screen */
 #startScreen {
     background: radial-gradient(1000px 600px at 20% 10%, rgba(70, 30, 120, 0.25), transparent 60%),
@@ -74,7 +104,7 @@ body {
 #startScreen .container {
     position: relative;
     z-index: 1;
-    padding-top: 24px;
+    padding-top: 60px;
     padding-bottom: 24px;
 }
 
@@ -87,12 +117,13 @@ body {
 
 /* Title Styles */
 .title {
-    font-size: clamp(2.2rem, 7.5vw, 4.2rem);
+    font-size: clamp(3rem, 10vw, 6rem);
     font-weight: 900;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
     color: #fff;
     font-family: 'Segoe Script', 'Brush Script MT', cursive;
-    text-shadow: 0 0 14px rgba(255,255,255,0.8), 0 0 30px rgba(255,255,255,0.35);
+    text-shadow: 0 0 20px rgba(255,255,255,0.9), 0 0 40px rgba(255,255,255,0.5), 0 0 60px rgba(255,255,255,0.3);
+    letter-spacing: 2px;
 }
 
 /* Username Section */
@@ -190,6 +221,29 @@ body {
 }
 
 .mute-icon:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+.language-toggle {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.language-toggle:hover {
     background: rgba(255,255,255,0.15);
 }
 
@@ -343,9 +397,18 @@ body {
 /* Game Over Screen */
 #gameOverScreen h2 {
     font-size: clamp(2rem, 6vw, 3rem);
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     color: #ff6b6b;
     font-family: 'Segoe Script', 'Brush Script MT', cursive;
+}
+
+.game-over-message {
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    margin-bottom: 2rem;
+    color: #ffd700;
+    font-family: 'Segoe Script', 'Brush Script MT', cursive;
+    font-style: italic;
+    opacity: 0.9;
 }
 
 .final-score {
@@ -363,21 +426,24 @@ body {
 }
 
 .leaderboard-section {
-    margin: 2rem 0;
+    margin: 1.5rem 0;
 }
 
 .leaderboard-section h3 {
-    margin-bottom: 1rem;
-    color: #ccc;
+    margin-bottom: 0.8rem;
+    color: #aaa;
     letter-spacing: 1px;
+    font-size: 0.9rem;
+    font-family: 'Segoe Script', 'Brush Script MT', cursive;
+    opacity: 0.8;
 }
 
 .leaderboard {
-    max-height: 300px;
+    max-height: 200px;
     overflow-y: auto;
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 12px;
-    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    padding: 8px 12px;
     backdrop-filter: blur(4px);
 }
 
@@ -427,10 +493,11 @@ body {
 }
 
 .leaderboard-line {
-    margin: 6px 0;
-    color: #e6e6e6;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    margin: 4px 0;
+    color: #ccc;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    font-size: 0.85rem;
     display: grid;
     grid-template-columns: 22px 1fr 52px;
     column-gap: 4px;
