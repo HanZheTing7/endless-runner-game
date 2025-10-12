@@ -126,9 +126,11 @@ class LanguageManager {
                 }
                 
                 // Initialize the game manager if it hasn't been initialized yet
-                if (!window.gameManager) {
-                    console.log('GameManager will be initialized when game.js loads');
-                    // The game manager will be initialized when the game.js script loads
+                if (!window.gameManager && typeof GameManager !== 'undefined') {
+                    console.log('Initializing GameManager after language selection');
+                    window.gameManager = new GameManager();
+                } else if (!window.gameManager) {
+                    console.log('GameManager class not available yet, will be initialized when game.js loads');
                 }
             }
         }

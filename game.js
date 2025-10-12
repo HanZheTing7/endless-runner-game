@@ -3224,6 +3224,7 @@ class GameManager {
         let usernameTimeout;
         document.getElementById('username').addEventListener('input', (e) => {
             this.username = e.target.value.trim();
+            console.log('Username updated:', this.username);
             
             // Try to ensure music is playing on username input
             setTimeout(() => this.ensureMainMenuMusicPlaying(), 100);
@@ -3329,6 +3330,7 @@ class GameManager {
     }
     
     async startGame() {
+        console.log('startGame called, username:', this.username);
         if (!this.username || this.username.length < 3) {
             alert('Please enter a valid username');
             return;
@@ -3406,7 +3408,10 @@ class GameManager {
         if (screenName === 'start') {
             const startLb = document.getElementById('startLeaderboard');
             if (startLb) {
+                console.log('Displaying leaderboard on start screen');
                 this.displayLeaderboard('startLeaderboard', 5);
+            } else {
+                console.error('startLeaderboard element not found');
             }
 
             // Generate starfield lazily if not present
@@ -3612,9 +3617,13 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('All required elements found, initializing GameManager');
         
         // Initialize game manager but don't start it yet if language screen is active
-        const gameManager = new GameManager();
-        window.gameManager = gameManager;
-        console.log('GameManager initialized successfully');
+        if (!window.gameManager) {
+            const gameManager = new GameManager();
+            window.gameManager = gameManager;
+            console.log('GameManager initialized successfully');
+        } else {
+            console.log('GameManager already exists, using existing instance');
+        }
         
         // Check if language screen is active, if so, don't auto-start the game
         const languageScreen = document.getElementById('languageScreen');
