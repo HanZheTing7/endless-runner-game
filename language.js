@@ -118,6 +118,12 @@ class LanguageManager {
             if (languageScreen && startScreen) {
                 languageScreen.classList.remove('active');
                 startScreen.classList.add('active');
+                
+                // Initialize the game manager if it hasn't been initialized yet
+                if (!window.gameManager) {
+                    console.log('GameManager will be initialized when game.js loads');
+                    // The game manager will be initialized when the game.js script loads
+                }
             }
         }
     }

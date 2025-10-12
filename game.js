@@ -3605,9 +3605,20 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
+        // Initialize game manager but don't start it yet if language screen is active
         const gameManager = new GameManager();
         window.gameManager = gameManager;
         console.log('GameManager initialized successfully');
+        
+        // Check if language screen is active, if so, don't auto-start the game
+        const languageScreen = document.getElementById('languageScreen');
+        if (languageScreen && languageScreen.classList.contains('active')) {
+            console.log('Language selection screen is active, waiting for language selection');
+            return;
+        }
+        
+        // If we reach here, language has been selected, proceed with normal initialization
+        console.log('Proceeding with normal game initialization');
         
         // Add global function to clear leaderboard from console
         window.clearLeaderboard = async () => {
