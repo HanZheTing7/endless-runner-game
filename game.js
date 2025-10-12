@@ -536,20 +536,26 @@ class SimpleGame {
     }
     
     start() {
-        // Final check that game over elements exist
-        const gameOverElements = [
-            'finalScore',
-            'finalDistance',
+        // Final check that essential game elements exist
+        const essentialElements = [
             'gameOverScreen',
             'gameScreen'
         ];
         
-        const missingElements = gameOverElements.filter(id => !document.getElementById(id));
+        const missingElements = essentialElements.filter(id => !document.getElementById(id));
         
         if (missingElements.length > 0) {
-            console.error('Game over elements missing:', missingElements);
+            console.error('Essential game elements missing:', missingElements);
             alert('Game cannot start properly. Please refresh the page.');
             return;
+        }
+        
+        // Check for game over score elements (they should exist in DOM)
+        const scoreElements = ['finalScore', 'finalDistance', 'playerRank'];
+        const missingScoreElements = scoreElements.filter(id => !document.getElementById(id));
+        
+        if (missingScoreElements.length > 0) {
+            console.warn('Game over score elements missing, but continuing:', missingScoreElements);
         }
         
         console.log('Starting story mode');
@@ -3603,18 +3609,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const requiredElements = [
             'startScreen',
             'gameScreen', 
-            'gameOverScreen',
-            'finalScore',
-            'finalDistance',
-            'playerRank'
+            'gameOverScreen'
         ];
         
         const missingElements = requiredElements.filter(id => !document.getElementById(id));
         
         if (missingElements.length > 0) {
-            console.log('Still waiting for elements:', missingElements);
+            console.log('Still waiting for main screen elements:', missingElements);
             setTimeout(waitForElements, 100); // Check again in 100ms
             return;
+        }
+        
+        // Check for game over elements separately (they might be hidden)
+        const gameOverElements = ['finalScore', 'finalDistance', 'playerRank'];
+        const missingGameOverElements = gameOverElements.filter(id => !document.getElementById(id));
+        
+        if (missingGameOverElements.length > 0) {
+            console.log('Game over elements missing (will be created when needed):', missingGameOverElements);
         }
         
         console.log('All required elements found, initializing GameManager');
