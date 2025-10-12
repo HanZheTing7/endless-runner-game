@@ -28,10 +28,10 @@ class LanguageManager {
                 
                 // Storyline (will be added to game.js)
                 'storyline': {
-                    'part1': 'In a galaxy far, far away...',
-                    'part2': 'Keating and Jane were about to have the perfect wedding...',
-                    'part3': 'But suddenly, space pirates attacked!',
-                    'part4': 'Now Keating must run through the stars to save his bride!',
+                    'part1': 'Meet Wong Siew Keat.',
+                    'part2': 'A married man bound by the rules of matrimony.',
+                    'part3': 'He slipped out without alerting his ultimate boss — his wife.',
+                    'part4': 'Your mission: Help him escape!',
                     'skip': 'SKIP'
                 }
             },
@@ -60,10 +60,10 @@ class LanguageManager {
                 
                 // Storyline
                 'storyline': {
-                    'part1': '认识黄秀杰。',
-                    'part2': '一个被婚姻规则束缚的已婚男人。',
-                    'part3': '他偷偷溜出去，没有通知他的终极老板——他的妻子。',
-                    'part4': '你的任务：帮助他逃脱！',
+                    'part1': '认识王兆杰。',
+                    'part2': '一个受婚姻约束的已婚男人。',
+                    'part3': '他偷偷溜了出去，没有惊动他的终极上司——他的妻子。',
+                    'part4': '你的任务：帮助他逃跑！',
                     'skip': '跳过'
                 }
             }

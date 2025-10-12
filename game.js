@@ -953,25 +953,17 @@ class SimpleGame {
             console.warn('finalDistance element not found');
         }
         
-        // Show game over screen
-        if (gameOverScreenElement && gameScreenElement) {
-            try {
-                gameOverScreenElement.classList.add('active');
-                gameScreenElement.classList.remove('active');
-                console.log('Game over screen shown successfully');
-                
-                // Load leaderboard after screen is shown
-                setTimeout(() => {
-                    this.loadLeaderboard();
-                }, 100);
-        } catch (error) {
-                console.error('Error showing game over screen:', error);
-                // Fallback to alert
-                alert(`Game Over! Score: ${this.score}, Distance: ${Math.floor(this.distance)}m`);
-            }
+        // Show game over screen using GameManager
+        if (window.gameManager) {
+            // Update the final score and distance in GameManager
+            window.gameManager.finalScore = this.score;
+            window.gameManager.finalDistance = Math.floor(this.distance);
+            
+            // Show game over screen through GameManager
+            window.gameManager.showGameOverScreen();
         } else {
-            console.warn('Game over screen elements not found, using fallback');
-            // Fallback if elements don't exist
+            console.warn('GameManager not available, using fallback');
+            // Fallback if GameManager not available
             alert(`Game Over! Score: ${this.score}, Distance: ${Math.floor(this.distance)}m`);
         }
     }
@@ -3072,6 +3064,8 @@ class GameManager {
         this.gameRunning = false;
         this.game = null;
         this.browserId = null;
+        this.finalScore = 0;
+        this.finalDistance = 0;
         this.audioManager = new AudioManager();
         
         this.init();
@@ -3399,6 +3393,30 @@ class GameManager {
         setTimeout(() => {
             if (this.currentScreen === 'start' && !this.audioManager.isMainMenuMusicPlaying()) {
                 this.audioManager.playMainMenuMusic();
+            }
+        }, 100);
+    }
+
+    showGameOverScreen() {
+        // Update the final score and distance elements
+        const finalScoreElement = document.getElementById('finalScore');
+        const finalDistanceElement = document.getElementById('finalDistance');
+        
+        if (finalScoreElement) {
+            finalScoreElement.textContent = this.finalScore;
+        }
+        
+        if (finalDistanceElement) {
+            finalDistanceElement.textContent = this.finalDistance;
+        }
+        
+        // Show the game over screen
+        this.showScreen('gameOver');
+        
+        // Load leaderboard after screen is shown
+        setTimeout(() => {
+            if (this.game) {
+                this.game.loadLeaderboard();
             }
         }, 100);
     }
