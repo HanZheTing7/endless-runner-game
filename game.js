@@ -3366,9 +3366,12 @@ class GameManager {
         this.showScreen('game');
         this.gameRunning = true;
         
-        // Initialize game
-        this.game = new SimpleGame();
-        this.game.start();
+        // Wait a moment for DOM to be fully ready before starting the game
+        setTimeout(() => {
+            // Initialize game
+            this.game = new SimpleGame();
+            this.game.start();
+        }, 100);
     }
     
     restartGame() {
