@@ -119,6 +119,12 @@ class LanguageManager {
                 languageScreen.classList.remove('active');
                 startScreen.classList.add('active');
                 
+                // Hide loading screen if it's showing
+                const loadingScreen = document.getElementById('loadingScreen');
+                if (loadingScreen) {
+                    loadingScreen.classList.remove('active');
+                }
+                
                 // Initialize the game manager if it hasn't been initialized yet
                 if (!window.gameManager) {
                     console.log('GameManager will be initialized when game.js loads');

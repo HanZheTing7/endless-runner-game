@@ -3577,9 +3577,16 @@ class GameManager {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM Content Loaded');
     
-    // Show loading screen first
+    // Don't show loading screen if language selection is active
+    const languageScreen = document.getElementById('languageScreen');
     const loadingScreen = document.getElementById('loadingScreen');
-    if (loadingScreen) {
+    
+    if (languageScreen && languageScreen.classList.contains('active')) {
+        console.log('Language selection screen is active, not showing loading screen');
+        if (loadingScreen) {
+            loadingScreen.classList.remove('active');
+        }
+    } else if (loadingScreen) {
         loadingScreen.classList.add('active');
     }
     
