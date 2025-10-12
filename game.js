@@ -3583,11 +3583,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingScreen.classList.add('active');
     }
     
-    // Wait a bit more to ensure all elements are fully loaded
-    setTimeout(() => {
-        console.log('Initializing GameManager');
-        
-        // Double-check that all required elements exist
+    // Wait for DOM to be fully loaded and all elements to be available
+    const waitForElements = () => {
         const requiredElements = [
             'startScreen',
             'gameScreen', 
@@ -3600,10 +3597,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const missingElements = requiredElements.filter(id => !document.getElementById(id));
         
         if (missingElements.length > 0) {
-            console.error('Critical DOM elements missing:', missingElements);
-            alert('Game initialization failed. Please refresh the page.');
+            console.log('Still waiting for elements:', missingElements);
+            setTimeout(waitForElements, 100); // Check again in 100ms
             return;
         }
+        
+        console.log('All required elements found, initializing GameManager');
         
         // Initialize game manager but don't start it yet if language screen is active
         const gameManager = new GameManager();
@@ -3653,5 +3652,8 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         console.log('Type "clearLeaderboard()" in console to clear leaderboard from Firebase');
-    }, 1500); // Increased from 1000 to 1500ms
-});
+    };
+    
+    // Start waiting for elements
+    setTimeout(waitForElements, 100);
+}, 1500); // Increased from 1000 to 1500ms
