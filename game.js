@@ -1202,8 +1202,8 @@ class SimpleGame {
         this.drawSpaceBackground(width, height, 0.03);
         this.drawMoonSurface(width);
         
-        // Draw vector suit character in story mode, slightly slimmer than gameplay
-        const storyWidth = Math.max(30, this.player.width * 0.85); // 15% slimmer
+        // Draw vector suit character in story mode - same size as gameplay
+        const storyWidth = this.player.width; // Match game character width exactly
         this.drawStickmanStanding(this.player.x + this.player.width / 2, this.player.y, storyWidth, this.player.height);
         
         // Centered white dialogue text (no bubble)
