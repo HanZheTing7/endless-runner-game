@@ -147,7 +147,40 @@ class LanguageManager {
         elements.forEach(element => {
             const translation = element.getAttribute(`data-${this.currentLanguage}`);
             if (translation) {
-                element.textContent = translation;
+                // Check if element has child elements (like spans with IDs) that need to be preserved
+                const originalHTML = element.innerHTML;
+                const childSpans = element.querySelectorAll('span[id]');
+                
+                if (childSpans.length > 0) {
+                    // Preserve the child span elements - replace only the text before the first span
+                    // Find where the first span starts in the original HTML
+                    const firstSpan = childSpans[0];
+                    const firstSpanIndex = originalHTML.indexOf(firstSpan.outerHTML);
+                    
+                    if (firstSpanIndex !== -1) {
+                        // Get everything after the first span (including all spans and trailing text)
+                        const contentAfterFirstSpan = originalHTML.substring(firstSpanIndex);
+                        // Reconstruct with translation + everything after first span
+                        element.innerHTML = translation + contentAfterFirstSpan;
+                    } else {
+                        // Fallback: preserve all spans manually
+                        let newContent = translation;
+                        childSpans.forEach(span => {
+                            newContent += span.outerHTML;
+                        });
+                        // Try to preserve text after last span
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = originalHTML;
+                        const lastSpan = tempDiv.querySelector('span:last-of-type');
+                        if (lastSpan && lastSpan.nextSibling) {
+                            newContent += lastSpan.nextSibling.textContent || '';
+                        }
+                        element.innerHTML = newContent;
+                    }
+                } else {
+                    // No child elements to preserve, safe to use textContent
+                    element.textContent = translation;
+                }
             }
         });
         
