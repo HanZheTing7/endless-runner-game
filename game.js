@@ -978,10 +978,33 @@ class SimpleGame {
             return;
         }
         
-        // Get current username
+        // Check if FirebaseHelper is available
+        if (!window.FirebaseHelper) {
+            console.error('FirebaseHelper is not available. Firebase may not be initialized.');
+            playerRankElement.textContent = '-';
+            if (leaderboardElement) {
+                leaderboardElement.innerHTML = '<div class="leaderboard-item"><span>Firebase not available</span></div>';
+            }
+            return;
+        }
+        
+        // Get current username and game stats from GameManager (more reliable than game instance)
         const username = window.gameManager ? window.gameManager.username : 'Player';
+        const finalScore = window.gameManager ? window.gameManager.finalScore : (this.score || 0);
+        const finalDistance = window.gameManager ? window.gameManager.finalDistance : Math.floor(this.distance || 0);
+        
+        // If GameManager values are 0, fall back to game instance values
+        const scoreToSave = (finalScore && finalScore > 0) ? finalScore : (this.score || 0);
+        const distanceToSave = (finalDistance && finalDistance > 0) ? finalDistance : Math.floor(this.distance || 0);
+        
         console.log('Current username:', username);
-        console.log('Current game score:', this.score);
+        console.log('Current game score (from game):', this.score);
+        console.log('Current distance (from game):', this.distance);
+        console.log('Final score (from GameManager):', finalScore);
+        console.log('Final distance (from GameManager):', finalDistance);
+        console.log('Score to save:', scoreToSave);
+        console.log('Distance to save:', distanceToSave);
+        console.log('FirebaseHelper available:', !!window.FirebaseHelper);
         
         try {
             // Show loading state
@@ -993,12 +1016,33 @@ class SimpleGame {
             // Always save the current game score to Firebase (save every game, not just high scores)
             console.log('Saving current game score to Firebase');
             const browserId = window.gameManager ? window.gameManager.browserId : 'unknown';
-            const saveSuccess = await window.FirebaseHelper.saveScore(username, this.score, Math.floor(this.distance), browserId);
+            console.log('Browser ID:', browserId);
             
-            if (saveSuccess) {
-                console.log(`Saved game score for ${username}: Score=${this.score}, Distance=${Math.floor(this.distance)}`);
-            } else {
-                console.warn('Failed to save score to Firebase');
+            console.log('Saving with values:', {
+                username: username,
+                score: scoreToSave,
+                distance: distanceToSave,
+                browserId: browserId
+            });
+            
+            if (!username || username === 'Player' || username.trim().length < 3) {
+                console.warn('Username is not set properly:', username);
+            }
+            
+            if (scoreToSave === 0 && distanceToSave === 0) {
+                console.warn('Both score and distance are 0, something might be wrong');
+            }
+            
+            try {
+                const saveSuccess = await window.FirebaseHelper.saveScore(username, scoreToSave, distanceToSave, browserId);
+                
+                if (saveSuccess) {
+                    console.log(`✓ Successfully saved game score for ${username}: Score=${scoreToSave}, Distance=${distanceToSave}`);
+                } else {
+                    console.error('✗ Failed to save score to Firebase - saveScore returned false');
+                }
+            } catch (saveError) {
+                console.error('✗ Error during saveScore call:', saveError);
             }
             
             // Get top 10 scores from Firebase (after saving)
@@ -1028,14 +1072,14 @@ class SimpleGame {
                     }
                     
                     // For other players, count if their best score is higher than current game score
-                    if (s.score > this.score) {
+                    if (s.score > scoreToSave) {
                         return count + 1;
                     }
                     return count;
                 }, 0);
                 playerRank = higherCount + 1;
             }
-            console.log('Player rank calculated:', playerRank, 'for score:', this.score);
+            console.log('Player rank calculated:', playerRank, 'for score:', scoreToSave);
 
             // Update UI
             playerRankElement.textContent = playerRank > 0 ? playerRank : '-';
@@ -1068,11 +1112,13 @@ class SimpleGame {
             // Fallback rank computation on error
             try {
                 const localScores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
+                const scoreForRank = scoreToSave || 0;
                 const higherCount = Array.isArray(localScores)
-                    ? localScores.reduce((count, s) => count + ((s && typeof s.score === 'number' && s.score > this.score) ? 1 : 0), 0)
+                    ? localScores.reduce((count, s) => count + ((s && typeof s.score === 'number' && s.score > scoreForRank) ? 1 : 0), 0)
                     : 0;
                 playerRankElement.textContent = String(higherCount + 1);
             } catch (e) {
+                console.error('Error in fallback rank computation:', e);
                 playerRankElement.textContent = '-';
             }
         }
@@ -3397,34 +3443,114 @@ class GameManager {
     }
 
     showGameOverScreen() {
+        console.log('showGameOverScreen called. finalScore:', this.finalScore, 'finalDistance:', this.finalDistance);
+        
         // Show the game over screen first
         this.showScreen('gameOver');
         
-        // Update the final score and distance elements after screen is shown
-        // Use setTimeout to ensure DOM is ready
-        setTimeout(() => {
-            const finalScoreElement = document.getElementById('finalScore');
-            const finalDistanceElement = document.getElementById('finalDistance');
+        // Force a reflow to ensure DOM is updated
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        if (gameOverScreen) {
+            gameOverScreen.offsetHeight; // Force reflow
+        }
+        
+        // Update the final score and distance elements - try multiple times to ensure we find them
+        let leaderboardCalled = false;
+        const updateElements = (attempt = 1) => {
+            // Try multiple ways to find elements
+            let finalScoreElement = document.getElementById('finalScore');
+            let finalDistanceElement = document.getElementById('finalDistance');
+            let playerRankElement = document.getElementById('playerRank');
+            
+            // If not found with getElementById, try querySelector within the game over screen
+            if (!finalScoreElement) {
+                if (gameOverScreen) {
+                    finalScoreElement = gameOverScreen.querySelector('#finalScore') || 
+                                       gameOverScreen.querySelector('span#finalScore');
+                }
+                // Last resort: try querySelector on document
+                if (!finalScoreElement) {
+                    finalScoreElement = document.querySelector('#finalScore') || 
+                                       document.querySelector('span#finalScore');
+                }
+            }
+            
+            if (!finalDistanceElement) {
+                if (gameOverScreen) {
+                    finalDistanceElement = gameOverScreen.querySelector('#finalDistance') || 
+                                          gameOverScreen.querySelector('span#finalDistance');
+                }
+                // Last resort: try querySelector on document
+                if (!finalDistanceElement) {
+                    finalDistanceElement = document.querySelector('#finalDistance') || 
+                                          document.querySelector('span#finalDistance');
+                }
+            }
+            
+            if (!playerRankElement) {
+                if (gameOverScreen) {
+                    playerRankElement = gameOverScreen.querySelector('#playerRank') || 
+                                       gameOverScreen.querySelector('span#playerRank');
+                }
+                // Last resort: try querySelector on document
+                if (!playerRankElement) {
+                    playerRankElement = document.querySelector('#playerRank') || 
+                                       document.querySelector('span#playerRank');
+                }
+            }
+            
+            console.log(`Update attempt ${attempt}. Found:`, {
+                gameOverScreen: !!gameOverScreen,
+                gameOverScreenVisible: gameOverScreen?.classList.contains('active'),
+                finalScore: !!finalScoreElement,
+                finalDistance: !!finalDistanceElement,
+                playerRank: !!playerRankElement,
+                finalScoreValue: this.finalScore,
+                finalDistanceValue: this.finalDistance
+            });
+            
+            let allFound = true;
             
             if (finalScoreElement) {
                 finalScoreElement.textContent = this.finalScore || 0;
+                console.log('✓ Set finalScore to:', this.finalScore || 0);
             } else {
-                console.warn('finalScore element not found');
+                console.warn(`✗ finalScore element not found (attempt ${attempt})`);
+                allFound = false;
             }
             
             if (finalDistanceElement) {
                 finalDistanceElement.textContent = this.finalDistance || 0;
+                console.log('✓ Set finalDistance to:', this.finalDistance || 0);
             } else {
-                console.warn('finalDistance element not found');
+                console.warn(`✗ finalDistance element not found (attempt ${attempt})`);
+                allFound = false;
             }
-        }, 50);
+            
+            // If elements are found, update and call leaderboard
+            if (allFound && !leaderboardCalled) {
+                leaderboardCalled = true;
+                // Load leaderboard after elements are updated
+                setTimeout(() => {
+                    if (this.game) {
+                        console.log('Calling loadLeaderboard');
+                        this.game.loadLeaderboard();
+                    } else {
+                        console.warn('Game instance not available in GameManager');
+                    }
+                }, 200);
+            } else if (!allFound && attempt < 10) {
+                // Try again if elements not found and we haven't tried too many times
+                setTimeout(() => updateElements(attempt + 1), 100);
+            }
+        };
         
-        // Load leaderboard after screen is shown and elements are updated
-        setTimeout(() => {
-            if (this.game) {
-                this.game.loadLeaderboard();
-            }
-        }, 150);
+        // Start updating immediately
+        updateElements(1);
+        
+        // Also try after a short delay to catch any timing issues
+        setTimeout(() => updateElements(1), 100);
+        setTimeout(() => updateElements(1), 300);
     }
     
     showScreen(screenName) {
