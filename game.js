@@ -990,53 +990,52 @@ class SimpleGame {
             }
             playerRankElement.textContent = '-';
             
-            // Get all scores from Firebase to check user's existing scores
-            const allScores = await window.FirebaseHelper.getTopScores(100);
-            const userScores = allScores.filter(score => score.username === username);
-            const userHighScore = userScores.length > 0 ? Math.max(...userScores.map(s => s.score)) : 0;
+            // Always save the current game score to Firebase (save every game, not just high scores)
+            console.log('Saving current game score to Firebase');
+            const browserId = window.gameManager ? window.gameManager.browserId : 'unknown';
+            const saveSuccess = await window.FirebaseHelper.saveScore(username, this.score, Math.floor(this.distance), browserId);
             
-            console.log(`User's existing high score: ${userHighScore}`);
-            console.log(`Current game score: ${this.score}`);
-            
-            // Only save if this is a new high score
-            if (this.score >= userHighScore) {
-                console.log('Saving new high score to Firebase');
-                const browserId = window.gameManager ? window.gameManager.browserId : 'unknown';
-                await window.FirebaseHelper.saveScore(username, this.score, Math.floor(this.distance), browserId);
-                console.log(`Saved new high score for ${username}: ${this.score}`);
+            if (saveSuccess) {
+                console.log(`Saved game score for ${username}: Score=${this.score}, Distance=${Math.floor(this.distance)}`);
             } else {
-                console.log(`Score ${this.score} not higher than existing best ${userHighScore} for ${username}`);
+                console.warn('Failed to save score to Firebase');
             }
             
-            // Get top 10 scores from Firebase
+            // Get top 10 scores from Firebase (after saving)
             const topScores = await window.FirebaseHelper.getTopScores(10);
             console.log('Loaded top scores from Firebase:', topScores);
             
-            // Get player rank
-            let playerRank = await window.FirebaseHelper.getPlayerRank(this.score);
-            console.log('Player rank (primary):', playerRank);
-
-            // Fallback: if primary rank retrieval failed or returned invalid value, compute locally
-            if (!(typeof playerRank === 'number' && playerRank > 0)) {
-                let fallbackScores = Array.isArray(allScores) ? allScores : [];
-
-                // If no scores available from service, try localStorage
-                if (fallbackScores.length === 0) {
-                    try {
-                        const localScores = JSON.parse(localStorage.getItem('endlessRunnerScores') || '[]');
-                        if (Array.isArray(localScores)) {
-                            fallbackScores = localScores;
-                        }
-                    } catch (e) {
-                        console.warn('Could not read local scores for rank fallback:', e);
+            // Get all scores to calculate rank (get after saving so current score is included)
+            // Wait a moment for Firebase to update after saving
+            await new Promise(resolve => setTimeout(resolve, 200));
+            const allScores = await window.FirebaseHelper.getTopScores(100);
+            
+            // Calculate rank from deduplicated scores (best score per user)
+            // Since getTopScores deduplicates by username (keeps best score per user),
+            // we just need to count how many players have a better best score
+            let playerRank = 1;
+            if (Array.isArray(allScores) && allScores.length > 0) {
+                // For the current player, compare against their current game score, not their stored best
+                // For other players, use their best stored score
+                const higherCount = allScores.reduce((count, s) => {
+                    if (!s || typeof s.score !== 'number') return count;
+                    
+                    // If this is the current player's entry, compare against current game score
+                    if (s.username === username) {
+                        // If their stored best is higher than current game score, don't count it
+                        // (they're ranking their current game, not their best overall)
+                        return count;
                     }
-                }
-
-                const higherCount = fallbackScores.reduce((count, s) => count + ((s && typeof s.score === 'number' && s.score > this.score) ? 1 : 0), 0);
-                const computedFallbackRank = higherCount + 1;
-                console.log('Computed fallback rank:', computedFallbackRank);
-                playerRank = computedFallbackRank;
+                    
+                    // For other players, count if their best score is higher than current game score
+                    if (s.score > this.score) {
+                        return count + 1;
+                    }
+                    return count;
+                }, 0);
+                playerRank = higherCount + 1;
             }
+            console.log('Player rank calculated:', playerRank, 'for score:', this.score);
 
             // Update UI
             playerRankElement.textContent = playerRank > 0 ? playerRank : '-';
@@ -3398,27 +3397,34 @@ class GameManager {
     }
 
     showGameOverScreen() {
-        // Update the final score and distance elements
-        const finalScoreElement = document.getElementById('finalScore');
-        const finalDistanceElement = document.getElementById('finalDistance');
-        
-        if (finalScoreElement) {
-            finalScoreElement.textContent = this.finalScore;
-        }
-        
-        if (finalDistanceElement) {
-            finalDistanceElement.textContent = this.finalDistance;
-        }
-        
-        // Show the game over screen
+        // Show the game over screen first
         this.showScreen('gameOver');
         
-        // Load leaderboard after screen is shown
+        // Update the final score and distance elements after screen is shown
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+            const finalScoreElement = document.getElementById('finalScore');
+            const finalDistanceElement = document.getElementById('finalDistance');
+            
+            if (finalScoreElement) {
+                finalScoreElement.textContent = this.finalScore || 0;
+            } else {
+                console.warn('finalScore element not found');
+            }
+            
+            if (finalDistanceElement) {
+                finalDistanceElement.textContent = this.finalDistance || 0;
+            } else {
+                console.warn('finalDistance element not found');
+            }
+        }, 50);
+        
+        // Load leaderboard after screen is shown and elements are updated
         setTimeout(() => {
             if (this.game) {
                 this.game.loadLeaderboard();
             }
-        }, 100);
+        }, 150);
     }
     
     showScreen(screenName) {
