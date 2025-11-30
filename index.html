@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -7,7 +8,9 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <!-- Language Selection Screen -->
     <div id="languageScreen" class="screen active">
@@ -41,7 +44,8 @@
             <div class="instructions">
                 <p><strong data-en="Controls:" data-zh="操作说明：">Controls:</strong></p>
                 <p data-en="• Tap to Jump" data-zh="• 点击跳跃">• Tap to Jump</p>
-                <p data-en="• Avoid obstacles and run as far as possible!" data-zh="• 避开障碍物，跑得越远越好！">• Avoid obstacles and run as far as possible!</p>
+                <p data-en="• Avoid obstacles and run as far as possible!" data-zh="• 避开障碍物，跑得越远越好！">• Avoid obstacles
+                    and run as far as possible!</p>
             </div>
         </div>
     </div>
@@ -51,9 +55,9 @@
         <div class="game-header">
             <div class="distance">Distance: <span id="currentDistance">0</span>m</div>
         </div>
-        
+
         <canvas id="gameCanvas"></canvas>
-        
+
 
     </div>
 
@@ -61,16 +65,19 @@
     <div id="gameOverScreen" class="screen">
         <div class="container">
             <h2 data-en="GAME OVER" data-zh="游戏结束">GAME OVER</h2>
-            <p class="game-over-message" data-en="Groom is sleeping couch tonight" data-zh="新郎今晚睡沙发">Groom is sleeping couch tonight</p>
+            <p class="game-over-message" data-en="Groom is sleeping couch tonight" data-zh="新郎今晚睡沙发">Groom is sleeping
+                couch tonight</p>
             <div class="final-score">
                 <p data-en="Final Score: " data-zh="最终得分： ">Final Score: <span id="finalScore">0</span></p>
                 <p data-en="Distance: " data-zh="距离： ">Distance: <span id="finalDistance">0</span>m</p>
                 <p data-en="Your Rank: " data-zh="您的排名： ">Your Rank: <span id="playerRank">-</span></p>
             </div>
-            
+
             <div class="game-over-buttons">
-                <button id="restartButton" class="btn btn-primary" data-en="PLAY AGAIN" data-zh="再玩一次">PLAY AGAIN</button>
-                <button id="mainMenuButton" class="btn btn-secondary" data-en="MAIN MENU" data-zh="主菜单">MAIN MENU</button>
+                <button id="restartButton" class="btn btn-primary" data-en="PLAY AGAIN" data-zh="再玩一次">PLAY
+                    AGAIN</button>
+                <button id="mainMenuButton" class="btn btn-secondary" data-en="MAIN MENU" data-zh="主菜单">MAIN
+                    MENU</button>
             </div>
         </div>
     </div>
@@ -100,11 +107,12 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-    
+
     <!-- Game Scripts -->
     <script src="language.js"></script>
     <script src="firebase-config.js"></script>
     <script src="assets.js"></script>
     <script src="game.js"></script>
 </body>
+
 </html>

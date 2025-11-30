@@ -406,8 +406,8 @@ body {
     font-size: clamp(1rem, 3vw, 1.5rem);
     margin-bottom: 2rem;
     color: #ffd700;
-    font-family: 'Segoe Script', 'Brush Script MT', cursive;
-    font-style: italic;
+    font-family: 'Playfair Display', serif;
+    font-style: normal;
     opacity: 0.9;
 }
 
