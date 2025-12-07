@@ -112,26 +112,31 @@ class LanguageManager {
             this.applyLanguage();
 
             // Hide language selection screen and show start screen
-            const languageScreen = document.getElementById('languageScreen');
-            const startScreen = document.getElementById('startScreen');
+            if (window.gameManager) {
+                window.gameManager.showScreen('start');
+            } else {
+                // Fallback if gameManager not ready (shouldn't happen usually)
+                const languageScreen = document.getElementById('languageScreen');
+                const startScreen = document.getElementById('startScreen');
 
-            if (languageScreen && startScreen) {
-                languageScreen.classList.remove('active');
-                startScreen.classList.add('active');
-
-                // Hide loading screen if it's showing
-                const loadingScreen = document.getElementById('loadingScreen');
-                if (loadingScreen) {
-                    loadingScreen.classList.remove('active');
+                if (languageScreen && startScreen) {
+                    languageScreen.classList.remove('active');
+                    startScreen.classList.add('active');
                 }
+            }
 
-                // Initialize the game manager if it hasn't been initialized yet
-                if (!window.gameManager && typeof GameManager !== 'undefined') {
-                    console.log('Initializing GameManager after language selection');
-                    window.gameManager = new GameManager();
-                } else if (!window.gameManager) {
-                    console.log('GameManager class not available yet, will be initialized when game.js loads');
-                }
+            // Hide loading screen if it's still showing
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.classList.remove('active');
+            }
+
+            // Initialize the game manager if it hasn't been initialized yet
+            if (!window.gameManager && typeof GameManager !== 'undefined') {
+                console.log('Initializing GameManager after language selection');
+                window.gameManager = new GameManager();
+            } else if (!window.gameManager) {
+                console.log('GameManager class not available yet, will be initialized when game.js loads');
             }
         }
     }

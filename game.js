@@ -3166,11 +3166,18 @@ class GameManager {
 
         this.setupEventListeners();
         this.setupGlobalAudioEnablement();
-        this.showScreen('start');
+
+        // Check if language is already selected
+        const savedLanguage = localStorage.getItem('gameLanguage');
+        if (savedLanguage) {
+            this.showScreen('start');
+        } else {
+            this.showScreen('language');
+        }
 
         // Start main menu music after a short delay to ensure audio is ready
         setTimeout(() => {
-            if (this.currentScreen === 'start') {
+            if (this.currentScreen === 'start' || this.currentScreen === 'language') {
                 this.audioManager.playMainMenuMusic();
             }
         }, 1000);
