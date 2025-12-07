@@ -50,7 +50,7 @@ body {
 }
 
 .language-title .en-text {
-    font-size: 0.5em;
+    font-size: 0.7em;
 }
 
 .language-buttons {
@@ -62,7 +62,7 @@ body {
 
 .language-buttons .btn {
     min-width: 200px;
-    font-size: 1.2rem;
+    font-size: 0.8rem;
     padding: 18px 36px;
     font-family: 'Orbitron', monospace;
     font-style: normal;
