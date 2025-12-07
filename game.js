@@ -2706,16 +2706,34 @@ class AudioManager {
                 console.log('User interaction detected - unlocking audio');
                 this.userInteracted = true;
 
-                // iOS Hack: Play a silent buffer to unlock the AudioContext if we were using Web Audio API
-                // Even for HTML5 Audio, creating and playing a dummy sound helps
-                const unlockAudio = () => {
-                    const silentAudio = new Audio();
-                    silentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAgAAAAEA';
-                    silentAudio.play().catch(e => console.log('Silent unlock failed (expected):', e));
-                };
-                unlockAudio();
+                // iOS High-Confidence Unlock Strategy:
+                // We must "warm up" (play/pause) the specific Audio elements we intend to use.
+                // Playing a separate dummy sound is not enough for all iOS versions if we switch elements later.
 
-                // Force play the main menu music if it should be playing
+                // 1. Warm up pooled sounds
+                ['music', 'gameMusic'].forEach(poolKey => {
+                    if (this.soundPools[poolKey]) {
+                        this.soundPools[poolKey].forEach(audio => {
+                            audio.play().then(() => {
+                                audio.pause();
+                                audio.currentTime = 0;
+                            }).catch(e => console.log('Pool warm up failed', e));
+                        });
+                    }
+                });
+
+                // 2. Warm up base sound objects
+                ['main_menu', 'game_music'].forEach(key => {
+                    const sound = this.sounds[key];
+                    if (sound && sound.audio) {
+                        sound.audio.play().then(() => {
+                            sound.audio.pause();
+                            sound.audio.currentTime = 0;
+                        }).catch(e => console.log('Base sound warm up failed', e));
+                    }
+                });
+
+                // 3. Actually resume playback if needed
                 if (this.musicShouldBePlaying) {
                     this.playMainMenuMusic();
                 } else if (this.gameMusicShouldBePlaying) {
