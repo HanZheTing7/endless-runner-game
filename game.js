@@ -2676,24 +2676,22 @@ class SimpleGame {
 // Advanced Audio Manager
 class AudioManager {
     constructor() {
+        // Initialize Web Audio API
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+
         this.sounds = {};
-        this.soundPools = {};
         this.masterVolume = 0.7;
         this.sfxVolume = 0.8;
         this.musicVolume = 0.5;
         this.isMuted = false;
         this.isInitialized = false;
-        this.userInteracted = false; // Track if user has interacted with the page
-        this.isPaused = false; // Track if music is paused due to tab visibility
-        this.isPausedDueToVisibility = false; // Track if music is intentionally paused due to tab being hidden
-        this.currentMusicTime = 0; // Store current playback position
-        this.currentMusicAudio = null; // Reference to currently playing music
-        this.musicShouldBePlaying = false; // Track if music should be playing
-        this.currentGameMusicTime = 0; // Store current game music playback position
-        this.currentGameMusicAudio = null; // Reference to currently playing game music
-        this.gameMusicShouldBePlaying = false; // Track if game music should be playing
 
-        this.init();
+        this.currentMusicSource = null;
+        this.currentGameMusicSource = null;
+        this.musicShouldBePlaying = false;
+        this.gameMusicShouldBePlaying = false;
+
         this.init();
         this.setupVisibilityHandling();
         this.setupInteractionHandling();
@@ -2711,51 +2709,24 @@ class AudioManager {
     }
 
     unlockAudio() {
-        if (this.userInteracted) return;
-        console.log('User interaction detected - unlocking audio via unlockAudio()');
-        this.userInteracted = true;
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().then(() => {
+                console.log('AudioContext resumed successfully');
 
-        // iOS Simplified Unlock Strategy:
-        // Just force play/pause the actual main menu music object directly.
-        // We will ensure playMainMenuMusic reuses this exact object.
+                // Play silent sound to ensure iOS is happy
+                const buffer = this.ctx.createBuffer(1, 1, 22050);
+                const source = this.ctx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(this.ctx.destination);
+                source.start(0);
 
-        const menuSound = this.sounds['main_menu'];
-        if (menuSound && menuSound.audio) {
-            const p = menuSound.audio.play();
-            if (p !== undefined) {
-                p.then(() => {
-                    // If we shouldn't be playing yet, pause it.
-                    if (!this.musicShouldBePlaying) {
-                        menuSound.audio.pause();
-                        menuSound.audio.currentTime = 0;
-                    }
-                }).catch(e => console.log('Menu sound unlock failed', e));
-            }
-        }
-
-        // Consider gamesound too
-        const gameSound = this.sounds['game_music'];
-        if (gameSound && gameSound.audio) {
-            const p = gameSound.audio.play();
-            if (p !== undefined) {
-                p.then(() => {
-                    if (!this.gameMusicShouldBePlaying) {
-                        gameSound.audio.pause();
-                        gameSound.audio.currentTime = 0;
-                    }
-                }).catch(e => console.log('Game sound unlock failed', e));
-            }
-        }
-
-        // Update state
-        if (this.musicShouldBePlaying) {
-            this.playMainMenuMusic();
+                if (this.musicShouldBePlaying) this.playMainMenuMusic();
+                else if (this.gameMusicShouldBePlaying) this.playGameMusic();
+            });
         }
     }
 
     init() {
-        // Initialize sound pools for different sound types
-        this.initializeSoundPools();
         this.loadSounds();
     }
 
@@ -2799,98 +2770,46 @@ class AudioManager {
         }
     }
 
-    async loadSound(name, filename, poolType = null) {
-        return new Promise((resolve, reject) => {
-            const audio = new Audio();
-            audio.preload = 'auto';
-            // iOS might require this for some contexts
-            audio.playsInline = true;
-            try { audio.setAttribute('playsinline', ''); } catch (e) { }
-            try { audio.setAttribute('webkit-playsinline', ''); } catch (e) { }
-
-            audio.addEventListener('canplaythrough', () => {
+    async loadSound(name, filename, type = null) {
+        if (!this.ctx) return;
+        return fetch(filename)
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => this.ctx.decodeAudioData(arrayBuffer))
+            .then(audioBuffer => {
                 this.sounds[name] = {
-                    audio: audio,
-                    filename: filename,
-                    poolType: poolType,
-                    isLoaded: true
+                    buffer: audioBuffer,
+                    type: type
                 };
-
-                // Create sound pool instances for frequently used sounds
-                if (poolType && this.soundPools[poolType]) {
-                    for (let i = 0; i < 3; i++) { // Create 3 instances for pooling
-                        const poolAudio = new Audio();
-                        poolAudio.src = filename;
-                        poolAudio.preload = 'auto';
-                        poolAudio.volume = this.sfxVolume * this.masterVolume;
-                        this.soundPools[poolType].push(poolAudio);
-                    }
-                }
-
-                resolve();
-            });
-
-            audio.addEventListener('error', (e) => {
-                console.warn(`Failed to load audio: ${filename}`, e);
-                this.sounds[name] = {
-                    audio: null,
-                    filename: filename,
-                    poolType: poolType,
-                    isLoaded: false
-                };
-                resolve(); // Don't reject, just continue without this sound
-            });
-
-            audio.src = filename;
-            audio.volume = this.sfxVolume * this.masterVolume;
-        });
+            })
+            .catch(e => console.error(`Failed to load sound ${name}:`, e));
     }
 
     playSound(soundName, options = {}) {
-        if (this.isMuted || !this.isInitialized) return;
+        if (this.isMuted || !this.isInitialized || !this.ctx) return;
 
         const sound = this.sounds[soundName];
-        if (!sound || !sound.isLoaded) {
-            console.warn(`Sound "${soundName}" not found or not loaded`);
-            return;
-        }
-
-        const volume = options.volume !== undefined ? options.volume : this.sfxVolume;
-        const pitch = options.pitch || 1.0;
-        const loop = options.loop || false;
+        if (!sound || !sound.buffer) return;
 
         try {
-            // Use sound pool if available for better performance
-            if (sound.poolType && this.soundPools[sound.poolType]) {
-                const pooledSound = this.getAvailablePooledSound(sound.poolType);
-                if (pooledSound) {
-                    pooledSound.volume = volume * this.masterVolume;
-                    pooledSound.playbackRate = pitch;
-                    pooledSound.loop = loop;
-                    pooledSound.currentTime = 0;
-                    pooledSound.play().catch(e => console.warn('Audio play failed:', e));
-                    return;
-                }
+            const source = this.ctx.createBufferSource();
+            source.buffer = sound.buffer;
+
+            const gainNode = this.ctx.createGain();
+            const volume = options.volume !== undefined ? options.volume : this.sfxVolume;
+            gainNode.gain.value = volume * this.masterVolume;
+
+            if (options.pitch) {
+                source.playbackRate.value = options.pitch;
+            }
+            if (options.loop) {
+                source.loop = true;
             }
 
-            // Fallback to original sound
-            const audio = sound.audio.cloneNode();
-            audio.volume = volume * this.masterVolume;
-            audio.playbackRate = pitch;
-            audio.loop = loop;
-
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(e => {
-                    console.warn(`Audio play failed for "${soundName}":`, e);
-                    if (e.name === 'NotAllowedError') {
-                        console.log('Audio playback blocked - waiting for user interaction');
-                    }
-                });
-            }
-
-        } catch (error) {
-            console.warn(`Error playing sound "${soundName}":`, error);
+            source.connect(gainNode);
+            gainNode.connect(this.ctx.destination);
+            source.start(0);
+        } catch (e) {
+            console.warn('Error playing sound', e);
         }
     }
 
@@ -2930,106 +2849,60 @@ class AudioManager {
     }
 
     playMainMenuMusic() {
-        if (this.isMuted || !this.isInitialized) return;
+        if (this.currentMusicSource) return; // Already playing
+        this.musicShouldBePlaying = true;
+        this.playMusicTrack('main_menu');
+    }
 
-        // Don't start new music if already playing
-        if (this.currentMusicAudio && !this.currentMusicAudio.paused) {
-            return;
+    playMusicTrack(name) {
+        if (!this.ctx || !this.sounds[name]) return;
+
+        // Stop any existing music source to be safe
+        if (this.currentMusicSource) {
+            try { this.currentMusicSource.stop(); } catch (e) { }
         }
 
-        const sound = this.sounds['main_menu'];
-        if (!sound || !sound.isLoaded) {
-            console.warn('Main menu music not found or not loaded');
-            return;
-        }
+        const source = this.ctx.createBufferSource();
+        source.buffer = this.sounds[name].buffer;
+        source.loop = true;
 
-        try {
-            // For music, DO NOT use the pool. Use the single persistent audio object.
-            // This ensures the object "blessed" by the interaction event is the one playing.
+        const gainNode = this.ctx.createGain();
+        gainNode.gain.value = this.musicVolume * this.masterVolume;
 
-            // Use the original sound object directly
-            const audio = sound.audio;
-            // Don't clone for music tracks!
+        source.connect(gainNode);
+        gainNode.connect(this.ctx.destination);
 
-            this.currentMusicAudio = audio;
-            audio.volume = this.musicVolume * this.masterVolume;
-            audio.loop = true;
-            // Only set currentTime if we are resuming (and check if it's safe)
-            if (this.currentMusicTime > 0) {
-                try { audio.currentTime = this.currentMusicTime; } catch (e) { }
-            }
-
-            const p = audio.play();
-            if (p !== undefined) {
-                p.catch(e => console.warn('Music play failed:', e));
-            }
-
-            this.musicShouldBePlaying = true;
-        } catch (error) {
-            console.warn('Error playing main menu music:', error);
-        }
+        source.start(0);
+        this.currentMusicSource = source;
+        // Store gain node if we want to fade out later
+        this.currentMusicGain = gainNode;
     }
 
     playGameMusic() {
-        if (this.isMuted || !this.isInitialized) return;
+        if (this.currentGameMusicSource) return;
+        this.gameMusicShouldBePlaying = true;
 
-        if (this.currentGameMusicAudio && !this.currentGameMusicAudio.paused) {
-            return;
-        }
+        if (!this.ctx || !this.sounds['game_music']) return;
 
-        const sound = this.sounds['game_music'];
-        if (!sound || !sound.isLoaded) {
-            console.warn('Game music not found or not loaded');
-            return;
-        }
+        const source = this.ctx.createBufferSource();
+        source.buffer = this.sounds['game_music'].buffer;
+        source.loop = true;
 
-        try {
-            // DIRECTLY use the original audio, NO POOLING for music
-            const audio = sound.audio;
+        const gainNode = this.ctx.createGain();
+        gainNode.gain.value = this.musicVolume * this.masterVolume;
 
-            this.currentGameMusicAudio = audio;
-            audio.volume = this.musicVolume * this.masterVolume;
-            audio.loop = true;
-            if (this.currentGameMusicTime > 0) {
-                try { audio.currentTime = this.currentGameMusicTime; } catch (e) { }
-            }
+        source.connect(gainNode);
+        gainNode.connect(this.ctx.destination);
 
-            const p = audio.play();
-            if (p !== undefined) {
-                p.catch(e => console.warn('Game music play failed:', e));
-            }
-
-            this.gameMusicShouldBePlaying = true;
-            console.log('Game music started');
-        } catch (error) {
-            console.warn('Error playing game music:', error);
-        }
+        source.start(0);
+        this.currentGameMusicSource = source;
     }
 
     stopMainMenuMusic() {
-        // Save current playback time if music is playing
-        if (this.currentMusicAudio && !this.currentMusicAudio.paused) {
-            this.currentMusicTime = this.currentMusicAudio.currentTime;
+        if (this.currentMusicSource) {
+            try { this.currentMusicSource.stop(); } catch (e) { }
+            this.currentMusicSource = null;
         }
-
-        // Stop only main menu music sounds (not game music)
-        if (this.soundPools.music) {
-            for (let audio of this.soundPools.music) {
-                // Only pause if this is actually the main menu music playing
-                if (this.currentMusicAudio === audio) {
-                    audio.pause();
-                }
-            }
-        }
-
-        // Also stop the original main menu sound if it's playing
-        const mainMenuSound = this.sounds['main_menu'];
-        if (mainMenuSound && mainMenuSound.audio && this.currentMusicAudio === mainMenuSound.audio) {
-            mainMenuSound.audio.pause();
-        }
-
-        // Clear current music reference
-        this.currentMusicAudio = null;
         this.musicShouldBePlaying = false;
     }
 
@@ -3146,82 +3019,51 @@ class AudioManager {
     }
 
     pauseMusic() {
-        // Set flag to indicate music is intentionally paused due to tab visibility
+        this.isPaused = true;
         this.isPausedDueToVisibility = true;
-
-        if (this.isMainMenuMusicPlaying() && this.musicShouldBePlaying) {
-            // Save current time before pausing
-            this.currentMusicTime = this.currentMusicAudio.currentTime;
-            this.currentMusicAudio.pause();
-            this.isPaused = true;
-            console.log('Music paused at time:', this.currentMusicTime);
-        }
-
-        // Also pause game music if playing
-        if (this.currentGameMusicAudio && !this.currentGameMusicAudio.paused && this.gameMusicShouldBePlaying) {
-            this.currentGameMusicTime = this.currentGameMusicAudio.currentTime;
-            this.currentGameMusicAudio.pause();
-            console.log('Game music paused at time:', this.currentGameMusicTime);
+        if (this.ctx && this.ctx.state === 'running') {
+            this.ctx.suspend();
         }
     }
 
     resumeMusic() {
-        // Clear the visibility pause flag
         this.isPausedDueToVisibility = false;
-
-        // Only resume if music was paused due to visibility and should be playing
-        if (this.isPaused && this.musicShouldBePlaying && window.gameManager) {
-            const currentScreen = window.gameManager.currentScreen;
-            if (currentScreen === 'start' || currentScreen === 'leaderboard') {
-                // Resume immediately without delay for smoother experience
-                console.log('Resuming music from time:', this.currentMusicTime);
-                this.playMainMenuMusic();
-                this.isPaused = false;
-            } else {
-                this.isPaused = false;
-            }
-        }
-
-        // Also resume game music if it should be playing
-        if (this.gameMusicShouldBePlaying && window.gameManager) {
-            const currentScreen = window.gameManager.currentScreen;
-            if (currentScreen === 'game') {
-                // Resume immediately without delay for smoother experience
-                console.log('Resuming game music from time:', this.currentGameMusicTime);
-                this.playGameMusic();
+        if (this.isPaused) {
+            this.isPaused = false;
+            if (this.ctx && this.ctx.state === 'suspended' && !this.isMuted) {
+                this.ctx.resume();
             }
         }
     }
 
+    stopGameMusic() {
+        if (this.currentGameMusicSource) {
+            try { this.currentGameMusicSource.stop(); } catch (e) { }
+            this.currentGameMusicSource = null;
+        }
+        this.gameMusicShouldBePlaying = false;
+    }
+
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        if (this.isMuted) {
+            if (this.ctx && this.ctx.state === 'running') {
+                this.ctx.suspend();
+            }
+        } else {
+            if (this.ctx && this.ctx.state === 'suspended') {
+                this.ctx.resume();
+            }
+        }
+        return this.isMuted;
+    }
+
+
+
     // Preload audio on user interaction (required by browsers)
     enableAudio() {
-        if (!this.isInitialized) {
-            console.warn('Audio system not initialized yet');
-            return;
-        }
-
-        console.log('Enabling audio context...');
-
-        // Play and immediately pause a silent sound to enable audio context
-        for (let poolType in this.soundPools) {
-            if (this.soundPools[poolType].length > 0) {
-                const audio = this.soundPools[poolType][0];
-                const originalVolume = audio.volume;
-                audio.volume = 0;
-
-                audio.play().then(() => {
-                    audio.pause();
-                    audio.volume = originalVolume;
-                    console.log('Audio context enabled successfully');
-
-                    // Don't auto-start music here - let the global handler do it
-                    // This prevents double music starting
-                }).catch((error) => {
-                    console.warn('Failed to enable audio context:', error);
-                    audio.volume = originalVolume;
-                });
-                break;
-            }
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
         }
     }
 }
