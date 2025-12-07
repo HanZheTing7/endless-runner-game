@@ -34,8 +34,8 @@ body {
 /* Language Selection Screen */
 #languageScreen {
     background: radial-gradient(1000px 600px at 20% 10%, rgba(70, 30, 120, 0.25), transparent 60%),
-                radial-gradient(800px 500px at 80% 30%, rgba(0, 150, 255, 0.2), transparent 60%),
-                #000;
+        radial-gradient(800px 500px at 80% 30%, rgba(0, 150, 255, 0.2), transparent 60%),
+        #000;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
@@ -45,7 +45,7 @@ body {
     margin-bottom: 3rem;
     color: #fff;
     font-family: 'Segoe Script', 'Brush Script MT', cursive;
-    text-shadow: 0 0 10px rgba(255,255,255,0.6);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
 }
 
 .language-buttons {
@@ -64,8 +64,8 @@ body {
 /* Starfield for Start Screen */
 #startScreen {
     background: radial-gradient(1000px 600px at 20% 10%, rgba(70, 30, 120, 0.25), transparent 60%),
-                radial-gradient(800px 500px at 80% 30%, rgba(0, 150, 255, 0.2), transparent 60%),
-                #000;
+        radial-gradient(800px 500px at 80% 30%, rgba(0, 150, 255, 0.2), transparent 60%),
+        #000;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
@@ -84,20 +84,42 @@ body {
     position: absolute;
     width: 2px;
     height: 2px;
-    background: radial-gradient(circle, #fff 0%, rgba(255,255,255,0) 60%);
+    background: radial-gradient(circle, #fff 0%, rgba(255, 255, 255, 0) 60%);
     opacity: 0.8;
     border-radius: 50%;
     animation: twinkle 2s infinite ease-in-out;
     box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
 }
 
-.star.small { width: 1px; height: 1px; opacity: 0.6; }
-.star.medium { width: 2px; height: 2px; }
-.star.large { width: 3px; height: 3px; opacity: 0.9; }
+.star.small {
+    width: 1px;
+    height: 1px;
+    opacity: 0.6;
+}
+
+.star.medium {
+    width: 2px;
+    height: 2px;
+}
+
+.star.large {
+    width: 3px;
+    height: 3px;
+    opacity: 0.9;
+}
 
 @keyframes twinkle {
-    0%, 100% { opacity: 0.3; transform: scale(0.9); }
-    50% { opacity: 1; transform: scale(1.2); }
+
+    0%,
+    100% {
+        opacity: 0.3;
+        transform: scale(0.9);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
 }
 
 /* Ensure content appears above starfield */
@@ -122,7 +144,7 @@ body {
     margin-bottom: 2.5rem;
     color: #fff;
     font-family: 'Segoe Script', 'Brush Script MT', cursive;
-    text-shadow: 0 0 20px rgba(255,255,255,0.9), 0 0 40px rgba(255,255,255,0.5), 0 0 60px rgba(255,255,255,0.3);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 40px rgba(255, 255, 255, 0.5), 0 0 60px rgba(255, 255, 255, 0.3);
     letter-spacing: 2px;
 }
 
@@ -190,8 +212,8 @@ body {
 .btn-primary {
     background: #d0d0d0;
     color: #222;
-    box-shadow: 0 4px 16px rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.35);
+    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: 24px;
     font-family: 'Gochi Hand', cursive;
 }
@@ -209,8 +231,8 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.35);
-    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.08);
     color: #fff;
     display: flex;
     align-items: center;
@@ -221,7 +243,7 @@ body {
 }
 
 .mute-icon:hover {
-    background: rgba(255,255,255,0.15);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .language-toggle {
@@ -232,8 +254,8 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.35);
-    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.08);
     color: #fff;
     display: flex;
     align-items: center;
@@ -244,7 +266,7 @@ body {
 }
 
 .language-toggle:hover {
-    background: rgba(255,255,255,0.15);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .btn-secondary:hover {
@@ -317,9 +339,11 @@ body {
     0% {
         box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
     }
+
     50% {
         box-shadow: 0 4px 25px rgba(255, 107, 107, 0.8);
     }
+
     100% {
         box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
     }
@@ -399,7 +423,8 @@ body {
     font-size: clamp(2rem, 6vw, 3rem);
     margin-bottom: 1rem;
     color: #ff6b6b;
-    font-family: 'Segoe Script', 'Brush Script MT', cursive;
+    font-family: 'Orbitron', monospace;
+    font-style: normal;
 }
 
 .game-over-message {
@@ -434,7 +459,8 @@ body {
     color: #aaa;
     letter-spacing: 1px;
     font-size: 0.9rem;
-    font-family: 'Segoe Script', 'Brush Script MT', cursive;
+    font-family: 'Orbitron', monospace;
+    font-style: normal;
     opacity: 0.8;
 }
 
@@ -455,7 +481,7 @@ body {
     margin: 5px 0;
     background: rgba(255, 255, 255, 0.06);
     border-radius: 8px;
-    border-left: 3px solid rgba(255,255,255,0.35);
+    border-left: 3px solid rgba(255, 255, 255, 0.35);
 }
 
 .leaderboard-item.current-player {
@@ -542,8 +568,13 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Responsive Design */
@@ -552,17 +583,17 @@ body {
         max-width: 95%;
         padding: 15px;
     }
-    
+
     .btn {
         min-width: 180px;
         padding: 12px 24px;
         font-size: 1rem;
     }
-    
+
     .game-header {
         padding: 10px 15px;
     }
-    
+
     .game-header .score,
     .game-header .distance {
         font-size: 1rem;
@@ -573,7 +604,7 @@ body {
     .title {
         font-size: clamp(1.5rem, 6vw, 2.5rem);
     }
-    
+
     .btn {
         min-width: 160px;
         padding: 10px 20px;
