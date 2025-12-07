@@ -86,7 +86,7 @@ class SimpleGame {
         this.smallDogImage.onerror = () => {
             console.error('Failed to load small dog image: sk_dog.png');
         };
-        this.smallDogImage.src = 'sk_dog.png';
+        this.smallDogImage.src = ASSETS.smallDog;
 
         this.bigDogImage = new Image();
         this.bigDogLoaded = false;
@@ -98,7 +98,7 @@ class SimpleGame {
         this.bigDogImage.onerror = () => {
             console.error('Failed to load big dog image: bigdog.jpg');
         };
-        this.bigDogImage.src = 'bigdog.jpg';
+        this.bigDogImage.src = ASSETS.bigDog;
         // Default aspects in case images not yet loaded
         this.smallDogAspect = 1.2;
         this.bigDogAspect = 1.3;

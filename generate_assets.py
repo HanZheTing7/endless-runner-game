@@ -2,14 +2,17 @@ import base64
 import os
 
 def image_to_base64(path):
+    mime_type = "image/jpeg" if path.lower().endswith(('.jpg', '.jpeg')) else "image/png"
     with open(path, "rb") as image_file:
-        return "data:image/png;base64," + base64.b64encode(image_file.read()).decode('utf-8')
+        return f"data:{mime_type};base64," + base64.b64encode(image_file.read()).decode('utf-8')
 
 assets = {}
 files = {
     "head": "c:/Endless Runner/sk-head.png",
     "headJump": "c:/Endless Runner/sk_jump.png",
-    "wifeHead": "c:/Endless Runner/jane.png"
+    "wifeHead": "c:/Endless Runner/jane.png",
+    "smallDog": "c:/Endless Runner/sk_dog.png",
+    "bigDog": "c:/Endless Runner/bigdog.jpg"
 }
 
 print("Generating assets.js...")
