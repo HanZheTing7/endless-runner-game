@@ -2794,7 +2794,8 @@ class AudioManager {
             console.log('Audio system initialized successfully');
         } catch (error) {
             console.warn('Some audio files could not be loaded:', error);
-            this.isInitialized = false;
+            // Critical fix: We still mark as initialized so we can try to play what we have
+            this.isInitialized = true;
         }
     }
 
@@ -2802,6 +2803,10 @@ class AudioManager {
         return new Promise((resolve, reject) => {
             const audio = new Audio();
             audio.preload = 'auto';
+            // iOS might require this for some contexts
+            audio.playsInline = true;
+            try { audio.setAttribute('playsinline', ''); } catch (e) { }
+            try { audio.setAttribute('webkit-playsinline', ''); } catch (e) { }
 
             audio.addEventListener('canplaythrough', () => {
                 this.sounds[name] = {
