@@ -93,11 +93,17 @@ class LanguageManager {
         const languageToggle = document.getElementById('languageToggle');
 
         if (selectEnglish) {
-            selectEnglish.addEventListener('click', () => this.setLanguage('en'));
+            selectEnglish.addEventListener('click', () => {
+                console.log('English selected');
+                this.setLanguage('en');
+            });
         }
 
         if (selectChinese) {
-            selectChinese.addEventListener('click', () => this.setLanguage('zh'));
+            selectChinese.addEventListener('click', () => {
+                console.log('Chinese selected');
+                this.setLanguage('zh');
+            });
         }
 
         if (languageToggle) {
@@ -108,21 +114,39 @@ class LanguageManager {
     setLanguage(language) {
         if (this.translations[language]) {
             this.currentLanguage = language;
-            localStorage.setItem('gameLanguage', language);
-            this.applyLanguage();
+            try {
+                localStorage.setItem('gameLanguage', language);
+            } catch (e) {
+                console.warn('Failed to save language preference:', e);
+            }
+
+            try {
+                this.applyLanguage();
+            } catch (e) {
+                console.error('Error applying language:', e);
+            }
 
             // Hide language selection screen and show start screen
-            if (window.gameManager) {
-                window.gameManager.showScreen('start');
-            } else {
-                // Fallback if gameManager not ready (shouldn't happen usually)
+            try {
+                if (window.gameManager) {
+                    window.gameManager.showScreen('start');
+                } else {
+                    // Fallback if gameManager not ready
+                    const languageScreen = document.getElementById('languageScreen');
+                    const startScreen = document.getElementById('startScreen');
+
+                    if (languageScreen && startScreen) {
+                        languageScreen.classList.remove('active');
+                        startScreen.classList.add('active');
+                    }
+                }
+            } catch (e) {
+                console.error('Error switching screens:', e);
+                // Last ditch effort to switch screen
                 const languageScreen = document.getElementById('languageScreen');
                 const startScreen = document.getElementById('startScreen');
-
-                if (languageScreen && startScreen) {
-                    languageScreen.classList.remove('active');
-                    startScreen.classList.add('active');
-                }
+                if (languageScreen) languageScreen.classList.remove('active');
+                if (startScreen) startScreen.classList.add('active');
             }
 
             // Hide loading screen if it's still showing
@@ -132,18 +156,22 @@ class LanguageManager {
             }
 
             // Initialize the game manager if it hasn't been initialized yet
-            if (!window.gameManager && typeof GameManager !== 'undefined') {
-                console.log('Initializing GameManager after language selection');
-                window.gameManager = new GameManager();
-                // CRITICAL FIX: Unlock audio immediately using THIS user interaction event
-                if (window.gameManager.audioManager) {
+            try {
+                if (!window.gameManager && typeof GameManager !== 'undefined') {
+                    console.log('Initializing GameManager after language selection');
+                    window.gameManager = new GameManager();
+                    // CRITICAL FIX: Unlock audio immediately using THIS user interaction event
+                    if (window.gameManager.audioManager) {
+                        window.gameManager.audioManager.unlockAudio();
+                    }
+                } else if (!window.gameManager) {
+                    console.log('GameManager class not available yet, will be initialized when game.js loads');
+                } else if (window.gameManager && window.gameManager.audioManager) {
+                    // If game manager already exists, still try to unlock!
                     window.gameManager.audioManager.unlockAudio();
                 }
-            } else if (!window.gameManager) {
-                console.log('GameManager class not available yet, will be initialized when game.js loads');
-            } else if (window.gameManager && window.gameManager.audioManager) {
-                // If game manager already exists, still try to unlock!
-                window.gameManager.audioManager.unlockAudio();
+            } catch (e) {
+                console.error('Error initializing GameManager or unlocking audio:', e);
             }
         }
     }
