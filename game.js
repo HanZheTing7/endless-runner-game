@@ -2705,11 +2705,16 @@ class AudioManager {
             if (!this.userInteracted) {
                 console.log('User interaction detected - unlocking audio');
                 this.userInteracted = true;
-                this.resumeAudioContext();
 
-                // If music was supposed to be playing but couldn't, try again
+                // On iOS, we must play a sound inside the event handler to unlock audio
+                // Force play the main menu music if it should be playing
                 if (this.musicShouldBePlaying) {
                     this.playMainMenuMusic();
+                } else if (this.gameMusicShouldBePlaying) {
+                    this.playGameMusic();
+                } else {
+                    // Just play an empty sound or silence to unlock audio context if needed
+                    // For now, we assume music should be playing mostly
                 }
             }
         };
@@ -2717,16 +2722,6 @@ class AudioManager {
         ['click', 'touchstart', 'keydown'].forEach(event => {
             document.addEventListener(event, resumeAudio, { once: true });
         });
-    }
-
-    resumeAudioContext() {
-        // Resume all audio elements that might be suspended
-        for (let name in this.sounds) {
-            const sound = this.sounds[name];
-            if (sound && sound.audio && sound.audio.context && sound.audio.context.state === 'suspended') {
-                sound.audio.context.resume();
-            }
-        }
     }
 
     init() {
