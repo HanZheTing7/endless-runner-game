@@ -2706,38 +2706,41 @@ class AudioManager {
                 console.log('User interaction detected - unlocking audio');
                 this.userInteracted = true;
 
-                // iOS High-Confidence Unlock Strategy:
-                // We must "warm up" (play/pause) the specific Audio elements we intend to use.
-                // Playing a separate dummy sound is not enough for all iOS versions if we switch elements later.
+                // iOS Simplified Unlock Strategy:
+                // Just force play/pause the actual main menu music object directly.
+                // We will ensure playMainMenuMusic reuses this exact object.
 
-                // 1. Warm up pooled sounds
-                ['music', 'gameMusic'].forEach(poolKey => {
-                    if (this.soundPools[poolKey]) {
-                        this.soundPools[poolKey].forEach(audio => {
-                            audio.play().then(() => {
-                                audio.pause();
-                                audio.currentTime = 0;
-                            }).catch(e => console.log('Pool warm up failed', e));
-                        });
+                const menuSound = this.sounds['main_menu'];
+                if (menuSound && menuSound.audio) {
+                    const p = menuSound.audio.play();
+                    if (p !== undefined) {
+                        p.then(() => {
+                            // If we shouldn't be playing yet, pause it.
+                            if (!this.musicShouldBePlaying) {
+                                menuSound.audio.pause();
+                                menuSound.audio.currentTime = 0;
+                            }
+                        }).catch(e => console.log('Menu sound unlock failed', e));
                     }
-                });
+                }
 
-                // 2. Warm up base sound objects
-                ['main_menu', 'game_music'].forEach(key => {
-                    const sound = this.sounds[key];
-                    if (sound && sound.audio) {
-                        sound.audio.play().then(() => {
-                            sound.audio.pause();
-                            sound.audio.currentTime = 0;
-                        }).catch(e => console.log('Base sound warm up failed', e));
+                // Consider gamesound too
+                const gameSound = this.sounds['game_music'];
+                if (gameSound && gameSound.audio) {
+                    const p = gameSound.audio.play();
+                    if (p !== undefined) {
+                        p.then(() => {
+                            if (!this.gameMusicShouldBePlaying) {
+                                gameSound.audio.pause();
+                                gameSound.audio.currentTime = 0;
+                            }
+                        }).catch(e => console.log('Game sound unlock failed', e));
                     }
-                });
+                }
 
-                // 3. Actually resume playback if needed
+                // Update state
                 if (this.musicShouldBePlaying) {
                     this.playMainMenuMusic();
-                } else if (this.gameMusicShouldBePlaying) {
-                    this.playGameMusic();
                 }
             }
         };
@@ -2933,29 +2936,27 @@ class AudioManager {
         }
 
         try {
-            // Use pooled sound if available
-            if (sound.poolType && this.soundPools[sound.poolType]) {
-                const pooledSound = this.getAvailablePooledSound(sound.poolType);
-                if (pooledSound) {
-                    this.currentMusicAudio = pooledSound;
-                    pooledSound.volume = this.musicVolume * this.masterVolume;
-                    pooledSound.loop = true;
-                    pooledSound.currentTime = this.currentMusicTime;
-                    pooledSound.play().catch(e => console.warn('Music play failed:', e));
-                    this.musicShouldBePlaying = true;
-                    return;
-                }
-            }
+            // For music, DO NOT use the pool. Use the single persistent audio object.
+            // This ensures the object "blessed" by the interaction event is the one playing.
 
-            // Fallback to original sound
-            const audio = sound.audio.cloneNode();
+            // Use the original sound object directly
+            const audio = sound.audio;
+            // Don't clone for music tracks!
+
             this.currentMusicAudio = audio;
             audio.volume = this.musicVolume * this.masterVolume;
             audio.loop = true;
-            audio.currentTime = this.currentMusicTime;
-            audio.play().catch(e => console.warn('Music play failed:', e));
-            this.musicShouldBePlaying = true;
+            // Only set currentTime if we are resuming (and check if it's safe)
+            if (this.currentMusicTime > 0) {
+                try { audio.currentTime = this.currentMusicTime; } catch (e) { }
+            }
 
+            const p = audio.play();
+            if (p !== undefined) {
+                p.catch(e => console.warn('Music play failed:', e));
+            }
+
+            this.musicShouldBePlaying = true;
         } catch (error) {
             console.warn('Error playing main menu music:', error);
         }
@@ -2964,7 +2965,6 @@ class AudioManager {
     playGameMusic() {
         if (this.isMuted || !this.isInitialized) return;
 
-        // Don't start new music if already playing
         if (this.currentGameMusicAudio && !this.currentGameMusicAudio.paused) {
             return;
         }
@@ -2976,31 +2976,23 @@ class AudioManager {
         }
 
         try {
-            // Use pooled sound if available
-            if (sound.poolType && this.soundPools[sound.poolType]) {
-                const pooledSound = this.getAvailablePooledSound(sound.poolType);
-                if (pooledSound) {
-                    this.currentGameMusicAudio = pooledSound;
-                    pooledSound.volume = this.musicVolume * this.masterVolume;
-                    pooledSound.loop = true;
-                    pooledSound.currentTime = this.currentGameMusicTime;
-                    pooledSound.play().catch(e => console.warn('Game music play failed:', e));
-                    this.gameMusicShouldBePlaying = true;
-                    console.log('Game music started');
-                    return;
-                }
-            }
+            // DIRECTLY use the original audio, NO POOLING for music
+            const audio = sound.audio;
 
-            // Fallback to original sound
-            const audio = sound.audio.cloneNode();
             this.currentGameMusicAudio = audio;
             audio.volume = this.musicVolume * this.masterVolume;
             audio.loop = true;
-            audio.currentTime = this.currentGameMusicTime;
-            audio.play().catch(e => console.warn('Game music play failed:', e));
+            if (this.currentGameMusicTime > 0) {
+                try { audio.currentTime = this.currentGameMusicTime; } catch (e) { }
+            }
+
+            const p = audio.play();
+            if (p !== undefined) {
+                p.catch(e => console.warn('Game music play failed:', e));
+            }
+
             this.gameMusicShouldBePlaying = true;
             console.log('Game music started');
-
         } catch (error) {
             console.warn('Error playing game music:', error);
         }
