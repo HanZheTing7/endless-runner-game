@@ -2702,52 +2702,55 @@ class AudioManager {
     setupInteractionHandling() {
         // Add listeners for user interaction to unlock audio
         const resumeAudio = () => {
-            if (!this.userInteracted) {
-                console.log('User interaction detected - unlocking audio');
-                this.userInteracted = true;
-
-                // iOS Simplified Unlock Strategy:
-                // Just force play/pause the actual main menu music object directly.
-                // We will ensure playMainMenuMusic reuses this exact object.
-
-                const menuSound = this.sounds['main_menu'];
-                if (menuSound && menuSound.audio) {
-                    const p = menuSound.audio.play();
-                    if (p !== undefined) {
-                        p.then(() => {
-                            // If we shouldn't be playing yet, pause it.
-                            if (!this.musicShouldBePlaying) {
-                                menuSound.audio.pause();
-                                menuSound.audio.currentTime = 0;
-                            }
-                        }).catch(e => console.log('Menu sound unlock failed', e));
-                    }
-                }
-
-                // Consider gamesound too
-                const gameSound = this.sounds['game_music'];
-                if (gameSound && gameSound.audio) {
-                    const p = gameSound.audio.play();
-                    if (p !== undefined) {
-                        p.then(() => {
-                            if (!this.gameMusicShouldBePlaying) {
-                                gameSound.audio.pause();
-                                gameSound.audio.currentTime = 0;
-                            }
-                        }).catch(e => console.log('Game sound unlock failed', e));
-                    }
-                }
-
-                // Update state
-                if (this.musicShouldBePlaying) {
-                    this.playMainMenuMusic();
-                }
-            }
+            this.unlockAudio();
         };
 
         ['click', 'touchstart', 'keydown'].forEach(event => {
             document.addEventListener(event, resumeAudio, { once: true });
         });
+    }
+
+    unlockAudio() {
+        if (this.userInteracted) return;
+        console.log('User interaction detected - unlocking audio via unlockAudio()');
+        this.userInteracted = true;
+
+        // iOS Simplified Unlock Strategy:
+        // Just force play/pause the actual main menu music object directly.
+        // We will ensure playMainMenuMusic reuses this exact object.
+
+        const menuSound = this.sounds['main_menu'];
+        if (menuSound && menuSound.audio) {
+            const p = menuSound.audio.play();
+            if (p !== undefined) {
+                p.then(() => {
+                    // If we shouldn't be playing yet, pause it.
+                    if (!this.musicShouldBePlaying) {
+                        menuSound.audio.pause();
+                        menuSound.audio.currentTime = 0;
+                    }
+                }).catch(e => console.log('Menu sound unlock failed', e));
+            }
+        }
+
+        // Consider gamesound too
+        const gameSound = this.sounds['game_music'];
+        if (gameSound && gameSound.audio) {
+            const p = gameSound.audio.play();
+            if (p !== undefined) {
+                p.then(() => {
+                    if (!this.gameMusicShouldBePlaying) {
+                        gameSound.audio.pause();
+                        gameSound.audio.currentTime = 0;
+                    }
+                }).catch(e => console.log('Game sound unlock failed', e));
+            }
+        }
+
+        // Update state
+        if (this.musicShouldBePlaying) {
+            this.playMainMenuMusic();
+        }
     }
 
     init() {

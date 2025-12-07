@@ -135,8 +135,15 @@ class LanguageManager {
             if (!window.gameManager && typeof GameManager !== 'undefined') {
                 console.log('Initializing GameManager after language selection');
                 window.gameManager = new GameManager();
+                // CRITICAL FIX: Unlock audio immediately using THIS user interaction event
+                if (window.gameManager.audioManager) {
+                    window.gameManager.audioManager.unlockAudio();
+                }
             } else if (!window.gameManager) {
                 console.log('GameManager class not available yet, will be initialized when game.js loads');
+            } else if (window.gameManager && window.gameManager.audioManager) {
+                // If game manager already exists, still try to unlock!
+                window.gameManager.audioManager.unlockAudio();
             }
         }
     }
