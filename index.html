@@ -13,7 +13,7 @@
 
 <body>
     <!-- Language Selection Screen -->
-    <div id="languageScreen" class="screen active">
+    <div id="languageScreen" class="screen">
         <div id="languageBackground" aria-hidden="true" style="pointer-events: none;"></div>
         <div class="container" style="position: relative; z-index: 10;">
             <h1 class="title">KeatingJaneForever</h1>
@@ -97,12 +97,26 @@
     </div>
 
     <!-- Loading Screen -->
-    <div id="loadingScreen" class="screen">
+    <div id="loadingScreen" class="screen active">
         <div class="container">
             <div class="spinner"></div>
             <p>Loading Game...</p>
+            <p id="slowConnectionMsg" class="slow-connection-msg">
+                Taking too long? <br> Try turning off WiFi and use 4G/5G data.
+            </p>
         </div>
     </div>
+
+    <script>
+        // Show slow connection message after 20 seconds
+        setTimeout(function () {
+            var loadingScreen = document.getElementById('loadingScreen');
+            var msg = document.getElementById('slowConnectionMsg');
+            if (loadingScreen && loadingScreen.classList.contains('active') && msg) {
+                msg.style.display = 'block';
+            }
+        }, 20000);
+    </script>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js" defer></script>
