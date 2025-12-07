@@ -93,17 +93,23 @@ class LanguageManager {
         const languageToggle = document.getElementById('languageToggle');
 
         if (selectEnglish) {
-            selectEnglish.addEventListener('click', () => {
-                console.log('English selected');
+            const handleEnglish = (e) => {
+                if (e.cancelable && e.type === 'touchstart') e.preventDefault();
+                console.log('Language interaction: English', e.type);
                 this.setLanguage('en');
-            });
+            };
+            selectEnglish.addEventListener('click', handleEnglish);
+            selectEnglish.addEventListener('touchstart', handleEnglish, { passive: false });
         }
 
         if (selectChinese) {
-            selectChinese.addEventListener('click', () => {
-                console.log('Chinese selected');
+            const handleChinese = (e) => {
+                if (e.cancelable && e.type === 'touchstart') e.preventDefault();
+                console.log('Language interaction: Chinese', e.type);
                 this.setLanguage('zh');
-            });
+            };
+            selectChinese.addEventListener('click', handleChinese);
+            selectChinese.addEventListener('touchstart', handleChinese, { passive: false });
         }
 
         if (languageToggle) {
@@ -112,8 +118,15 @@ class LanguageManager {
     }
 
     setLanguage(language) {
+        if (this.isProcessingLanguage) return;
+
         if (this.translations[language]) {
+            this.isProcessingLanguage = true;
             this.currentLanguage = language;
+
+            // Re-enable after short delay in case of error/revert
+            setTimeout(() => { this.isProcessingLanguage = false; }, 1000);
+
             try {
                 localStorage.setItem('gameLanguage', language);
             } catch (e) {
