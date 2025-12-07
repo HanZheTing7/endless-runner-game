@@ -2706,15 +2706,20 @@ class AudioManager {
                 console.log('User interaction detected - unlocking audio');
                 this.userInteracted = true;
 
-                // On iOS, we must play a sound inside the event handler to unlock audio
+                // iOS Hack: Play a silent buffer to unlock the AudioContext if we were using Web Audio API
+                // Even for HTML5 Audio, creating and playing a dummy sound helps
+                const unlockAudio = () => {
+                    const silentAudio = new Audio();
+                    silentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAgAAAAEA';
+                    silentAudio.play().catch(e => console.log('Silent unlock failed (expected):', e));
+                };
+                unlockAudio();
+
                 // Force play the main menu music if it should be playing
                 if (this.musicShouldBePlaying) {
                     this.playMainMenuMusic();
                 } else if (this.gameMusicShouldBePlaying) {
                     this.playGameMusic();
-                } else {
-                    // Just play an empty sound or silence to unlock audio context if needed
-                    // For now, we assume music should be playing mostly
                 }
             }
         };
