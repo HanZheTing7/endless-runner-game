@@ -2683,6 +2683,7 @@ class AudioManager {
         this.musicVolume = 0.5;
         this.isMuted = false;
         this.isInitialized = false;
+        this.userInteracted = false; // Track if user has interacted with the page
         this.isPaused = false; // Track if music is paused due to tab visibility
         this.isPausedDueToVisibility = false; // Track if music is intentionally paused due to tab being hidden
         this.currentMusicTime = 0; // Store current playback position
@@ -2693,7 +2694,39 @@ class AudioManager {
         this.gameMusicShouldBePlaying = false; // Track if game music should be playing
 
         this.init();
+        this.init();
         this.setupVisibilityHandling();
+        this.setupInteractionHandling();
+    }
+
+    setupInteractionHandling() {
+        // Add listeners for user interaction to unlock audio
+        const resumeAudio = () => {
+            if (!this.userInteracted) {
+                console.log('User interaction detected - unlocking audio');
+                this.userInteracted = true;
+                this.resumeAudioContext();
+
+                // If music was supposed to be playing but couldn't, try again
+                if (this.musicShouldBePlaying) {
+                    this.playMainMenuMusic();
+                }
+            }
+        };
+
+        ['click', 'touchstart', 'keydown'].forEach(event => {
+            document.addEventListener(event, resumeAudio, { once: true });
+        });
+    }
+
+    resumeAudioContext() {
+        // Resume all audio elements that might be suspended
+        for (let name in this.sounds) {
+            const sound = this.sounds[name];
+            if (sound && sound.audio && sound.audio.context && sound.audio.context.state === 'suspended') {
+                sound.audio.context.resume();
+            }
+        }
     }
 
     init() {
@@ -2816,7 +2849,16 @@ class AudioManager {
             audio.volume = volume * this.masterVolume;
             audio.playbackRate = pitch;
             audio.loop = loop;
-            audio.play().catch(e => console.warn('Audio play failed:', e));
+
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(e => {
+                    console.warn(`Audio play failed for "${soundName}":`, e);
+                    if (e.name === 'NotAllowedError') {
+                        console.log('Audio playback blocked - waiting for user interaction');
+                    }
+                });
+            }
 
         } catch (error) {
             console.warn(`Error playing sound "${soundName}":`, error);
