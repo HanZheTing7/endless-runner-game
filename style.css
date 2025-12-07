@@ -49,6 +49,10 @@ body {
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
 }
 
+.language-title .en-text {
+    font-size: 0.8em;
+}
+
 .language-buttons {
     display: flex;
     gap: 2rem;
@@ -57,7 +61,7 @@ body {
 }
 
 .language-buttons .btn {
-    min-width: 150px;
+    min-width: 200px;
     font-size: 1.2rem;
     padding: 18px 36px;
     font-family: 'Orbitron', monospace;
