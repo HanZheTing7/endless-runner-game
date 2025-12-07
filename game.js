@@ -108,8 +108,43 @@ class SimpleGame {
             console.error('ASSETS.bigDog is missing!');
         }
         // Default aspects in case images not yet loaded
+        // Default aspects in case images not yet loaded
         this.smallDogAspect = 1.2;
         this.bigDogAspect = 1.3;
+
+        this.dogOneImage = new Image();
+        this.dogOneLoaded = false;
+        this.dogOneImage.onload = () => {
+            this.dogOneLoaded = true;
+            console.log('Dog one obstacle image loaded successfully');
+            this.dogOneAspect = (this.dogOneImage.naturalWidth || 60) / (this.dogOneImage.naturalHeight || 50);
+        };
+        this.dogOneImage.onerror = (e) => {
+            console.error('Failed to load dog one image from ASSETS.dogOne', e);
+        };
+        if (ASSETS.dogOne) {
+            this.dogOneImage.src = ASSETS.dogOne;
+        } else {
+            console.error('ASSETS.dogOne is missing!');
+        }
+
+        this.dogTwoImage = new Image();
+        this.dogTwoLoaded = false;
+        this.dogTwoImage.onload = () => {
+            this.dogTwoLoaded = true;
+            console.log('Dog two obstacle image loaded successfully');
+            this.dogTwoAspect = (this.dogTwoImage.naturalWidth || 60) / (this.dogTwoImage.naturalHeight || 50);
+        };
+        this.dogTwoImage.onerror = (e) => {
+            console.error('Failed to load dog two image from ASSETS.dogTwo', e);
+        };
+        if (ASSETS.dogTwo) {
+            this.dogTwoImage.src = ASSETS.dogTwo;
+        } else {
+            console.error('ASSETS.dogTwo is missing!');
+        }
+        this.dogOneAspect = 1.2;
+        this.dogTwoAspect = 1.2;
 
         // Story mode properties
         this.gameState = 'start'; // 'start', 'story', 'playing', 'gameOver'
@@ -514,12 +549,21 @@ class SimpleGame {
 
         const height = smallHeight;
 
+        // Randomly choose a sprite type
+        const sprites = ['smallDog', 'bigDog', 'dogOne', 'dogTwo'];
+        const spriteType = sprites[Math.floor(Math.random() * sprites.length)];
+
         // Preserve image aspect ratio for width
-        const aspect = this.smallDogAspect || 1.2;
+        let aspect = 1.2;
+        if (spriteType === 'smallDog') aspect = this.smallDogAspect || 1.2;
+        else if (spriteType === 'bigDog') aspect = this.bigDogAspect || 1.3;
+        else if (spriteType === 'dogOne') aspect = this.dogOneAspect || 1.2;
+        else if (spriteType === 'dogTwo') aspect = this.dogTwoAspect || 1.2;
+
         const width = Math.round(height * aspect);
         const y = this.ground.y - height;
 
-        return { x, y, width, height, sprite: 'smallDog' };
+        return { x, y, width, height, sprite: spriteType };
     }
 
     updateDifficulty() {
@@ -1670,9 +1714,22 @@ class SimpleGame {
                 this.ctx.stroke();
             } else {
                 // Fixed-size sprite rendering preserving aspect
-                const useBig = obstacle.sprite === 'bigDog' || (obstacle.height >= 60);
-                const img = useBig ? this.bigDogImage : this.smallDogImage;
-                const loaded = useBig ? this.bigDogLoaded : this.smallDogLoaded;
+                let img, loaded;
+
+                if (obstacle.sprite === 'dogOne') {
+                    img = this.dogOneImage;
+                    loaded = this.dogOneLoaded;
+                } else if (obstacle.sprite === 'dogTwo') {
+                    img = this.dogTwoImage;
+                    loaded = this.dogTwoLoaded;
+                } else if (obstacle.sprite === 'bigDog' || (obstacle.height >= 60 && !obstacle.sprite)) {
+                    img = this.bigDogImage;
+                    loaded = this.bigDogLoaded;
+                } else {
+                    img = this.smallDogImage;
+                    loaded = this.smallDogLoaded;
+                }
+
                 if (loaded && img) {
                     const drawW = obstacle.width;
                     const drawH = obstacle.height;
@@ -1680,7 +1737,7 @@ class SimpleGame {
                     const drawY = obstacle.y;
                     this.ctx.drawImage(img, drawX, drawY, drawW, drawH);
                 } else {
-                    this.ctx.fillStyle = '#FF4444';
+                    this.ctx.fillStyle = '#FF4444'; // Red color
                     this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
                 }
             }

@@ -6,7 +6,9 @@ const files = {
     "headJump": "sk_jump.png",
     "wifeHead": "jane.png",
     "smallDog": "sk_dog.png",
-    "bigDog": "bigdog.jpg"
+    "bigDog": "bigdog.jpg",
+    "dogOne": "dogone.jpg",
+    "dogTwo": "dogtwo.jpg"
 };
 
 let jsContent = "const ASSETS = {\n";
