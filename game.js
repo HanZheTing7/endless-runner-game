@@ -83,10 +83,14 @@ class SimpleGame {
             console.log('Small dog obstacle image loaded successfully');
             this.smallDogAspect = (this.smallDogImage.naturalWidth || 60) / (this.smallDogImage.naturalHeight || 50);
         };
-        this.smallDogImage.onerror = () => {
-            console.error('Failed to load small dog image: sk_dog.png');
+        this.smallDogImage.onerror = (e) => {
+            console.error('Failed to load small dog image from ASSETS.smallDog', e);
         };
-        this.smallDogImage.src = ASSETS.smallDog;
+        if (ASSETS.smallDog) {
+            this.smallDogImage.src = ASSETS.smallDog;
+        } else {
+            console.error('ASSETS.smallDog is missing!');
+        }
 
         this.bigDogImage = new Image();
         this.bigDogLoaded = false;
@@ -95,10 +99,14 @@ class SimpleGame {
             console.log('Big dog obstacle image loaded successfully');
             this.bigDogAspect = (this.bigDogImage.naturalWidth || 90) / (this.bigDogImage.naturalHeight || 70);
         };
-        this.bigDogImage.onerror = () => {
-            console.error('Failed to load big dog image: bigdog.jpg');
+        this.bigDogImage.onerror = (e) => {
+            console.error('Failed to load big dog image from ASSETS.bigDog', e);
         };
-        this.bigDogImage.src = ASSETS.bigDog;
+        if (ASSETS.bigDog) {
+            this.bigDogImage.src = ASSETS.bigDog;
+        } else {
+            console.error('ASSETS.bigDog is missing!');
+        }
         // Default aspects in case images not yet loaded
         this.smallDogAspect = 1.2;
         this.bigDogAspect = 1.3;

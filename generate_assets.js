@@ -2,26 +2,36 @@ const fs = require('fs');
 const path = require('path');
 
 const files = {
-    head: "c:/Endless Runner/sk-head.png",
-    headJump: "c:/Endless Runner/sk_jump.png",
-    wifeHead: "c:/Endless Runner/jane.png"
+    "head": "sk-head.png",
+    "headJump": "sk_jump.png",
+    "wifeHead": "jane.png",
+    "smallDog": "sk_dog.png",
+    "bigDog": "bigdog.jpg"
 };
 
-console.log("Generating assets.js...");
 let jsContent = "const ASSETS = {\n";
 
-for (const [key, filePath] of Object.entries(files)) {
+for (const [key, fileName] of Object.entries(files)) {
+    const filePath = path.join(__dirname, fileName);
     if (fs.existsSync(filePath)) {
-        console.log(`Encoding ${filePath}...`);
-        const bitmap = fs.readFileSync(filePath);
-        const base64 = Buffer.from(bitmap).toString('base64');
-        jsContent += `    ${key}: "data:image/png;base64,${base64}",\n`;
+        console.log(`Encoding ${fileName}...`);
+        const fileData = fs.readFileSync(filePath);
+        const ext = path.extname(fileName).toLowerCase();
+        let mimeType = 'image/png';
+        if (ext === '.jpg' || ext === '.jpeg') {
+            mimeType = 'image/jpeg';
+        }
+        const b64 = `data:${mimeType};base64,${fileData.toString('base64')}`;
+        jsContent += `    ${key}: "${b64}",\n`;
     } else {
-        console.warn(`Warning: ${filePath} not found!`);
+        console.warn(`Warning: ${fileName} not found!`);
+        // If file not found, we might want to keep the old value if we were parsing assets.js, 
+        // but here we are regenerating it. If source is missing, we can't bundle it. 
+        // Ideally we should fail or ensure files exist.
     }
 }
 
 jsContent += "};\n";
 
-fs.writeFileSync("c:/Endless Runner/assets.js", jsContent);
+fs.writeFileSync(path.join(__dirname, 'assets.js'), jsContent);
 console.log("Done! assets.js created.");
