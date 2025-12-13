@@ -581,11 +581,17 @@ class SimpleGame {
         let smallHeight = Math.round(screenHeight * 0.09);
         smallHeight = Math.max(45, Math.min(smallHeight, maxObstacleHeight - 10));
 
-        const height = smallHeight;
-
         // Randomly choose a sprite type
         const sprites = ['smallDog', 'bigDog', 'dogOne', 'dogTwo', 'dogThree', 'dogFour'];
         const spriteType = sprites[Math.floor(Math.random() * sprites.length)];
+
+        // Adjust height for specific sprites
+        let finalHeight = smallHeight;
+        if (spriteType === 'dogThree') {
+            finalHeight = Math.round(smallHeight * 1.4); // Scale up Dog Three by 40%
+        }
+
+        const height = finalHeight;
 
         // Preserve image aspect ratio for width
         let aspect = 1.2;
