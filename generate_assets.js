@@ -9,8 +9,8 @@ const files = {
     "bigDog": "bigdog.jpg",
     "dogOne": "dogone.jpg",
     "dogTwo": "dogtwo.jpg",
-    "dogThree": "dogthree.jpg",
-    "dogFour": "dogfour.jpg"
+    "dogThree": "dogthree.png",
+    "dogFour": "dogfour.png"
 };
 
 let jsContent = "const ASSETS = {\n";
