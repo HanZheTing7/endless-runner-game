@@ -13,7 +13,7 @@ class SimpleGame {
         this.obstacleFrequency = 1; // Start with 1 obstacle, increases with difficulty
 
         // Game objects (positions will be updated in setupCanvas)
-        this.player = { x: 150, y: 450, width: 50, height: 80, velocityY: 0, isJumping: false, isSliding: false, slideTimer: 0, originalHeight: 80 };
+        this.player = { x: 150, y: 450, width: 50, height: 80, velocityY: 0, isJumping: false };
         this.ground = { y: 530, height: 70 };
         this.obstacles = [];
 
@@ -465,9 +465,6 @@ class SimpleGame {
         this.wife.width = Math.max(28, Math.min(40, width * 0.032)); // Much thinner: 0.045 -> 0.032, max 55 -> 40
         this.wife.height = Math.max(55, Math.min(95, height * 0.075)); // Keep height the same
 
-        // Store original height for restoring after slide
-        this.player.originalHeight = this.player.height;
-
         // Position ground at bottom of screen (responsive height)
         this.ground.height = Math.max(50, height * 0.08);
         this.ground.y = height - this.ground.height;
@@ -523,10 +520,8 @@ class SimpleGame {
         });
 
         // Touch events for mobile
-        let touchStartY = 0;
         this.canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            touchStartY = e.touches[0].clientY;
 
             const rect = this.canvas.getBoundingClientRect();
             const touch = e.touches[0];
@@ -543,24 +538,11 @@ class SimpleGame {
             }
 
             if (this.storyMode) {
+                // Handle story progression
                 this.handleStoryTap();
-            }
-        });
-
-        this.canvas.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            const touchEndY = e.changedTouches[0].clientY;
-
-            // Detect swipe down (positive difference)
-            if (touchEndY - touchStartY > 50) {
-                if (this.gameRunning) {
-                    this.slide();
-                }
-            } else if (Math.abs(touchEndY - touchStartY) < 10) {
-                // Treat as tap if little movement
-                if (this.gameRunning) {
-                    this.jump();
-                }
+            } else if (this.gameRunning) {
+                // Game is running, jump
+                this.jump();
             }
         });
 
@@ -574,11 +556,6 @@ class SimpleGame {
                 } else if (this.gameRunning) {
                     // Game is running, jump
                     this.jump();
-                }
-            } else if (e.code === 'ArrowDown') {
-                e.preventDefault();
-                if (this.gameRunning) {
-                    this.slide();
                 }
             }
         });
@@ -620,16 +597,7 @@ class SimpleGame {
         else if (spriteType === 'dogFour') aspect = this.dogFourAspect || 1.2;
 
         const width = Math.round(height * aspect);
-        let y = this.ground.y - height;
-
-        // "Flying" logic for new dogs: 50% chance to be a high obstacle that requires sliding
-        if ((spriteType === 'dogThree' || spriteType === 'dogFour') && Math.random() < 0.5) {
-            // Position it at head height (requiring slide)
-            // Ground Y - Player Height + some clearance
-            // e.g. 530 - 80 = 450. Obstacle at 450 hits head.
-            // If we want it to be slide-underable, it should be around y = 430-460
-            y = this.ground.y - this.player.originalHeight - 10;
-        }
+        const y = this.ground.y - height;
 
         return { x, y, width, height, sprite: spriteType };
     }
@@ -647,24 +615,11 @@ class SimpleGame {
     }
 
     jump() {
-        if (!this.player.isJumping && !this.player.isSliding) {
+        if (!this.player.isJumping) {
             this.player.isJumping = true;
             this.player.velocityY = this.jumpPower;
 
             // Jump sound removed
-        }
-    }
-
-    slide() {
-        if (!this.player.isJumping && !this.player.isSliding) {
-            this.player.isSliding = true;
-            this.player.slideTimer = 60; // 1 second at 60fps
-
-            // Squash character
-            this.player.height = this.player.originalHeight * 0.5;
-            this.player.y = this.ground.y - this.player.height;
-
-            console.log('Sliding!');
         }
     }
 
@@ -948,14 +903,6 @@ class SimpleGame {
                 this.player.y = this.ground.y - this.player.height;
                 this.player.isJumping = false;
                 this.player.velocityY = 0;
-            }
-        } else if (this.player.isSliding) {
-            this.player.slideTimer -= deltaSeconds * 60;
-            if (this.player.slideTimer <= 0) {
-                // Stop sliding
-                this.player.isSliding = false;
-                this.player.height = this.player.originalHeight;
-                this.player.y = this.ground.y - this.player.height;
             }
         }
 
