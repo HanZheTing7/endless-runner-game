@@ -2233,6 +2233,8 @@ class SimpleGame {
         ctx.fill();
         ctx.restore();
 
+        // Lace hem removed per user request
+        /*
         // Lace hem (scalloped)
         ctx.save();
         ctx.strokeStyle = 'rgba(230,230,230,0.9)';
@@ -2243,6 +2245,7 @@ class SimpleGame {
             ctx.stroke();
         }
         ctx.restore();
+        */
 
         // Bodice (sweetheart neckline)
         ctx.fillStyle = '#FFFFFF';
