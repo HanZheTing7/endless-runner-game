@@ -597,7 +597,21 @@ class SimpleGame {
         else if (spriteType === 'dogFour') aspect = this.dogFourAspect || 1.2;
 
         const width = Math.round(height * aspect);
-        const y = this.ground.y - height;
+
+        // Calculate Y position
+        let y = this.ground.y - height; // Default: Grounded
+
+        // 30% chance for High Obstacle (Anti-Jump)
+        // Must be spawned far enough to avoid cheap hits? (x handles that)
+        // Ensure not too close to start (x handles that)
+        if (Math.random() < 0.3) {
+            // Position above player head with clearance
+            const clearance = 25; // Enough space to run under safely (increased from 15 for safety)
+            // this.player.y is the Top of the player. 
+            // We want the BOTTOM of the obstacle to be at (this.player.y - clearance)
+            // So obstacle Y (top) = (this.player.y - clearance) - height
+            y = this.player.y - clearance - height;
+        }
 
         return { x, y, width, height, sprite: spriteType };
     }
