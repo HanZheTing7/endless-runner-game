@@ -404,10 +404,21 @@ class SimpleGame {
     }
 
     setupCanvas() {
-        // Get device pixel ratio for crisp rendering
-        const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x for performance
+        // Get device pixel ratio, capped at 2 for performance
+        let dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-        // Set actual canvas size (accounting for device pixel ratio)
+        // CRITICAL FIX: Hard cap rendering resolution to 1920px width
+        // This prevents browser crashes on 4K/5K screens where texture size becomes too large
+        // The canvas will still fill the screen via CSS, but internal resolution is limited
+        const maxRenderWidth = 1920;
+        const projectedWidth = window.innerWidth * dpr;
+
+        if (projectedWidth > maxRenderWidth) {
+            dpr = maxRenderWidth / window.innerWidth;
+            console.log(`Cap applied: Reducing DPR to ${dpr.toFixed(2)} to maintain max width ${maxRenderWidth}`);
+        }
+
+        // Set actual canvas size (accounting for calculated dpr)
         this.canvas.width = window.innerWidth * dpr;
         this.canvas.height = window.innerHeight * dpr;
 
@@ -430,7 +441,15 @@ class SimpleGame {
 
         // Add resize listener to maintain fullscreen
         window.addEventListener('resize', () => {
-            const newDpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x for performance
+            // Recalculate DPR with same caps
+            let newDpr = Math.min(window.devicePixelRatio || 1, 2);
+
+            const maxRenderWidth = 1920;
+            const projectedWidth = window.innerWidth * newDpr;
+
+            if (projectedWidth > maxRenderWidth) {
+                newDpr = maxRenderWidth / window.innerWidth;
+            }
 
             // Set actual canvas size (accounting for device pixel ratio)
             this.canvas.width = window.innerWidth * newDpr;
