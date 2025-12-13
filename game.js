@@ -405,7 +405,7 @@ class SimpleGame {
 
     setupCanvas() {
         // Get device pixel ratio for crisp rendering
-        const dpr = window.devicePixelRatio || 1;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x for performance
 
         // Set actual canvas size (accounting for device pixel ratio)
         this.canvas.width = window.innerWidth * dpr;
@@ -430,7 +430,7 @@ class SimpleGame {
 
         // Add resize listener to maintain fullscreen
         window.addEventListener('resize', () => {
-            const newDpr = window.devicePixelRatio || 1;
+            const newDpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x for performance
 
             // Set actual canvas size (accounting for device pixel ratio)
             this.canvas.width = window.innerWidth * newDpr;
