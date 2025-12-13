@@ -602,15 +602,16 @@ class SimpleGame {
         let y = this.ground.y - height; // Default: Grounded
 
         // 30% chance for High Obstacle (Anti-Jump)
-        // Must be spawned far enough to avoid cheap hits? (x handles that)
-        // Ensure not too close to start (x handles that)
         if (Math.random() < 0.3) {
             // Position above player head with clearance
-            const clearance = 25; // Enough space to run under safely (increased from 15 for safety)
-            // this.player.y is the Top of the player. 
-            // We want the BOTTOM of the obstacle to be at (this.player.y - clearance)
-            // So obstacle Y (top) = (this.player.y - clearance) - height
-            y = this.player.y - clearance - height;
+            const clearance = 20; // Reduced slightly to keep it tight
+
+            // BUG FIX: Use ground.y - player.height (standing position) instead of current player.y (which changes when jumping)
+            const standingHeadY = this.ground.y - this.player.height;
+
+            // WE want bottom of obstacle (y + height) to be at standingHeadY - clearance
+            // So y = standingHeadY - clearance - height
+            y = standingHeadY - clearance - height;
         }
 
         return { x, y, width, height, sprite: spriteType };
