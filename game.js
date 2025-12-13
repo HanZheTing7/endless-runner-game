@@ -676,6 +676,8 @@ class SimpleGame {
         this.isTransitioning = false; // Make sure we're not transitioning
 
         // Start game music during story mode for better atmosphere
+        // MOVED TO GameManager.startGame() to prevent race conditions
+        /*
         if (window.gameManager && window.gameManager.audioManager) {
             console.log('Story mode starting - switching to game music');
             window.gameManager.audioManager.stopMainMenuMusic(); // Stop menu music
@@ -684,6 +686,7 @@ class SimpleGame {
                 window.gameManager.audioManager.playGameMusic(); // Start game music
             }, 200);
         }
+        */
 
         // Reset story properties
         this.currentLineIndex = 0;
@@ -2916,6 +2919,10 @@ class AudioManager {
 
     playMainMenuMusic() {
         if (this.currentMusicSource) return; // Already playing
+
+        // Ensure game music is stopped
+        this.stopGameMusic();
+
         this.musicShouldBePlaying = true;
         this.playMusicTrack('main_menu');
     }
@@ -2973,26 +2980,10 @@ class AudioManager {
     }
 
     stopGameMusic() {
-        // Save current playback time if game music is playing
-        if (this.currentGameMusicAudio && !this.currentGameMusicAudio.paused) {
-            this.currentGameMusicTime = this.currentGameMusicAudio.currentTime;
+        if (this.currentGameMusicSource) {
+            try { this.currentGameMusicSource.stop(); } catch (e) { }
+            this.currentGameMusicSource = null;
         }
-
-        // Stop game music from the gameMusic pool
-        if (this.soundPools.gameMusic) {
-            for (let audio of this.soundPools.gameMusic) {
-                audio.pause();
-            }
-        }
-
-        // Also stop the original game music sound if it's playing
-        const gameMusicSound = this.sounds['game_music'];
-        if (gameMusicSound && gameMusicSound.audio) {
-            gameMusicSound.audio.pause();
-        }
-
-        // Clear current game music reference
-        this.currentGameMusicAudio = null;
         this.gameMusicShouldBePlaying = false;
         console.log('Game music stopped');
     }
@@ -3459,6 +3450,12 @@ class GameManager {
 
         // Wait a moment for DOM to be fully ready before starting the game
         setTimeout(() => {
+            // Start game music
+            if (this.audioManager) {
+                console.log('GameManager starting game music...');
+                this.audioManager.playGameMusic();
+            }
+
             // Initialize game
             this.game = new SimpleGame();
             this.game.start();
@@ -3468,6 +3465,11 @@ class GameManager {
     restartGame() {
         this.showScreen('game');
         this.gameRunning = true;
+
+        if (this.audioManager) {
+            this.audioManager.stopMainMenuMusic(); // Safety ensure
+            this.audioManager.playGameMusic();
+        }
 
         this.game = new SimpleGame();
         this.game.start();
