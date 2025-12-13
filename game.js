@@ -3448,6 +3448,12 @@ class GameManager {
             return;
         }
 
+        // Force stop main menu music immediately to prevent overlap
+        if (this.audioManager) {
+            console.log('Explicitly stopping main menu music before game start');
+            this.audioManager.stopMainMenuMusic();
+        }
+
         this.showScreen('game');
         this.gameRunning = true;
 
