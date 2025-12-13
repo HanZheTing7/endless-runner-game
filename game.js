@@ -988,6 +988,8 @@ class SimpleGame {
         this.score = Math.floor(this.distance);
 
         // Play level-up tone every 1000 distance (once per milestone)
+        // REMOVED at user request: Silent progression
+        /*
         const currentMilestone = Math.floor(this.distance / 1000);
         if (currentMilestone > this.lastLevelUpMilestone && currentMilestone >= 1) {
             this.lastLevelUpMilestone = currentMilestone;
@@ -995,6 +997,7 @@ class SimpleGame {
                 window.gameManager.audioManager.playLevelUpTone();
             }
         }
+        */
 
         // Progressive difficulty based on distance
         this.updateDifficulty();
