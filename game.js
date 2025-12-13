@@ -146,6 +146,40 @@ class SimpleGame {
         this.dogOneAspect = 1.2;
         this.dogTwoAspect = 1.2;
 
+        this.dogThreeImage = new Image();
+        this.dogThreeLoaded = false;
+        this.dogThreeImage.onload = () => {
+            this.dogThreeLoaded = true;
+            console.log('Dog three obstacle image loaded successfully');
+            this.dogThreeAspect = (this.dogThreeImage.naturalWidth || 60) / (this.dogThreeImage.naturalHeight || 50);
+        };
+        this.dogThreeImage.onerror = (e) => {
+            console.error('Failed to load dog three image from ASSETS.dogThree', e);
+        };
+        if (ASSETS.dogThree) {
+            this.dogThreeImage.src = ASSETS.dogThree;
+        } else {
+            console.error('ASSETS.dogThree is missing!');
+        }
+
+        this.dogFourImage = new Image();
+        this.dogFourLoaded = false;
+        this.dogFourImage.onload = () => {
+            this.dogFourLoaded = true;
+            console.log('Dog four obstacle image loaded successfully');
+            this.dogFourAspect = (this.dogFourImage.naturalWidth || 60) / (this.dogFourImage.naturalHeight || 50);
+        };
+        this.dogFourImage.onerror = (e) => {
+            console.error('Failed to load dog four image from ASSETS.dogFour', e);
+        };
+        if (ASSETS.dogFour) {
+            this.dogFourImage.src = ASSETS.dogFour;
+        } else {
+            console.error('ASSETS.dogFour is missing!');
+        }
+        this.dogThreeAspect = 1.2;
+        this.dogFourAspect = 1.2;
+
         // Story mode properties
         this.gameState = 'start'; // 'start', 'story', 'playing', 'gameOver'
         this.storyMode = false;
@@ -550,7 +584,7 @@ class SimpleGame {
         const height = smallHeight;
 
         // Randomly choose a sprite type
-        const sprites = ['smallDog', 'bigDog', 'dogOne', 'dogTwo'];
+        const sprites = ['smallDog', 'bigDog', 'dogOne', 'dogTwo', 'dogThree', 'dogFour'];
         const spriteType = sprites[Math.floor(Math.random() * sprites.length)];
 
         // Preserve image aspect ratio for width
@@ -559,6 +593,8 @@ class SimpleGame {
         else if (spriteType === 'bigDog') aspect = this.bigDogAspect || 1.3;
         else if (spriteType === 'dogOne') aspect = this.dogOneAspect || 1.2;
         else if (spriteType === 'dogTwo') aspect = this.dogTwoAspect || 1.2;
+        else if (spriteType === 'dogThree') aspect = this.dogThreeAspect || 1.2;
+        else if (spriteType === 'dogFour') aspect = this.dogFourAspect || 1.2;
 
         const width = Math.round(height * aspect);
         const y = this.ground.y - height;
@@ -1722,6 +1758,12 @@ class SimpleGame {
                 } else if (obstacle.sprite === 'dogTwo') {
                     img = this.dogTwoImage;
                     loaded = this.dogTwoLoaded;
+                } else if (obstacle.sprite === 'dogThree') {
+                    img = this.dogThreeImage;
+                    loaded = this.dogThreeLoaded;
+                } else if (obstacle.sprite === 'dogFour') {
+                    img = this.dogFourImage;
+                    loaded = this.dogFourLoaded;
                 } else if (obstacle.sprite === 'bigDog' || (obstacle.height >= 60 && !obstacle.sprite)) {
                     img = this.bigDogImage;
                     loaded = this.bigDogLoaded;

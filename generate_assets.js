@@ -8,7 +8,9 @@ const files = {
     "smallDog": "sk_dog.png",
     "bigDog": "bigdog.jpg",
     "dogOne": "dogone.jpg",
-    "dogTwo": "dogtwo.jpg"
+    "dogTwo": "dogtwo.jpg",
+    "dogThree": "dogthree.jpg",
+    "dogFour": "dogfour.jpg"
 };
 
 let jsContent = "const ASSETS = {\n";
