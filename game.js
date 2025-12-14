@@ -2974,7 +2974,15 @@ class AudioManager {
     }
 
     playGameMusic() {
-        if (this.currentGameMusicSource) return;
+        // Nuclear option: Ensure main menu music is dead
+        this.stopMainMenuMusic();
+        this.musicShouldBePlaying = false; // Double ensure
+
+        if (this.currentGameMusicSource) {
+            try { this.currentGameMusicSource.stop(); } catch (e) { }
+            this.currentGameMusicSource = null;
+        }
+
         this.gameMusicShouldBePlaying = true;
 
         if (!this.ctx || !this.sounds['game_music']) return;
@@ -3281,6 +3289,7 @@ class GameManager {
         }
 
         if ((this.currentScreen === 'start' || this.currentScreen === 'leaderboard') &&
+            !this.gameRunning && // Critical fix: Don't restart menu music if game is running
             !this.audioManager.isMainMenuMusicPlaying() &&
             !this.audioManager.isMuted &&
             this.audioManager.isInitialized) {
